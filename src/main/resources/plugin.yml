@@ -1,0 +1,4 @@
+name: soulSnatcher
+version: '1.0-SNAPSHOT'
+main: at.gaderman.soulSnatcher.SoulSnatcher
+api-version: '1.21'
