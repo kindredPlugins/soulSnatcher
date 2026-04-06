@@ -1,16 +1,15 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -33,6 +32,7 @@ public class SoulListener implements Listener {
     @EventHandler
     public void onSoulInfuse(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
+        if(event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.SPAWNER_EGG) return;
 
         Collection<Player> nearbyPlayers = mob.getWorld().getNearbyPlayers(mob.getLocation(), 50, 50);
         if (nearbyPlayers.isEmpty()) return;
@@ -103,31 +103,31 @@ public class SoulListener implements Listener {
         SoulEffects.playBindEffect(player, interaction.getLocation().toCenterLocation());
     }
 
+    /**
+     * Entities who die have their soul removed from the cache. Players who die lose all soul data
+     */
     @EventHandler
-    public void onDamageReceivedTrigger(EntityDamageEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+    public void onEntityDeath(EntityDeathEvent event){
+       if(event.getEntity() instanceof Player player)
+           Soul.clearSouls(player);
 
-        List<Soul> souls = Soul.getCarriedSouls(entity);
-        souls.stream()
-                .filter(soul -> soul instanceof OnDamageReceivedTrigger)
-                .map(soul -> (OnDamageReceivedTrigger) soul)
-                .forEach(trigger -> {
-                    trigger.onDamageReceived(entity, event);
-                });
+       else Soul.removeFromCache(event.getEntity());
     }
 
+    /**
+     * When a player joins, their data needs to be loaded into the cache so it can be processed quickly
+     */
     @EventHandler
-    public void onDamageReceivedByEntityTrigger(EntityDamageByEntityEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity entity)) return;
-        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+    public void onPlayerJoin(PlayerJoinEvent event){
+        Soul.loadIntoCache(event.getPlayer());
+    }
 
-        List<Soul> souls = Soul.getCarriedSouls(entity);
-        souls.stream()
-                .filter(soul -> soul instanceof OnDamageReceivedTrigger)
-                .map(soul -> (OnDamageReceivedTrigger) soul)
-                .forEach(trigger -> {
-                    trigger.onDamageReceivedByEntity(entity, damager, event);
-                });
+    /**
+     * When a player quits, he should be removed from soul cache to avoid memory leak
+     */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event){
+        Soul.removeFromCache(event.getPlayer());
     }
 
 }

@@ -195,4 +195,40 @@ public abstract class Soul {
         SoulEffects.startSoulOrbit(player, this);
         return true;
     }
+
+    /**
+     * Removes all cached soul entries of the given entity. The cache is only used for quick lookups.
+     * Using this helps avoid memory leaks. Never call this unprecedented! This may cause issues!
+     * @param livingEntity The entity whose soul data should be removed from the cache
+     */
+    public static void removeFromCache(LivingEntity livingEntity){
+        cachedBoundSouls.remove(livingEntity.getUniqueId());
+    }
+
+    /**
+     * Clears all soul information of the player. This usually happens on death.
+     * @param player The player whose soul data to reset
+     */
+    public static void clearSouls(Player player){
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        pdc.remove(UNBOUND_SOULS);
+        pdc.remove(BOUND_SOULS);
+
+        removeFromCache(player);
+    }
+
+    /**
+     * Loads all soul data stored in the players pdc into cached lists to speed up processing.
+     * Usually gets called on login.
+     * @param player The player whose soul data gets loaded into cache from pdc
+     */
+    public static void loadIntoCache(Player player){
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
+        if(boundSouls.isEmpty()) return;
+
+        SoulRegistry soulRegistry = SoulRegistry.getInstance();
+        List<Soul> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
+        souls.forEach(soul -> soul.bindSoul(player));
+    }
 }
