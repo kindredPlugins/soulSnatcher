@@ -3,11 +3,15 @@ package at.gaderman.soulSnatcher.souls;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -44,6 +48,7 @@ public abstract class Soul {
         return !(carrier instanceof Player);
     }
 
+    public static final int MAX_BOUND_SOULS = 2;
     public static final int MAX_UNBOUND_SOULS = 15;
     public static final String NO_SOUL_RELEASE_TAG = "no_soul_release";
 
@@ -69,6 +74,8 @@ public abstract class Soul {
      * @param player The player who killed the mob, this adds the soul into their unbound Soul collection
      */
     public void releaseSoul(Location location, Player player){
+        location.setPitch(0);
+
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         ArrayList<String> unboundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
 
@@ -94,21 +101,98 @@ public abstract class Soul {
         });
     }
 
+    private void addSoulToPdc(LivingEntity livingEntity){
+        PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
+        ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
+        boundSouls.add(id());
+        pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls);
+    }
+
     /**
      * Infuses the given mob with this soul, this CANNOT be a player! Players have their own way of using souls, infusion is different.
      * This will give the mob a soul-related ability, including custom AI
      * @param mob The mob to be infused with this soul, CANNOT be a player!
      */
     public void infuseSoul(Mob mob){
-        PersistentDataContainer pdc = mob.getPersistentDataContainer();
-        ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
-        boundSouls.add(id());
-        pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls);
+        addSoulToPdc(mob);
 
         List<Soul> cachedSouls = cachedBoundSouls.computeIfAbsent(mob.getUniqueId(), (uuid) -> new ArrayList<>());
         cachedSouls.add(this);
         cachedBoundSouls.put(mob.getUniqueId(), cachedSouls);
 
         SoulEffects.startSoulOrbit(mob, this);
+    }
+
+    public static final NamespacedKey SOUL_REWARD = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward");
+
+    /**
+     * Spawns in a set of display entities that are used to enable the player to accept they soul
+     * they have been offered by defeating an infused mob
+     * @param location The location where to offer the soul, usually the mobs death location
+     */
+    public void offerSoulReward(Location location){
+        location.setPitch(0);
+
+        location.getWorld().playSound(location, Sound.BLOCK_LEVER_CLICK, 1f, 0.5f);
+        location.getWorld().playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
+
+        ItemDisplay skullDisplay = location.getWorld().spawn(location.clone().add(0, 1.5, 0), ItemDisplay.class, display -> {
+            display.setItemStack(getRepresentativeSkull());
+
+            Transformation transformation = new Transformation(
+                    new Vector3f(0, 0, 0),
+                    new AxisAngle4f((float) Math.PI, 0, 1, 0),
+                    new Vector3f(1f, 1f, 1f),
+                    new AxisAngle4f(0, 0, 0, 1)
+            );
+            display.setTransformation(transformation);
+            display.setBillboard(Display.Billboard.VERTICAL);
+        });
+        TextDisplay soulTitle = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, 0.15, 0), TextDisplay.class, display -> {
+           display.text(displayName());
+           display.setAlignment(TextDisplay.TextAlignment.CENTER);
+           display.setBillboard(Display.Billboard.VERTICAL);
+        });
+        TextDisplay interactText = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, -1, 0), TextDisplay.class, display -> {
+            display.text(Component.keybind("key.use", NamedTextColor.YELLOW).append(Component.text(" to bind")));
+            display.setAlignment(TextDisplay.TextAlignment.CENTER);
+            display.setBillboard(Display.Billboard.VERTICAL);
+        });
+        Interaction soulInteraction = location.getWorld().spawn(location.clone().add(0, 0.4, 0), Interaction.class, interaction -> {
+            interaction.setInteractionHeight(1.5f);
+            interaction.setInteractionWidth(1.0f);
+
+            interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, id());
+        });
+        List<Entity> displayEntities = List.of(skullDisplay, soulTitle, interactText);
+        displayEntities.forEach(entity -> entity.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulInteraction.getUniqueId().toString()));
+
+//        TextDisplay soulDescription = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, description().size() * -0.75, 0), TextDisplay.class, display -> {
+//            display.text(description().stream().reduce((x, y) -> x.appendNewline().append(y.color(NamedTextColor.YELLOW)).color(NamedTextColor.YELLOW)).get());
+//            display.setAlignment(TextDisplay.TextAlignment.CENTER);
+//            display.setBillboard(Display.Billboard.VERTICAL);
+//            display.setShadowed(false);
+//            display.setSeeThrough(false);
+//        });
+    }
+
+    /**
+     * Makes the given player bind to this soul. This enables them to use abilities of that soul.
+     * Players can only bind with up to 2 souls, if that limit is reached this method will fail
+     * and return false.
+     * @param player The player to be infused with this soul
+     * @return If the soul binding was successful, if the player has already reached their limit of bound souls
+     * or already bound with this soul, false will be returned
+     */
+    public boolean bindSoul(Player player){
+        List<Soul> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
+        if(boundSouls.size() >= MAX_BOUND_SOULS || boundSouls.contains(this)) return false;
+
+        addSoulToPdc(player);
+        boundSouls.add(this);
+        cachedBoundSouls.put(player.getUniqueId(), boundSouls);
+
+        SoulEffects.startSoulOrbit(player, this);
+        return true;
     }
 }

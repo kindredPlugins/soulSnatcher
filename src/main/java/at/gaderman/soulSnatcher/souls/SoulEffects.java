@@ -1,11 +1,14 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.joml.Matrix4f;
@@ -33,7 +36,7 @@ public class SoulEffects {
         final double angleStep = 360.0 / DEFAULT_REVOLUTIONS_TRICKS;
         final double[] currentAngle = {0.0};
 
-        ItemDisplay display = spawnDisplay(target, soul);
+        ItemDisplay display = spawnReleaseSoulDisplay(target, soul);
         activeDisplays.put(target.getUniqueId(), display);
 
         BukkitTask task = new BukkitRunnable() {
@@ -74,7 +77,7 @@ public class SoulEffects {
 
     // --- Private helpers ---
 
-    private static ItemDisplay spawnDisplay(Entity target, Soul soul) {
+    private static ItemDisplay spawnReleaseSoulDisplay(Entity target, Soul soul) {
         Location spawnLoc = target.getLocation().clone().add(0, HEIGHT_OFFSET, 0);
 
         return target.getWorld().spawn(spawnLoc, ItemDisplay.class, d -> {
@@ -102,5 +105,14 @@ public class SoulEffects {
                 1, 0.05, 0.05, 0.05, 0.01);
         center.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, headPos,
                 1, 0.03, 0.03, 0.03, 0.005);
+    }
+
+    public static void playBindEffect(Player player, Location rewardLoc){
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ELDER_GUARDIAN_CURSE, 1f, 1.5f);
+
+        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+            player.getWorld().playSound(player, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 0.8f);
+            player.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, player.getLocation().toCenterLocation(), 50, 0.2, 0.2, 0.2, 0.2);
+        }, 20L);
     }
 }

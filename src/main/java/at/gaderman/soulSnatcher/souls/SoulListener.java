@@ -1,26 +1,28 @@
 package at.gaderman.soulSnatcher.souls;
 
+import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Player;
+import org.bukkit.Particle;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
 
     @EventHandler
     public void onSoulRelease(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
-        if(mob.getScoreboardTags().contains(Soul.NO_SOUL_RELEASE_TAG)) return;
+        if (mob.getScoreboardTags().contains(Soul.NO_SOUL_RELEASE_TAG)) return;
 
         var optSoul = SoulRegistry.getInstance().getSoul(mob.getType());
         if (optSoul.isEmpty()) return;
@@ -54,6 +56,51 @@ public class SoulListener implements Listener {
         randomSoul.infuseSoul(mob);
         unboundSoulIds.remove(randomSoul.id());
         pdc.set(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), unboundSoulIds);
+    }
+
+    @EventHandler
+    public void onSoulFreed(EntityDeathEvent event) {
+        if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
+
+        List<Soul> souls = Soul.getCarriedSouls(mob);
+        if (souls.isEmpty()) return;
+
+        souls.getFirst().offerSoulReward(mob.getLocation());
+    }
+
+    @EventHandler
+    public void onClaimSoul(PlayerInteractEntityEvent event) {
+        if (!(event.getRightClicked() instanceof Interaction interaction)) return;
+
+        PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+        if (!pdc.has(Soul.SOUL_REWARD)) return;
+
+        interaction.remove();
+        Stream.of(
+                        interaction.getWorld().getNearbyEntitiesByType(TextDisplay.class, interaction.getLocation(), 2),
+                        interaction.getWorld().getNearbyEntitiesByType(ItemDisplay.class, interaction.getLocation(), 2)
+                )
+                .flatMap(Collection::stream)
+                .filter(display -> display.getPersistentDataContainer()
+                        .getOrDefault(Soul.SOUL_REWARD, PersistentDataType.STRING, "")
+                        .equals(interaction.getUniqueId().toString()))
+                .forEach(Entity::remove);
+
+        Soul reward = SoulRegistry.getInstance().getSoul(pdc.get(Soul.SOUL_REWARD, PersistentDataType.STRING));
+        if (reward == null) {
+            SoulSnatcher.getPlugin().getLogger().warning("Could not load soul reward " + pdc.get(Soul.SOUL_REWARD, PersistentDataType.STRING));
+            interaction.getWorld().spawnParticle(Particle.EXPLOSION, interaction.getLocation().toCenterLocation(), 1);
+            return;
+        }
+
+        Player player = event.getPlayer();
+
+        boolean successfulBound = reward.bindSoul(player);
+        if (!successfulBound) {
+            return;
+        }
+
+        SoulEffects.playBindEffect(player, interaction.getLocation().toCenterLocation());
     }
 
     @EventHandler
