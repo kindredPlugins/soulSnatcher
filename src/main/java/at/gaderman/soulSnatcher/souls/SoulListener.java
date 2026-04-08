@@ -14,7 +14,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
@@ -22,11 +24,11 @@ public class SoulListener implements Listener {
     @EventHandler(ignoreCancelled = true,priority = EventPriority.HIGH)
     public void onSoulRelease(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
-        if (mob.getScoreboardTags().contains(Soul.NO_SOUL_RELEASE_TAG)) return;
+        if (mob.getScoreboardTags().contains(SoulType.NO_SOUL_RELEASE_TAG)) return;
 
         var optSoul = SoulRegistry.getInstance().getSoul(mob.getType());
         if (optSoul.isEmpty()) return;
-        var souls = Soul.getCarriedSouls(mob);
+        var souls = SoulType.getCarriedSouls(mob);
          if(!souls.isEmpty()) return;
 
         optSoul.get().releaseSoul(mob.getLocation(), mob.getKiller());
@@ -45,10 +47,12 @@ public class SoulListener implements Listener {
                 .min(Comparator.comparing(player -> player.getLocation().distanceSquared(mob.getLocation())))
                 .get();
 
-        List<Soul> unboundSouls = Soul.getUnboundSouls(closestPlayer);
+        List<SoulType> unboundSouls = SoulType.getUnboundSouls(closestPlayer);
 
         if (unboundSouls.isEmpty()) return;
-        Soul randomSoul = unboundSouls.get((int) (Math.random() * unboundSouls.size()));
+        SoulType randomSoul = unboundSouls.get((int) (Math.random() * unboundSouls.size()));
+
+        if(randomSoul.entityType().equals(mob.getType())) return;
 
         randomSoul.infuseSoul(mob);
         randomSoul.removeUnboundSoul(closestPlayer);
@@ -58,10 +62,10 @@ public class SoulListener implements Listener {
     public void onSoulFreed(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
 
-        List<Soul> souls = Soul.getCarriedSouls(mob);
+        List<SoulInstance> souls = SoulType.getCarriedSouls(mob);
         if (souls.isEmpty()) return;
 
-        souls.getFirst().offerSoulReward(mob.getLocation(), mob.getKiller());
+        souls.getFirst().soulType().offerSoulReward(mob.getLocation(), mob.getKiller());
     }
 
     @EventHandler
@@ -69,7 +73,7 @@ public class SoulListener implements Listener {
         if (!(event.getRightClicked() instanceof Interaction interaction)) return;
 
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-        if (!pdc.has(Soul.SOUL_REWARD)) return;
+        if (!pdc.has(SoulType.SOUL_REWARD)) return;
 
         interaction.remove();
         Stream.of(
@@ -78,13 +82,13 @@ public class SoulListener implements Listener {
                 )
                 .flatMap(Collection::stream)
                 .filter(display -> display.getPersistentDataContainer()
-                        .getOrDefault(Soul.SOUL_REWARD, PersistentDataType.STRING, "")
+                        .getOrDefault(SoulType.SOUL_REWARD, PersistentDataType.STRING, "")
                         .equals(interaction.getUniqueId().toString()))
                 .forEach(Entity::remove);
 
-        Soul reward = SoulRegistry.getInstance().getSoul(pdc.get(Soul.SOUL_REWARD, PersistentDataType.STRING));
+        SoulType reward = SoulRegistry.getInstance().getSoul(pdc.get(SoulType.SOUL_REWARD, PersistentDataType.STRING));
         if (reward == null) {
-            SoulSnatcher.getPlugin().getLogger().warning("Could not load soul reward " + pdc.get(Soul.SOUL_REWARD, PersistentDataType.STRING));
+            SoulSnatcher.getPlugin().getLogger().warning("Could not load soul reward " + pdc.get(SoulType.SOUL_REWARD, PersistentDataType.STRING));
             interaction.getWorld().spawnParticle(Particle.EXPLOSION, interaction.getLocation().toCenterLocation(), 1);
             return;
         }
@@ -106,9 +110,9 @@ public class SoulListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event){
        if(event.getEntity() instanceof Player player)
-           Soul.clearSouls(player);
+           SoulType.clearSouls(player);
 
-       else Soul.removeFromCache(event.getEntity());
+       else SoulType.removeFromCache(event.getEntity());
     }
 
     /**
@@ -116,7 +120,7 @@ public class SoulListener implements Listener {
      */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event){
-        Soul.loadIntoCache(event.getPlayer());
+        SoulType.loadIntoCache(event.getPlayer());
     }
 
     /**
@@ -124,7 +128,7 @@ public class SoulListener implements Listener {
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event){
-        Soul.removeFromCache(event.getPlayer());
+        SoulType.removeFromCache(event.getPlayer());
     }
 
 }

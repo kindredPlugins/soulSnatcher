@@ -10,25 +10,27 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
+import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.*;
 
-public abstract class Soul {
+public abstract class SoulType {
 
-    public abstract String id();
-    public abstract EntityType entityType();
+    public SoulType(){}
+
+    public @NotNull abstract EntityType entityType();
+    public @NotNull abstract String id();
+    public @NotNull abstract SoulInstance create(LivingEntity carrier);
+
+    protected abstract @NotNull String skullTexture();
+    protected abstract @NotNull Component displayName();
+    protected abstract @NotNull List<Component> description();
 
     public final ItemStack getRepresentativeSkull() {
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" + skullTexture());
     }
-
-    protected abstract String skullTexture();
-
-    protected abstract Component displayName();
-
-    protected abstract List<Component> description();
 
     public final ItemStack itemRepresentation() {
         ItemStack item = getRepresentativeSkull();
@@ -40,14 +42,6 @@ public abstract class Soul {
         return item;
     }
 
-    protected final boolean isPlayerBound(LivingEntity carrier) {
-        return carrier instanceof Player;
-    }
-
-    protected final boolean isInfused(LivingEntity carrier) {
-        return !(carrier instanceof Player);
-    }
-
     public static final int MAX_BOUND_SOULS = 2;
     public static final int MAX_UNBOUND_SOULS = 15;
     public static final String NO_SOUL_RELEASE_TAG = "no_soul_release";
@@ -55,15 +49,15 @@ public abstract class Soul {
     public static final NamespacedKey UNBOUND_SOULS = new NamespacedKey(SoulSnatcher.getPlugin(), "unbound_souls");
     public static final NamespacedKey BOUND_SOULS = new NamespacedKey(SoulSnatcher.getPlugin(), "infused_soul");
 
-    private static final Map<UUID, List<Soul>> cachedUnboundSouls = new LinkedHashMap<>();
-    private static final Map<UUID, List<Soul>> cachedBoundSouls = new LinkedHashMap<>();
+    private static final Map<UUID, List<SoulType>> cachedUnboundSouls = new LinkedHashMap<>();
+    private static final Map<UUID, List<SoulInstance>> cachedBoundSouls = new LinkedHashMap<>();
 
     /**
-     * Lists all souls connected to the given entity. This works for both infused and bound souls as they.
+     * Lists all souls connected to the given entity. This works for both infused and bound souls.
      * Souls are retrieved from the cache to save up on memory
      * @return A list of carried souls of the given entity or a Collections empty list
      */
-    public static List<Soul> getCarriedSouls(LivingEntity livingEntity) {
+    public static List<SoulInstance> getCarriedSouls(LivingEntity livingEntity) {
         return cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
     }
 
@@ -74,18 +68,18 @@ public abstract class Soul {
      * @param player
      * @return A list of all unbound souls of the given player yet to be infused with a mob
      */
-    public static List<Soul> getUnboundSouls(Player player) {
+    public static List<SoulType> getUnboundSouls(Player player) {
         return cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
     }
 
     private void addSoul(LivingEntity livingEntity){
-        List<Soul> cachedSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), new ArrayList<>());
-        cachedSouls.add(this);
+        List<SoulInstance> cachedSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), new ArrayList<>());
+        cachedSouls.add(create(livingEntity));
         cachedBoundSouls.put(livingEntity.getUniqueId(), cachedSouls);
     }
 
     private void addUnboundSoul(Player player){
-        List<Soul> cachedUnboundSoulList = cachedUnboundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
+        List<SoulType> cachedUnboundSoulList = cachedUnboundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
         cachedUnboundSoulList.add(this);
         cachedUnboundSouls.put(player.getUniqueId(), cachedUnboundSoulList);
     }
@@ -121,7 +115,7 @@ public abstract class Soul {
         location.getWorld().spawnParticle(Particle.SOUL, location, 30, 0.2, 0.5, 0.2, 0.1);
 
         location.getWorld().spawn(location.clone().add(0, 0.75, 0), ItemDisplay.class, display -> {
-            display.setItemStack(getRepresentativeSkull());
+            display.setItemStack(itemRepresentation());
             display.setInterpolationDelay(-1);
             display.setInterpolationDuration(40);
 
@@ -149,16 +143,16 @@ public abstract class Soul {
      * @param player The player to have one instance of this soul removed from their unbound soul pool.
      */
     public void removeUnboundSoul(Player player){
-        List<Soul> unboundSouls = cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
+        List<SoulType> unboundSouls = cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
         if(unboundSouls.isEmpty()) return;
 
         unboundSouls.remove(this);
         cachedUnboundSouls.put(player.getUniqueId(), unboundSouls);
 
         PersistentDataContainer pdc = player.getPersistentDataContainer();
-        List<String> unboundSoulIds = new ArrayList<>(pdc.getOrDefault(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), List.of()));
-        unboundSoulIds.remove(this.id());
-        pdc.set(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), unboundSoulIds);
+        List<String> unboundSoulIds = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), List.of()));
+        unboundSoulIds.remove(id());
+        pdc.set(UNBOUND_SOULS, PersistentDataType.LIST.strings(), unboundSoulIds);
     }
 
     public static final NamespacedKey SOUL_REWARD = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward");
@@ -172,7 +166,7 @@ public abstract class Soul {
     public void offerSoulReward(Location location, Player owner) {
         location.setPitch(0);
 
-        boolean duplicateSoul = getCarriedSouls(owner).contains(this);
+        boolean duplicateSoul = getCarriedSouls(owner).stream().anyMatch(soul -> soul.soulType().id().equals(id()));
 
         location.getWorld().playSound(location, Sound.BLOCK_LEVER_CLICK, 1f, 0.5f);
         location.getWorld().playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
@@ -240,11 +234,11 @@ public abstract class Soul {
      * or already bound with this soul, false will be returned
      */
     public boolean bindSoul(Player player) {
-        List<Soul> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
+        List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
         if (boundSouls.size() >= MAX_BOUND_SOULS || boundSouls.contains(this)) return false;
 
         addSoulToPdc(player);
-        boundSouls.add(this);
+        boundSouls.add(create(player));
         cachedBoundSouls.put(player.getUniqueId(), boundSouls);
 
         SoulEffects.startSoulOrbit(player, this);
@@ -288,19 +282,17 @@ public abstract class Soul {
         if (boundSouls.isEmpty()) return;
 
         SoulRegistry soulRegistry = SoulRegistry.getInstance();
-        List<Soul> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
-        souls.forEach(soul -> {
-            soul.bindSoul(player);
-            soul.addSoul(player);
+        List<SoulType> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
+        souls.forEach(soulType -> {
+            soulType.bindSoul(player);
         });
 
         ArrayList<String> unBoundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
         if (unBoundSouls.isEmpty()) return;
 
-        List<Soul> floatingSouls = unBoundSouls.stream().map(soulRegistry::getSoul).toList();
-        floatingSouls.forEach(soul -> {
-            soul.bindSoul(player);
-            soul.addUnboundSoul(player);
+        List<SoulType> floatingSouls = unBoundSouls.stream().map(soulRegistry::getSoul).toList();
+        floatingSouls.forEach(soulType -> {
+            soulType.addUnboundSoul(player);
         });
     }
 }

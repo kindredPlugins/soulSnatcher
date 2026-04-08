@@ -17,20 +17,20 @@ public class SoulRegistry {
         return instance;
     }
 
-    private final Map<String, Soul> soulRegistry = new LinkedHashMap<>();
+    private final Map<String, SoulType> soulRegistry = new LinkedHashMap<>();
 
     private SoulRegistry() {
-        ServiceLoader<Soul> loader = ServiceLoader.load(Soul.class, getClass().getClassLoader());
-        for(Soul soul : loader){
-            soulRegistry.put(soul.id(), soul);
+        ServiceLoader<SoulType> loader = ServiceLoader.load(SoulType.class, getClass().getClassLoader());
+        for(SoulType soulType : loader){
+            soulRegistry.put(soulType.id(), soulType);
         }
     }
 
-    public @Nullable Soul getSoul(String id){
+    public @Nullable SoulType getSoul(String id){
         return soulRegistry.get(id);
     }
-    public Optional<Soul> getSoul(EntityType entityType){
+    public Optional<SoulType> getSoul(EntityType entityType){
         return soulRegistry.values().stream().filter(soul -> soul.entityType().equals(entityType)).findFirst();
     }
-    public Map<String, Soul> soulRegistryMap(){ return new LinkedHashMap<>(soulRegistry); }
+    public Map<String, SoulType> soulRegistryMap(){ return new LinkedHashMap<>(soulRegistry); }
 }

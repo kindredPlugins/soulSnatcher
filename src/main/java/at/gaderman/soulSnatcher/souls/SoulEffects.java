@@ -28,7 +28,7 @@ public class SoulEffects {
     private static final double HEIGHT_OFFSET = 1.1;
     private static final float HEAD_SCALE = 0.75f;
 
-    public static void startSoulOrbit(Entity target, Soul soul) {
+    public static void startSoulOrbit(Entity target, SoulType soulType) {
         var plugin = SoulSnatcher.getPlugin();
 
         stopSoulOrbit(target);
@@ -36,7 +36,7 @@ public class SoulEffects {
         final double angleStep = 360.0 / DEFAULT_REVOLUTIONS_TRICKS;
         final double[] currentAngle = {0.0};
 
-        ItemDisplay display = spawnReleaseSoulDisplay(target, soul);
+        ItemDisplay display = spawnReleaseSoulDisplay(target, soulType);
         activeDisplays.put(target.getUniqueId(), display);
 
         BukkitTask task = new BukkitRunnable() {
@@ -77,11 +77,11 @@ public class SoulEffects {
 
     // --- Private helpers ---
 
-    private static ItemDisplay spawnReleaseSoulDisplay(Entity target, Soul soul) {
+    private static ItemDisplay spawnReleaseSoulDisplay(Entity target, SoulType soulType) {
         Location spawnLoc = target.getLocation().clone().add(0, HEIGHT_OFFSET, 0);
 
         return target.getWorld().spawn(spawnLoc, ItemDisplay.class, d -> {
-            d.setItemStack(soul.getRepresentativeSkull());
+            d.setItemStack(soulType.getRepresentativeSkull());
             d.setBillboard(Display.Billboard.VERTICAL);
             d.setInterpolationDuration(2);
             d.setInterpolationDelay(0);

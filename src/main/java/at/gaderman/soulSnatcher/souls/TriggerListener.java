@@ -14,7 +14,7 @@ public class TriggerListener implements Listener {
     public void onDamageReceivedTrigger(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
-        List<Soul> souls = Soul.getCarriedSouls(entity);
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnDamageReceivedTrigger)
                 .map(soul -> (OnDamageReceivedTrigger) soul)
@@ -28,7 +28,7 @@ public class TriggerListener implements Listener {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
         if (!(event.getDamager() instanceof LivingEntity damager)) return;
 
-        List<Soul> souls = Soul.getCarriedSouls(entity);
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnDamageReceivedTrigger)
                 .map(soul -> (OnDamageReceivedTrigger) soul)

@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher;
 
 import at.gaderman.soulSnatcher.souls.SoulListener;
+import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.TriggerListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -16,6 +17,8 @@ public final class SoulSnatcher extends JavaPlugin {
 
         Bukkit.getPluginManager().registerEvents(new SoulListener(), this);
         Bukkit.getPluginManager().registerEvents(new TriggerListener(), this);
+
+        SoulRegistry.getInstance();
     }
 
     @Override
