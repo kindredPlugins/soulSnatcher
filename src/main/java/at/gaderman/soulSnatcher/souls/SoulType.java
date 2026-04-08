@@ -4,7 +4,10 @@ import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -18,14 +21,22 @@ import java.util.*;
 
 public abstract class SoulType {
 
-    public SoulType(){}
+    public SoulType() {
+    }
 
-    public @NotNull abstract EntityType entityType();
-    public @NotNull abstract String id();
-    public @NotNull abstract SoulInstance create(LivingEntity carrier);
+    public @NotNull
+    abstract EntityType entityType();
+
+    public @NotNull
+    abstract String id();
+
+    public @NotNull
+    abstract SoulInstance create(LivingEntity carrier);
 
     protected abstract @NotNull String skullTexture();
+
     protected abstract @NotNull Component displayName();
+
     protected abstract @NotNull List<Component> description();
 
     public final ItemStack getRepresentativeSkull() {
@@ -55,6 +66,7 @@ public abstract class SoulType {
     /**
      * Lists all souls connected to the given entity. This works for both infused and bound souls.
      * Souls are retrieved from the cache to save up on memory
+     *
      * @return A list of carried souls of the given entity or a Collections empty list
      */
     public static List<SoulInstance> getCarriedSouls(LivingEntity livingEntity) {
@@ -72,13 +84,13 @@ public abstract class SoulType {
         return cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
     }
 
-    private void addSoul(LivingEntity livingEntity){
+    private void addSoul(LivingEntity livingEntity) {
         List<SoulInstance> cachedSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), new ArrayList<>());
         cachedSouls.add(create(livingEntity));
         cachedBoundSouls.put(livingEntity.getUniqueId(), cachedSouls);
     }
 
-    private void addUnboundSoul(Player player){
+    private void addUnboundSoul(Player player) {
         List<SoulType> cachedUnboundSoulList = cachedUnboundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
         cachedUnboundSoulList.add(this);
         cachedUnboundSouls.put(player.getUniqueId(), cachedUnboundSoulList);
@@ -94,6 +106,7 @@ public abstract class SoulType {
     /**
      * Used when a natural entity is killed, this will play the soul release animation and bind it to the player.
      * This makes it available to the pool so newly spawned mobs can be infused with it.
+     *
      * @param location The location for the soul to be release so the location of the killed mob normally
      * @param player   The player who killed the mob, this adds the soul into their unbound Soul collection
      */
@@ -119,7 +132,7 @@ public abstract class SoulType {
             display.setInterpolationDelay(-1);
             display.setInterpolationDuration(40);
 
-            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+            SoulSnatcher.getPlugin().registerDelayedTask(() -> {
                 display.remove();
                 display.getWorld().spawnParticle(Particle.WHITE_SMOKE, display.getLocation(), 10, 0.2, 0.2, 0.2, 0);
             }, 40L);
@@ -129,6 +142,7 @@ public abstract class SoulType {
     /**
      * Infuses the given mob with this soul, this CANNOT be a player! Players have their own way of using souls, infusion is different.
      * This will give the mob a soul-related ability, including custom AI
+     *
      * @param mob The mob to be infused with this soul, CANNOT be a player!
      */
     public void infuseSoul(Mob mob) {
@@ -140,11 +154,12 @@ public abstract class SoulType {
 
     /**
      * Correctly removes an unbound soul from the associated player, both in terms of cache and pdc.
+     *
      * @param player The player to have one instance of this soul removed from their unbound soul pool.
      */
-    public void removeUnboundSoul(Player player){
+    public void removeUnboundSoul(Player player) {
         List<SoulType> unboundSouls = cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
-        if(unboundSouls.isEmpty()) return;
+        if (unboundSouls.isEmpty()) return;
 
         unboundSouls.remove(this);
         cachedUnboundSouls.put(player.getUniqueId(), unboundSouls);
@@ -207,13 +222,15 @@ public abstract class SoulType {
         List<Entity> displayEntities = List.of(skullDisplay, soulTitle, interactText);
         displayEntities.forEach(entity -> entity.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulInteraction.getUniqueId().toString()));
 
-        if (duplicateSoul) {
-            soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
-            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
-                soulInteraction.remove();
-                displayEntities.forEach(Entity::remove);
-            }, 80L);
-        }
+        long age = duplicateSoul ? 80L : 60 * 20L;
+
+        soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
+        SoulSnatcher.getPlugin().registerDelayedTask(() -> {
+            if(soulInteraction.isDead()) return;
+
+            soulInteraction.remove();
+            displayEntities.forEach(Entity::remove);
+        }, age);
 
 //        TextDisplay soulDescription = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, description().size() * -0.75, 0), TextDisplay.class, display -> {
 //            display.text(description().stream().reduce((x, y) -> x.appendNewline().append(y.color(NamedTextColor.YELLOW)).color(NamedTextColor.YELLOW)).get());
@@ -253,7 +270,7 @@ public abstract class SoulType {
      */
     public static void removeFromCache(LivingEntity livingEntity) {
         cachedBoundSouls.remove(livingEntity.getUniqueId());
-        if(livingEntity instanceof Player)
+        if (livingEntity instanceof Player)
             cachedUnboundSouls.remove(livingEntity.getUniqueId());
     }
 

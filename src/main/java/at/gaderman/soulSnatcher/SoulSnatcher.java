@@ -4,12 +4,15 @@ import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.TriggerListener;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class SoulSnatcher extends JavaPlugin {
 
-    public static Plugin getPlugin() { return SoulSnatcher.getPlugin(SoulSnatcher.class); }
+    public static SoulSnatcher getPlugin() { return SoulSnatcher.getPlugin(SoulSnatcher.class); }
 
     @Override
     public void onEnable() {
@@ -24,5 +27,52 @@ public final class SoulSnatcher extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        this.disabling = true;
+
+        int taskSize = runningTasks.size();
+        getLogger().info("Running down " + taskSize + " cleanup tasks");
+        runningTasks.values().forEach(Runnable::run);
+        runningTasks.clear();
+        getLogger().info("Completed running cleanup tasks");
+    }
+
+    private boolean disabling = false;
+
+    private final Map<Integer, Runnable> runningTasks = new ConcurrentHashMap<>();
+
+    /**
+     * Registers a task that will be executed if the plugin is disabled. This is used when a server stop
+     * would leave certain things in an unnatural state
+     * @param id The id of the run Bukkit Task, this is used in a map to quickly access tasks
+     * @param task The cleanup runnable that should be executed on disable
+     */
+    public void registerCleanUpTask(int id, Runnable task){
+        runningTasks.put(id, task);
+    }
+
+    /**
+     * Registers the given runnable as a BukkitTask and runs it via the Bukkit Scheduler. Additionally, saves this
+     * Task as a runningTask, meaning that if the plugin is disabled, this will get executed instantly instead.
+     * This makes sure that certain actions do not remain in a unnatural state upon sudden server stop.
+     * Moreover, after the delay this also unregisters itself meaning no memory leaks without further action externally
+     * @param runnable A runnable that should be delayed by the given delay
+     * @param delay How much delay the runnable should have int ticks
+     * @return The BukkitTask that was created by delaying the Runnable via the Bukkit Scheduler
+     */
+    public BukkitTask registerDelayedTask(Runnable runnable, long delay){
+        var task = Bukkit.getScheduler().runTaskLater(this, runnable, delay);
+        registerCleanUpTask(task.getTaskId(), runnable);
+        Bukkit.getScheduler().runTaskLater(this, () -> unregisterCleanUpTask(task.getTaskId()), delay);
+        return task;
+    }
+
+    /**
+     * Removes a cleanup task from the pool. This is used to keeping the runningTasks sizeable and not impact
+     * performance too much
+     * @param id The id of the task to be unregistered from cleaning
+     */
+    public void unregisterCleanUpTask(int id){
+        if(disabling) return;
+        runningTasks.remove(id);
     }
 }

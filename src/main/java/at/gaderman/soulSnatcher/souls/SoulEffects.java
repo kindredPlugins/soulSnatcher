@@ -61,11 +61,15 @@ public class SoulEffects {
         }.runTaskTimer(plugin, 0L, 1L);
 
         activeTasks.put(target.getUniqueId(), task);
+        plugin.registerCleanUpTask(task.getTaskId(), () -> stopSoulOrbit(target));
     }
 
     public static void stopSoulOrbit(Entity target) {
         BukkitTask task = activeTasks.remove(target.getUniqueId());
-        if (task != null) task.cancel();
+        if (task != null){
+            task.cancel();
+            SoulSnatcher.getPlugin().unregisterCleanUpTask(task.getTaskId());
+        }
 
         ItemDisplay display = activeDisplays.remove(target.getUniqueId());
         if (display != null) display.remove();
