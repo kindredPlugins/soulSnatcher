@@ -40,11 +40,11 @@ public abstract class Soul {
         return item;
     }
 
-    protected final boolean isPlayerBound(LivingEntity carrier){
+    protected final boolean isPlayerBound(LivingEntity carrier) {
         return carrier instanceof Player;
     }
 
-    protected final boolean isInfused(LivingEntity carrier){
+    protected final boolean isInfused(LivingEntity carrier) {
         return !(carrier instanceof Player);
     }
 
@@ -55,36 +55,67 @@ public abstract class Soul {
     public static final NamespacedKey UNBOUND_SOULS = new NamespacedKey(SoulSnatcher.getPlugin(), "unbound_souls");
     public static final NamespacedKey BOUND_SOULS = new NamespacedKey(SoulSnatcher.getPlugin(), "infused_soul");
 
+    private static final Map<UUID, List<Soul>> cachedUnboundSouls = new LinkedHashMap<>();
     private static final Map<UUID, List<Soul>> cachedBoundSouls = new LinkedHashMap<>();
 
     /**
      * Lists all souls connected to the given entity. This works for both infused and bound souls as they.
      * Souls are retrieved from the cache to save up on memory
-     * @param livingEntity
      * @return A list of carried souls of the given entity or a Collections empty list
      */
-    public static List<Soul> getCarriedSouls(LivingEntity livingEntity){
+    public static List<Soul> getCarriedSouls(LivingEntity livingEntity) {
         return cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
+    }
+
+    /**
+     * Lists all released unbound souls "hanging" on the player. These are used to infuse nearby
+     * spawning mobs
+     *
+     * @param player
+     * @return A list of all unbound souls of the given player yet to be infused with a mob
+     */
+    public static List<Soul> getUnboundSouls(Player player) {
+        return cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
+    }
+
+    private void addSoul(LivingEntity livingEntity){
+        List<Soul> cachedSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), new ArrayList<>());
+        cachedSouls.add(this);
+        cachedBoundSouls.put(livingEntity.getUniqueId(), cachedSouls);
+    }
+
+    private void addUnboundSoul(Player player){
+        List<Soul> cachedUnboundSoulList = cachedUnboundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
+        cachedUnboundSoulList.add(this);
+        cachedUnboundSouls.put(player.getUniqueId(), cachedUnboundSoulList);
+    }
+
+    private void addSoulToPdc(LivingEntity livingEntity) {
+        PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
+        ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
+        boundSouls.add(id());
+        pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls);
     }
 
     /**
      * Used when a natural entity is killed, this will play the soul release animation and bind it to the player.
      * This makes it available to the pool so newly spawned mobs can be infused with it.
      * @param location The location for the soul to be release so the location of the killed mob normally
-     * @param player The player who killed the mob, this adds the soul into their unbound Soul collection
+     * @param player   The player who killed the mob, this adds the soul into their unbound Soul collection
      */
-    public void releaseSoul(Location location, Player player){
+    public void releaseSoul(Location location, Player player) {
         location.setPitch(0);
 
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         ArrayList<String> unboundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
 
-        if(unboundSouls.size() >= MAX_UNBOUND_SOULS)
+        if (unboundSouls.size() >= MAX_UNBOUND_SOULS)
             return;
 
         unboundSouls.add(id());
-
         pdc.set(UNBOUND_SOULS, PersistentDataType.LIST.strings(), unboundSouls);
+
+        addUnboundSoul(player);
 
         location.getWorld().playSound(location, Sound.BLOCK_SOUL_SAND_PLACE, 1f, 0.25f);
         location.getWorld().spawnParticle(Particle.SOUL, location, 30, 0.2, 0.5, 0.2, 0.1);
@@ -101,26 +132,33 @@ public abstract class Soul {
         });
     }
 
-    private void addSoulToPdc(LivingEntity livingEntity){
-        PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
-        ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
-        boundSouls.add(id());
-        pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls);
-    }
-
     /**
      * Infuses the given mob with this soul, this CANNOT be a player! Players have their own way of using souls, infusion is different.
      * This will give the mob a soul-related ability, including custom AI
      * @param mob The mob to be infused with this soul, CANNOT be a player!
      */
-    public void infuseSoul(Mob mob){
+    public void infuseSoul(Mob mob) {
         addSoulToPdc(mob);
-
-        List<Soul> cachedSouls = cachedBoundSouls.computeIfAbsent(mob.getUniqueId(), (uuid) -> new ArrayList<>());
-        cachedSouls.add(this);
-        cachedBoundSouls.put(mob.getUniqueId(), cachedSouls);
+        addSoul(mob);
 
         SoulEffects.startSoulOrbit(mob, this);
+    }
+
+    /**
+     * Correctly removes an unbound soul from the associated player, both in terms of cache and pdc.
+     * @param player The player to have one instance of this soul removed from their unbound soul pool.
+     */
+    public void removeUnboundSoul(Player player){
+        List<Soul> unboundSouls = cachedUnboundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList());
+        if(unboundSouls.isEmpty()) return;
+
+        unboundSouls.remove(this);
+        cachedUnboundSouls.put(player.getUniqueId(), unboundSouls);
+
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        List<String> unboundSoulIds = new ArrayList<>(pdc.getOrDefault(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), List.of()));
+        unboundSoulIds.remove(this.id());
+        pdc.set(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), unboundSoulIds);
     }
 
     public static final NamespacedKey SOUL_REWARD = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward");
@@ -128,10 +166,13 @@ public abstract class Soul {
     /**
      * Spawns in a set of display entities that are used to enable the player to accept they soul
      * they have been offered by defeating an infused mob
+     *
      * @param location The location where to offer the soul, usually the mobs death location
      */
-    public void offerSoulReward(Location location){
+    public void offerSoulReward(Location location, Player owner) {
         location.setPitch(0);
+
+        boolean duplicateSoul = getCarriedSouls(owner).contains(this);
 
         location.getWorld().playSound(location, Sound.BLOCK_LEVER_CLICK, 1f, 0.5f);
         location.getWorld().playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
@@ -149,12 +190,16 @@ public abstract class Soul {
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay soulTitle = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, 0.15, 0), TextDisplay.class, display -> {
-           display.text(displayName());
-           display.setAlignment(TextDisplay.TextAlignment.CENTER);
-           display.setBillboard(Display.Billboard.VERTICAL);
+            display.text(displayName());
+            display.setAlignment(TextDisplay.TextAlignment.CENTER);
+            display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay interactText = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, -1, 0), TextDisplay.class, display -> {
-            display.text(Component.keybind("key.use", NamedTextColor.YELLOW).append(Component.text(" to bind")));
+
+            display.text(duplicateSoul ?
+                    Component.text("Already bound this soul", NamedTextColor.RED) :
+                    Component.keybind("key.use", NamedTextColor.YELLOW).append(Component.text(" to bind")));
+
             display.setAlignment(TextDisplay.TextAlignment.CENTER);
             display.setBillboard(Display.Billboard.VERTICAL);
         });
@@ -162,10 +207,19 @@ public abstract class Soul {
             interaction.setInteractionHeight(1.5f);
             interaction.setInteractionWidth(1.0f);
 
-            interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, id());
+            if (!duplicateSoul)
+                interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, id());
         });
         List<Entity> displayEntities = List.of(skullDisplay, soulTitle, interactText);
         displayEntities.forEach(entity -> entity.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulInteraction.getUniqueId().toString()));
+
+        if (duplicateSoul) {
+            soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
+            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                soulInteraction.remove();
+                displayEntities.forEach(Entity::remove);
+            }, 80L);
+        }
 
 //        TextDisplay soulDescription = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, description().size() * -0.75, 0), TextDisplay.class, display -> {
 //            display.text(description().stream().reduce((x, y) -> x.appendNewline().append(y.color(NamedTextColor.YELLOW)).color(NamedTextColor.YELLOW)).get());
@@ -180,13 +234,14 @@ public abstract class Soul {
      * Makes the given player bind to this soul. This enables them to use abilities of that soul.
      * Players can only bind with up to 2 souls, if that limit is reached this method will fail
      * and return false.
+     *
      * @param player The player to be infused with this soul
      * @return If the soul binding was successful, if the player has already reached their limit of bound souls
      * or already bound with this soul, false will be returned
      */
-    public boolean bindSoul(Player player){
+    public boolean bindSoul(Player player) {
         List<Soul> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
-        if(boundSouls.size() >= MAX_BOUND_SOULS || boundSouls.contains(this)) return false;
+        if (boundSouls.size() >= MAX_BOUND_SOULS || boundSouls.contains(this)) return false;
 
         addSoulToPdc(player);
         boundSouls.add(this);
@@ -199,17 +254,21 @@ public abstract class Soul {
     /**
      * Removes all cached soul entries of the given entity. The cache is only used for quick lookups.
      * Using this helps avoid memory leaks. Never call this unprecedented! This may cause issues!
+     *
      * @param livingEntity The entity whose soul data should be removed from the cache
      */
-    public static void removeFromCache(LivingEntity livingEntity){
+    public static void removeFromCache(LivingEntity livingEntity) {
         cachedBoundSouls.remove(livingEntity.getUniqueId());
+        if(livingEntity instanceof Player)
+            cachedUnboundSouls.remove(livingEntity.getUniqueId());
     }
 
     /**
      * Clears all soul information of the player. This usually happens on death.
+     *
      * @param player The player whose soul data to reset
      */
-    public static void clearSouls(Player player){
+    public static void clearSouls(Player player) {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         pdc.remove(UNBOUND_SOULS);
         pdc.remove(BOUND_SOULS);
@@ -220,15 +279,28 @@ public abstract class Soul {
     /**
      * Loads all soul data stored in the players pdc into cached lists to speed up processing.
      * Usually gets called on login.
+     *
      * @param player The player whose soul data gets loaded into cache from pdc
      */
-    public static void loadIntoCache(Player player){
+    public static void loadIntoCache(Player player) {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
-        if(boundSouls.isEmpty()) return;
+        if (boundSouls.isEmpty()) return;
 
         SoulRegistry soulRegistry = SoulRegistry.getInstance();
         List<Soul> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
-        souls.forEach(soul -> soul.bindSoul(player));
+        souls.forEach(soul -> {
+            soul.bindSoul(player);
+            soul.addSoul(player);
+        });
+
+        ArrayList<String> unBoundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
+        if (unBoundSouls.isEmpty()) return;
+
+        List<Soul> floatingSouls = unBoundSouls.stream().map(soulRegistry::getSoul).toList();
+        floatingSouls.forEach(soul -> {
+            soul.bindSoul(player);
+            soul.addUnboundSoul(player);
+        });
     }
 }

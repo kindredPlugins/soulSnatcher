@@ -4,6 +4,7 @@ import at.gaderman.soulSnatcher.SoulSnatcher;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -18,13 +19,15 @@ import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true,priority = EventPriority.HIGH)
     public void onSoulRelease(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
         if (mob.getScoreboardTags().contains(Soul.NO_SOUL_RELEASE_TAG)) return;
 
         var optSoul = SoulRegistry.getInstance().getSoul(mob.getType());
         if (optSoul.isEmpty()) return;
+        var souls = Soul.getCarriedSouls(mob);
+         if(!souls.isEmpty()) return;
 
         optSoul.get().releaseSoul(mob.getLocation(), mob.getKiller());
     }
@@ -42,20 +45,13 @@ public class SoulListener implements Listener {
                 .min(Comparator.comparing(player -> player.getLocation().distanceSquared(mob.getLocation())))
                 .get();
 
-        PersistentDataContainer pdc = closestPlayer.getPersistentDataContainer();
-        List<String> unboundSoulIds = new ArrayList<>(pdc.getOrDefault(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), List.of()));
-        var souls = unboundSoulIds.stream()
-                .map(soulId -> SoulRegistry.getInstance().getSoul(soulId))
-                .filter(Objects::nonNull)
-                .filter(soul -> !soul.entityType().equals(mob.getType()))
-                .toList();
+        List<Soul> unboundSouls = Soul.getUnboundSouls(closestPlayer);
 
-        if (souls.isEmpty()) return;
-        Soul randomSoul = souls.get((int) (Math.random() * souls.size()));
+        if (unboundSouls.isEmpty()) return;
+        Soul randomSoul = unboundSouls.get((int) (Math.random() * unboundSouls.size()));
 
         randomSoul.infuseSoul(mob);
-        unboundSoulIds.remove(randomSoul.id());
-        pdc.set(Soul.UNBOUND_SOULS, PersistentDataType.LIST.strings(), unboundSoulIds);
+        randomSoul.removeUnboundSoul(closestPlayer);
     }
 
     @EventHandler
@@ -65,7 +61,7 @@ public class SoulListener implements Listener {
         List<Soul> souls = Soul.getCarriedSouls(mob);
         if (souls.isEmpty()) return;
 
-        souls.getFirst().offerSoulReward(mob.getLocation());
+        souls.getFirst().offerSoulReward(mob.getLocation(), mob.getKiller());
     }
 
     @EventHandler
@@ -97,6 +93,7 @@ public class SoulListener implements Listener {
 
         boolean successfulBound = reward.bindSoul(player);
         if (!successfulBound) {
+            //TODO: display GUI that allows player to replace an existing soul with the reward
             return;
         }
 
@@ -106,7 +103,7 @@ public class SoulListener implements Listener {
     /**
      * Entities who die have their soul removed from the cache. Players who die lose all soul data
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event){
        if(event.getEntity() instanceof Player player)
            Soul.clearSouls(player);
