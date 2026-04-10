@@ -4,6 +4,7 @@ import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -18,6 +19,8 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class SoulType {
 
@@ -35,9 +38,9 @@ public abstract class SoulType {
 
     protected abstract @NotNull String skullTexture();
 
-    protected abstract @NotNull Component displayName();
+    public abstract @NotNull Component displayName();
 
-    protected abstract @NotNull List<Component> description();
+    public abstract @NotNull List<Component> description();
 
     public final ItemStack getRepresentativeSkull() {
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" + skullTexture());
@@ -46,7 +49,7 @@ public abstract class SoulType {
     public final ItemStack itemRepresentation() {
         ItemStack item = getRepresentativeSkull();
         item.editMeta(meta -> {
-                    meta.itemName(displayName());
+                    meta.displayName(displayName().decoration(TextDecoration.ITALIC, false));
                     meta.lore(description());
                 }
         );
@@ -242,6 +245,23 @@ public abstract class SoulType {
     }
 
     /**
+     * Removes a soul reward (meaning all related entities) based on the given interaction entity that is the core of the reward
+     * @param rewardTrigger The interaction which acts as core for the reward
+     */
+    public static void removeSoulReward(Interaction rewardTrigger){
+        rewardTrigger.remove();
+        Stream.of(
+                        rewardTrigger.getWorld().getNearbyEntitiesByType(TextDisplay.class, rewardTrigger.getLocation(), 2),
+                        rewardTrigger.getWorld().getNearbyEntitiesByType(ItemDisplay.class, rewardTrigger.getLocation(), 2)
+                )
+                .flatMap(Collection::stream)
+                .filter(display -> display.getPersistentDataContainer()
+                        .getOrDefault(SoulType.SOUL_REWARD, PersistentDataType.STRING, "")
+                        .equals(rewardTrigger.getUniqueId().toString()))
+                .forEach(Entity::remove);
+    }
+
+    /**
      * Makes the given player bind to this soul. This enables them to use abilities of that soul.
      * Players can only bind with up to 2 souls, if that limit is reached this method will fail
      * and return false.
@@ -259,6 +279,34 @@ public abstract class SoulType {
         cachedBoundSouls.put(player.getUniqueId(), boundSouls);
 
         SoulEffects.startSoulOrbit(player, this);
+        return true;
+    }
+
+    /**
+     * Removes the soul with this soulType from the given target
+     * @param livingEntity The target who should have this soulType removed from them
+     * @return true if a soul of this type was removed successfully, otherwise false
+     */
+    public boolean removeSoul(LivingEntity livingEntity){
+        List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
+        if(boundSouls.isEmpty()) return false;
+
+        var potSoul = boundSouls.stream().filter(soul -> soul.soulType().id().equals(id())).findFirst();
+        if(potSoul.isEmpty()) return false;
+
+        boundSouls.remove(potSoul.get());
+        PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
+
+        if(boundSouls.isEmpty()) {
+            cachedBoundSouls.remove(livingEntity.getUniqueId());
+            pdc.remove(BOUND_SOULS);
+        }else{
+            cachedBoundSouls.put(livingEntity.getUniqueId(), boundSouls);
+            pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls.stream()
+                    .map(soul -> soul.soulType().id()).collect(Collectors.toList()));
+        }
+
+        SoulEffects.stopSoulOrbit(livingEntity);
         return true;
     }
 

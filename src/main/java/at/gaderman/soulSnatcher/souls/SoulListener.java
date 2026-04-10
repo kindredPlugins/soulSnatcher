@@ -1,8 +1,11 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
 import org.bukkit.Particle;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Interaction;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -17,7 +20,6 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
 
@@ -75,16 +77,7 @@ public class SoulListener implements Listener {
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
         if (!pdc.has(SoulType.SOUL_REWARD)) return;
 
-        interaction.remove();
-        Stream.of(
-                        interaction.getWorld().getNearbyEntitiesByType(TextDisplay.class, interaction.getLocation(), 2),
-                        interaction.getWorld().getNearbyEntitiesByType(ItemDisplay.class, interaction.getLocation(), 2)
-                )
-                .flatMap(Collection::stream)
-                .filter(display -> display.getPersistentDataContainer()
-                        .getOrDefault(SoulType.SOUL_REWARD, PersistentDataType.STRING, "")
-                        .equals(interaction.getUniqueId().toString()))
-                .forEach(Entity::remove);
+        Player player = event.getPlayer();
 
         SoulType reward = SoulRegistry.getInstance().getSoul(pdc.get(SoulType.SOUL_REWARD, PersistentDataType.STRING));
         if (reward == null) {
@@ -93,14 +86,14 @@ public class SoulListener implements Listener {
             return;
         }
 
-        Player player = event.getPlayer();
-
         boolean successfulBound = reward.bindSoul(player);
         if (!successfulBound) {
             //TODO: display GUI that allows player to replace an existing soul with the reward
+            new SoulAbsorptionUI(player, reward, interaction).openInventory(player);
             return;
         }
 
+        SoulType.removeSoulReward(interaction);
         SoulEffects.playBindEffect(player, interaction.getLocation().toCenterLocation());
     }
 

@@ -42,12 +42,12 @@ public class ZombieSoulType extends SoulType {
     }
 
     @Override
-    protected @NotNull Component displayName() {
+    public @NotNull Component displayName() {
         return Component.text("Zombie Soul", NamedTextColor.DARK_GREEN);
     }
 
     @Override
-    protected @NotNull List<Component> description() {
+    public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When being hit summons a ")
                         .append(Component.text("reinforcement zombie", NamedTextColor.AQUA)),
