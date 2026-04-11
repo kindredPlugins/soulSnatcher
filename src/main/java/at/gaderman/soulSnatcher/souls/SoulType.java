@@ -152,7 +152,7 @@ public abstract class SoulType {
         addSoulToPdc(mob);
         addSoul(mob);
 
-        SoulEffects.startSoulOrbit(mob, this);
+        SoulEffects.addSoulToOrbit(mob, this);
     }
 
     /**
@@ -278,7 +278,7 @@ public abstract class SoulType {
         boundSouls.add(create(player));
         cachedBoundSouls.put(player.getUniqueId(), boundSouls);
 
-        SoulEffects.startSoulOrbit(player, this);
+        SoulEffects.addSoulToOrbit(player, this);
         return true;
     }
 
@@ -306,7 +306,7 @@ public abstract class SoulType {
                     .map(soul -> soul.soulType().id()).collect(Collectors.toList()));
         }
 
-        SoulEffects.stopSoulOrbit(livingEntity);
+        SoulEffects.removeOneSoulFromOrbit(livingEntity, this);
         return true;
     }
 
