@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -278,6 +279,7 @@ public abstract class SoulType {
         boundSouls.add(create(player));
         cachedBoundSouls.put(player.getUniqueId(), boundSouls);
 
+        SoulLanternManager.updateActiveLanterns(player);
         SoulEffects.addSoulToOrbit(player, this);
         return true;
     }
@@ -306,6 +308,8 @@ public abstract class SoulType {
                     .map(soul -> soul.soulType().id()).collect(Collectors.toList()));
         }
 
+        if(livingEntity instanceof Player player)
+            SoulLanternManager.updateActiveLanterns(player);
         SoulEffects.removeOneSoulFromOrbit(livingEntity, this);
         return true;
     }

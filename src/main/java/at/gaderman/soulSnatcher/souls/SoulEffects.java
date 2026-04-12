@@ -24,6 +24,7 @@ public class SoulEffects {
      * without polluting the class with parallel maps.
      */
     private record OrbitState(
+            UUID owner,
             List<SoulType> soulTypes,
             List<ItemDisplay> displays,
             double[] currentAngle,
@@ -100,14 +101,14 @@ public class SoulEffects {
                         display.teleport(headPos);
 
                         if(particleTick)
-                            spawnTrailParticles(center, soulAngle, angleStep);
+                            spawnTrailParticles(current, center, soulAngle, angleStep);
                     }
-                    
+
                     angle[0] = (angle[0] + angleStep) % 360.0;
                 }
             }.runTaskTimer(plugin, 0L, 1L);
 
-            OrbitState newState = new OrbitState(soulTypes, displays, angle, tickCounter, task);
+            OrbitState newState = new OrbitState(target.getUniqueId(), soulTypes, displays, angle, tickCounter, task);
             activeOrbits.put(target.getUniqueId(), newState);
             plugin.registerCleanUpTask(task.getTaskId(), () -> stopAllSoulOrbits(target));
 
@@ -151,6 +152,36 @@ public class SoulEffects {
         state.task().cancel();
         SoulSnatcher.getPlugin().unregisterCleanUpTask(state.task().getTaskId());
         state.displays().forEach(Entity::remove);
+    }
+
+    private static final Set<UUID> playerViewingOrbits = new LinkedHashSet<>();
+
+    /**
+     * Marks a player to show them their own soul orbits
+     * @param player The player who will be able to see their own orbit
+     */
+    public static void showSoulOrbits(Player player){
+        OrbitState state = activeOrbits.getOrDefault(player.getUniqueId(), null);
+        if(state == null) return;
+
+        playerViewingOrbits.add(player.getUniqueId());
+        state.displays.forEach(display -> player.showEntity(SoulSnatcher.getPlugin(), display));
+
+        player.playSound(player, Sound.ITEM_FIRECHARGE_USE, 1f, 1.5f);
+    }
+
+    /**
+     * Makes the soul orbits of the player go into hiding again
+     * @param player The player who hides his soul orbits from themselves
+     */
+    public static void hideSoulOrbits(Player player){
+        OrbitState state = activeOrbits.getOrDefault(player.getUniqueId(), null);
+        if(state == null) return;
+
+        playerViewingOrbits.remove(player.getUniqueId());
+        state.displays.forEach(display -> player.hideEntity(SoulSnatcher.getPlugin(), display));
+
+        player.playSound(player, Sound.ITEM_FIRECHARGE_USE, 1f, 0.5f);
     }
 
     /**
@@ -202,13 +233,24 @@ public class SoulEffects {
         return new Location(center.getWorld(), x, center.getY(), z);
     }
 
-    private static void spawnTrailParticles(Location center, double currentAngle, double angleStep) {
+    private static void spawnTrailParticles(OrbitState state, Location center, double currentAngle, double angleStep) {
         Location trailPos = orbitPosition(center, currentAngle - (angleStep * 2));
         Location headPos  = orbitPosition(center, currentAngle);
 
-        center.getWorld().spawnParticle(Particle.SOUL, trailPos,
-                1, 0.05, 0.05, 0.05, 0.01);
-        center.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, headPos,
-                1, 0.03, 0.03, 0.03, 0.005);
+        boolean isPlayer = Bukkit.getPlayer(state.owner) != null && !playerViewingOrbits.contains(state.owner);
+
+        center.getWorld().getPlayersSeeingChunk(center.getChunk()).forEach(player -> {
+            if(isPlayer && player.getUniqueId().equals(state.owner)) return;
+
+            player.spawnParticle(Particle.SOUL, trailPos,
+                    1, 0.05, 0.05, 0.05, 0.01);
+            player.spawnParticle(Particle.SOUL_FIRE_FLAME, headPos,
+                    1, 0.03, 0.03, 0.03, 0.005);
+        });
+
+//        center.getWorld().spawnParticle(Particle.SOUL, trailPos,
+//                1, 0.05, 0.05, 0.05, 0.01);
+//        center.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, headPos,
+//                1, 0.03, 0.03, 0.03, 0.005);
     }
 }
