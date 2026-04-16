@@ -100,7 +100,7 @@ public class SoulListener implements Listener {
     /**
      * Entities who die have their soul removed from the cache. Players who die lose all soul data
      */
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event){
        if(event.getEntity() instanceof Player player)
            SoulType.clearSouls(player);
@@ -119,7 +119,7 @@ public class SoulListener implements Listener {
     /**
      * When a player quits, he should be removed from soul cache to avoid memory leak
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerQuit(PlayerQuitEvent event){
         SoulType.removeFromCache(event.getPlayer());
     }
