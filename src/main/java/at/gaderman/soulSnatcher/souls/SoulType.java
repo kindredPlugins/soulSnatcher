@@ -153,7 +153,7 @@ public abstract class SoulType {
 
         SoulEffects.addSoulToOrbit(mob, this);
 
-        if(!(mob instanceof Monster) && (Monster.class.isAssignableFrom(Objects.requireNonNull(entityType().getEntityClass()))))
+        if (!(mob instanceof Monster) && (Monster.class.isAssignableFrom(Objects.requireNonNull(entityType().getEntityClass()))))
             Bukkit.getMobGoals().addGoal(mob, 0, new MonsterGoal(mob));
     }
 
@@ -176,6 +176,7 @@ public abstract class SoulType {
     }
 
     public static final NamespacedKey SOUL_REWARD = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward");
+    public static final NamespacedKey REWARD_OWNER = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward_owner");
 
     /**
      * Spawns in a set of display entities that are used to enable the player to accept they soul
@@ -209,7 +210,6 @@ public abstract class SoulType {
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay interactText = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, -1, 0), TextDisplay.class, display -> {
-
             display.text(duplicateSoul ?
                     Component.text("Already bound this soul", NamedTextColor.RED) :
                     Component.keybind("key.use", NamedTextColor.YELLOW).append(Component.text(" to bind")));
@@ -221,17 +221,30 @@ public abstract class SoulType {
             interaction.setInteractionHeight(1.5f);
             interaction.setInteractionWidth(1.0f);
 
+            interaction.setVisibleByDefault(false);
+            owner.showEntity(SoulSnatcher.getPlugin(), interaction);
+
+            interaction.getPersistentDataContainer().set(REWARD_OWNER, PersistentDataType.STRING, owner.getUniqueId().toString());
+
             if (!duplicateSoul)
                 interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, id());
         });
         List<Entity> displayEntities = List.of(skullDisplay, soulTitle, interactText);
-        displayEntities.forEach(entity -> entity.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulInteraction.getUniqueId().toString()));
+        displayEntities.forEach(entity -> {
+            if (!entity.equals(skullDisplay)) {
+                entity.setVisibleByDefault(false);
+                owner.showEntity(SoulSnatcher.getPlugin(), entity);
+            }
+
+            entity.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulInteraction.getUniqueId().toString());
+            entity.getPersistentDataContainer().set(REWARD_OWNER, PersistentDataType.STRING, owner.getUniqueId().toString());
+        });
 
         long age = duplicateSoul ? 80L : 60 * 20L;
 
         soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
         SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-            if(soulInteraction.isDead()) return;
+            if (soulInteraction.isDead()) return;
 
             soulInteraction.remove();
             displayEntities.forEach(Entity::remove);
@@ -248,9 +261,10 @@ public abstract class SoulType {
 
     /**
      * Removes a soul reward (meaning all related entities) based on the given interaction entity that is the core of the reward
+     *
      * @param rewardTrigger The interaction which acts as core for the reward
      */
-    public static void removeSoulReward(Interaction rewardTrigger){
+    public static void removeSoulReward(Interaction rewardTrigger) {
         rewardTrigger.remove();
         Stream.of(
                         rewardTrigger.getWorld().getNearbyEntitiesByType(TextDisplay.class, rewardTrigger.getLocation(), 2),
@@ -274,7 +288,8 @@ public abstract class SoulType {
      */
     public boolean bindSoul(Player player) {
         List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
-        if (boundSouls.size() >= MAX_BOUND_SOULS || boundSouls.contains(this)) return false;
+        if (boundSouls.size() >= MAX_BOUND_SOULS
+                || boundSouls.stream().anyMatch(soul -> soul.soulType().equals(this))) return false;
 
         addSoulToPdc(player);
         boundSouls.add(create(player));
@@ -287,29 +302,30 @@ public abstract class SoulType {
 
     /**
      * Removes the soul with this soulType from the given target
+     *
      * @param livingEntity The target who should have this soulType removed from them
      * @return true if a soul of this type was removed successfully, otherwise false
      */
-    public boolean removeSoul(LivingEntity livingEntity){
+    public boolean removeSoul(LivingEntity livingEntity) {
         List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
-        if(boundSouls.isEmpty()) return false;
+        if (boundSouls.isEmpty()) return false;
 
         var potSoul = boundSouls.stream().filter(soul -> soul.soulType().id().equals(id())).findFirst();
-        if(potSoul.isEmpty()) return false;
+        if (potSoul.isEmpty()) return false;
 
         boundSouls.remove(potSoul.get());
         PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
 
-        if(boundSouls.isEmpty()) {
+        if (boundSouls.isEmpty()) {
             cachedBoundSouls.remove(livingEntity.getUniqueId());
             pdc.remove(BOUND_SOULS);
-        }else{
+        } else {
             cachedBoundSouls.put(livingEntity.getUniqueId(), boundSouls);
             pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls.stream()
                     .map(soul -> soul.soulType().id()).collect(Collectors.toList()));
         }
 
-        if(livingEntity instanceof Player player)
+        if (livingEntity instanceof Player player)
             SoulLanternManager.updateActiveLanterns(player);
         SoulEffects.removeOneSoulFromOrbit(livingEntity, this);
         return true;
@@ -342,9 +358,10 @@ public abstract class SoulType {
 
     /**
      * Loads all soul data stored in the pdc of a mob into cache and sets up all infusions.
+     *
      * @param mob
      */
-    public static void loadIntoCache(Mob mob){
+    public static void loadIntoCache(Mob mob) {
         PersistentDataContainer pdc = mob.getPersistentDataContainer();
         ArrayList<String> infusedSoulIds = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
 
