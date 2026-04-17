@@ -83,6 +83,9 @@ public class ZombieSoulType extends SoulType {
 
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
+//            if(event.getDamageSource().isIndirect())
+//                return; //if only melee damage should call reinforcements
+
             if (isPlayerBound())
                 combatTargets.add(damager);
 

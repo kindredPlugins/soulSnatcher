@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
+import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,7 +28,9 @@ public class TriggerListener implements Listener {
     @EventHandler
     public void onDamageReceivedByEntityTrigger(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
-        if (!(event.getDamager() instanceof LivingEntity damager)) return;
+
+        DamageSource source = event.getDamageSource();
+        if (!(source.getCausingEntity() instanceof LivingEntity damager)) return;
 
         List<SoulInstance> targetSouls = SoulType.getCarriedSouls(entity);
         targetSouls.stream()

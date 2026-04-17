@@ -1,15 +1,13 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.MonsterGoal;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -154,6 +152,9 @@ public abstract class SoulType {
         addSoul(mob);
 
         SoulEffects.addSoulToOrbit(mob, this);
+
+        if(!(mob instanceof Monster) && (Monster.class.isAssignableFrom(Objects.requireNonNull(entityType().getEntityClass()))))
+            Bukkit.getMobGoals().addGoal(mob, 0, new MonsterGoal(mob));
     }
 
     /**
