@@ -2,6 +2,9 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Mob;
@@ -106,6 +109,35 @@ public class SoulListener implements Listener {
            SoulType.clearSouls(player);
 
        else SoulType.removeFromCache(event.getEntity());
+    }
+
+    @EventHandler
+    public void onInfusedAddedToWorld(EntityAddToWorldEvent event){
+        if(!(event.getEntity() instanceof Mob mob)) return;
+
+        PersistentDataContainer pdc = mob.getPersistentDataContainer();
+        if(!pdc.has(SoulType.BOUND_SOULS, PersistentDataType.LIST.strings())) return;
+        if(!SoulType.getCarriedSouls(mob).isEmpty()) return;
+
+        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+            if (!mob.isValid()) return;
+
+            mob.getLocation().getWorld().getChunkAtAsync(mob.getLocation())
+                    .thenAccept(chunk ->
+                            Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
+                                if (!mob.isValid()) return;
+                                SoulType.loadIntoCache(mob);
+                            })
+                    );
+        }, 1L);
+    }
+
+    @EventHandler
+    public void onInfusedRemovedFromWorld(EntityRemoveFromWorldEvent event){
+        if(event.getEntity() instanceof Mob mob) {
+            SoulType.removeFromCache(mob);
+            SoulSnatcher.getPlugin().getLogger().info("Removed " + mob.getName() + " from cache");
+        }
     }
 
     /**

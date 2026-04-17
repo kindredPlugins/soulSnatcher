@@ -341,6 +341,23 @@ public abstract class SoulType {
     }
 
     /**
+     * Loads all soul data stored in the pdc of a mob into cache and sets up all infusions.
+     * @param mob
+     */
+    public static void loadIntoCache(Mob mob){
+        PersistentDataContainer pdc = mob.getPersistentDataContainer();
+        ArrayList<String> infusedSoulIds = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
+
+        pdc.remove(BOUND_SOULS);
+
+        SoulRegistry registry = SoulRegistry.getInstance();
+        infusedSoulIds.stream()
+                .map(registry::getSoul)
+                .filter(Objects::nonNull)
+                .forEach(soulType -> soulType.infuseSoul(mob));
+    }
+
+    /**
      * Loads all soul data stored in the players pdc into cached lists to speed up processing.
      * Usually gets called on login.
      *
@@ -349,20 +366,23 @@ public abstract class SoulType {
     public static void loadIntoCache(Player player) {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
-        if (boundSouls.isEmpty()) return;
-
-        SoulRegistry soulRegistry = SoulRegistry.getInstance();
-        List<SoulType> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
-        souls.forEach(soulType -> {
-            soulType.bindSoul(player);
-        });
-
         ArrayList<String> unBoundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
-        if (unBoundSouls.isEmpty()) return;
+        SoulRegistry soulRegistry = SoulRegistry.getInstance();
 
-        List<SoulType> floatingSouls = unBoundSouls.stream().map(soulRegistry::getSoul).toList();
-        floatingSouls.forEach(soulType -> {
-            soulType.addUnboundSoul(player);
-        });
+        clearSouls(player);
+
+        if (!boundSouls.isEmpty()) {
+            List<SoulType> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
+            souls.forEach(soulType -> {
+                soulType.bindSoul(player);
+            });
+        }
+
+        if (!unBoundSouls.isEmpty()) {
+            List<SoulType> floatingSouls = unBoundSouls.stream().map(soulRegistry::getSoul).toList();
+            floatingSouls.forEach(soulType -> {
+                soulType.addUnboundSoul(player);
+            });
+        }
     }
 }
