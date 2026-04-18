@@ -42,7 +42,7 @@ public class TriggerListener implements Listener {
 
         List<SoulInstance> damagerSouls = SoulType.getCarriedSouls(damager);
         damagerSouls.stream()
-                .filter(soul -> soul instanceof OnDamageReceivedTrigger)
+                .filter(soul -> soul instanceof OnDamageDealtTrigger)
                 .map(soul -> (OnDamageDealtTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onDamageDealt(damager, entity, event);
