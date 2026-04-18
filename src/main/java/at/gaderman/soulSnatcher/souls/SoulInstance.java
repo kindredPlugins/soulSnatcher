@@ -20,13 +20,26 @@ public abstract class SoulInstance {
     public LivingEntity carrier() { return carrier; }
     public SoulType soulType() { return soulType; }
 
+    /**
+     * If this soul is player-bound. This essentially means that the carrier is a player.
+     * This is important since sometimes effects differ between player-bound and infusion.
+     * @return If this soul belongs to a player and is by thus player-bound
+     */
     protected final boolean isPlayerBound() {
         return carrier instanceof Player;
     }
 
+    /**
+     * If this soul is an infusion. This essentially means that the carrier is a mob.
+     * This is important since sometimes effects differ between player-bound and infusion.
+     * @return If this soul belongs to a mob and is by thus an infusion
+     */
     protected final boolean isInfused() {
         return !(carrier instanceof Player);
     }
 
-
+    /**
+     * Called when this soulInstance is removed. Is important for some souls in order to clean up abilities.
+     */
+    protected void cleanUp(){}
 }

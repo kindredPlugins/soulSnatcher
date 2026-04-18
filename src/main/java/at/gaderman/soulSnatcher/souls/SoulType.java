@@ -313,7 +313,8 @@ public abstract class SoulType {
         var potSoul = boundSouls.stream().filter(soul -> soul.soulType().id().equals(id())).findFirst();
         if (potSoul.isEmpty()) return false;
 
-        boundSouls.remove(potSoul.get());
+        SoulInstance removedSoul = potSoul.get();
+        boundSouls.remove(removedSoul);
         PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
 
         if (boundSouls.isEmpty()) {
@@ -327,6 +328,7 @@ public abstract class SoulType {
 
         if (livingEntity instanceof Player player)
             SoulLanternManager.updateActiveLanterns(player);
+        removedSoul.cleanUp();
         SoulEffects.removeOneSoulFromOrbit(livingEntity, this);
         return true;
     }
@@ -338,6 +340,8 @@ public abstract class SoulType {
      * @param livingEntity The entity whose soul data should be removed from the cache
      */
     public static void removeFromCache(LivingEntity livingEntity) {
+        cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList()).forEach(SoulInstance::cleanUp);
+
         cachedBoundSouls.remove(livingEntity.getUniqueId());
         if (livingEntity instanceof Player)
             cachedUnboundSouls.remove(livingEntity.getUniqueId());
