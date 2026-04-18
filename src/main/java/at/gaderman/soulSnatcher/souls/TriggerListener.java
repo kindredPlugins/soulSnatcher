@@ -1,13 +1,16 @@
 package at.gaderman.soulSnatcher.souls;
 
-import at.gaderman.soulSnatcher.souls.triggers.OnDamageDealtTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.*;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 
 import java.util.List;
 
@@ -46,6 +49,45 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnDamageDealtTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onDamageDealt(damager, entity, event);
+                });
+    }
+
+    @EventHandler
+    public void onEntityShootBowTrigger(EntityShootBowEvent event){
+        LivingEntity entity = event.getEntity();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityShootBowTrigger)
+                .map(soul -> (OnEntityShootBowTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityShootBow(entity, event);
+                });
+    }
+
+    @EventHandler
+    public void onItemDamageTrigger(PlayerItemDamageEvent event){
+        Player player = event.getPlayer();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnItemDamageTrigger)
+                .map(soul -> (OnItemDamageTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onItemDamage(player, event);
+                });
+    }
+
+    @EventHandler
+    public void onPlayerInteractTrigger(PlayerInteractEvent event){
+        Player player = event.getPlayer();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnPlayerInteractTrigger)
+                .map(soul -> (OnPlayerInteractTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onPlayerInteract(player, event);
                 });
     }
 
