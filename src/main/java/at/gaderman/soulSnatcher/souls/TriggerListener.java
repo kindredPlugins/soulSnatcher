@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.souls.triggers.*;
+import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -102,6 +103,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnEntityPotionEffectTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onEntityPotionEffect(entity, event);
+                });
+    }
+
+    @EventHandler
+    public void onJumpTrigger(PlayerJumpEvent event){
+        Player player = event.getPlayer();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnPlayerJumpTrigger)
+                .map(soul -> (OnPlayerJumpTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onPlayerJump(player, event);
                 });
     }
 

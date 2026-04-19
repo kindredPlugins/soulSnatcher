@@ -1,7 +1,6 @@
 package at.gaderman.soulSnatcher.mobGoals;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import com.destroystokyo.paper.entity.ai.Goal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
@@ -20,12 +19,10 @@ import java.util.EnumSet;
  * who will after some loading time make the mob shoot an arrow at facing direction. This ability has a small
  * cooldown which will be periodically activated as long as the mob has a valid target.
  */
-public class SkeletonShootGoal implements Goal<@NotNull Mob> {
-
-    private final Mob mob;
+public class SkeletonShootGoal extends SoulAbilityGoal {
 
     public SkeletonShootGoal(Mob mob){
-        this.mob = mob;
+        super(mob);
     }
 
     public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(),
