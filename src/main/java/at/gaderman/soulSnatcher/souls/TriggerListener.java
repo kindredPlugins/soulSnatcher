@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
@@ -88,6 +89,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnPlayerInteractTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onPlayerInteract(player, event);
+                });
+    }
+
+    @EventHandler
+    public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event){
+        if(!(event.getEntity() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityPotionEffectTrigger)
+                .map(soul -> (OnEntityPotionEffectTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityPotionEffect(entity, event);
                 });
     }
 
