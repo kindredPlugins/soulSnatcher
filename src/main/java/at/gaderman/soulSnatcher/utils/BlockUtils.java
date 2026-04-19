@@ -72,20 +72,19 @@ public class BlockUtils {
 
     public static @Nullable Location findSpreadLocation(Location center, int xz, int y) {
         for (int i = 0; i < 16; i++) {
-            int dx = (int) (Math.random() * (xz * 2));
-            int dz = (int) (Math.random() * (xz * 2));
-            int dy = (int) (Math.random() * (y * 2));
+            int dx = (int) ((0.5 - Math.random()) * (xz * 2));
+            int dz = (int) ((0.5 - Math.random()) * (xz * 2));
 
-            Location candidate = center.clone().add(dx, dy, dz);
-            while (candidate.getY() >= center.getY() - y && candidate.getY() > center.getWorld().getMinHeight() &&
-                    !candidate.getBlock().isPassable()) {
+            Location candidate = center.clone().add(dx, y, dz);
+            while (candidate.getY() >= center.getY() - 2 * y && candidate.getY() > center.getWorld().getMinHeight() &&
+                    candidate.getBlock().isPassable()) {
                 candidate.subtract(0, 1, 0);
             }
             candidate.add(0, 1, 0);
 
             Block feet = candidate.getBlock();
             Block head = feet.getRelative(BlockFace.UP);
-            if (head.isPassable()) {
+            if (!feet.getRelative(BlockFace.DOWN).isPassable() && feet.isPassable() && head.isPassable()) {
                 return candidate;
             }
         }

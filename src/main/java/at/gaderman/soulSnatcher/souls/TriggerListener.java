@@ -7,10 +7,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityPotionEffectEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 
@@ -119,4 +116,17 @@ public class TriggerListener implements Listener {
                 });
     }
 
+    @EventHandler
+    public void onTarget(EntityTargetLivingEntityEvent event){
+        if(event.getTarget() == null || !(event.getEntity() instanceof LivingEntity livingEntity)) return;
+
+        LivingEntity target = event.getTarget();
+        List<SoulInstance> souls = SoulType.getCarriedSouls(target);
+        souls.stream()
+                .filter(soul -> soul instanceof OnTargetTrigger)
+                .map(soul -> (OnTargetTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onTarget(target, livingEntity, event);
+                });
+    }
 }
