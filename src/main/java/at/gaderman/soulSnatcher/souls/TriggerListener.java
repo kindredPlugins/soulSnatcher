@@ -1,6 +1,9 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.souls.triggers.*;
+import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
@@ -48,19 +51,6 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnDamageDealtTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onDamageDealt(damager, entity, event);
-                });
-    }
-
-    @EventHandler
-    public void onEntityShootBowTrigger(EntityShootBowEvent event){
-        LivingEntity entity = event.getEntity();
-
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
-        souls.stream()
-                .filter(soul -> soul instanceof OnEntityShootBowTrigger)
-                .map(soul -> (OnEntityShootBowTrigger) soul)
-                .forEach(trigger -> {
-                    trigger.onEntityShootBow(entity, event);
                 });
     }
 
@@ -127,6 +117,47 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnTargetTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onTarget(target, livingEntity, event);
+                });
+    }
+
+    // PROJECTILES
+
+    @EventHandler
+    public void onEntityShootBowTrigger(EntityShootBowEvent event){
+        LivingEntity entity = event.getEntity();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityShootBowTrigger)
+                .map(soul -> (OnEntityShootBowTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityShootBow(entity, event);
+                });
+    }
+
+    @EventHandler
+    public void onEntityLaunchProjectileTrigger(ProjectileLaunchEvent event){
+        if(!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityLaunchProjectileTrigger)
+                .map(soul -> (OnEntityLaunchProjectileTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityLaunchProjectile(entity, event.getEntity(), event);
+                });
+    }
+
+    @EventHandler
+    public void onProjectileHit(ProjectileHitEvent event){
+        if(!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnProjectileHitTrigger)
+                .map(soul -> (OnProjectileHitTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onProjectileHit(entity, event.getEntity(), event);
                 });
     }
 }

@@ -1,4 +1,4 @@
-package at.gaderman.soulSnatcher.souls.triggers;
+package at.gaderman.soulSnatcher.souls.triggers.projectiles;
 
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityShootBowEvent;
