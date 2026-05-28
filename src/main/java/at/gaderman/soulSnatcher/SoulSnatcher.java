@@ -1,5 +1,6 @@
 package at.gaderman.soulSnatcher;
 
+import at.gaderman.soulSnatcher.commands.SoulIndexCommand;
 import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.TriggerListener;
@@ -22,6 +23,8 @@ public final class SoulSnatcher extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SoulListener(), this);
         Bukkit.getPluginManager().registerEvents(new TriggerListener(), this);
         Bukkit.getPluginManager().registerEvents(new SoulLanternManager(), this);
+
+        getCommand("soulIndex").setExecutor(new SoulIndexCommand());
 
         SoulRegistry.getInstance();
     }
