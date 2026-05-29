@@ -66,10 +66,7 @@ public class SoulAbsorptionUI extends ActionInventory {
 
     private void discard() {
         SoulType.removeSoulReward(rewardTrigger);
-
-        rewardTrigger.getWorld().playSound(rewardTrigger.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1f, 0.1f);
-        rewardTrigger.getWorld().playSound(rewardTrigger.getLocation(), Sound.BLOCK_LAVA_EXTINGUISH, 1f, 0.1f);
-        rewardTrigger.getWorld().spawnParticle(Particle.SOUL, rewardTrigger.getLocation().toCenterLocation(), 50, 0.3, 0, 0.3, 0.1);
+        SoulEffects.discardSoulRewardEffect(rewardTrigger.getLocation());
 
         inventory.close();
     }
@@ -79,7 +76,7 @@ public class SoulAbsorptionUI extends ActionInventory {
 
         replaced.soulType().removeSoul(player);
         rewardSoul.bindSoul(player);
-        SoulEffects.playBindEffect(player, rewardTrigger.getLocation().toCenterLocation());
+        SoulEffects.playBindEffect(player, rewardSoul, rewardTrigger.getLocation());
 
         rewardTrigger.getWorld().playSound(rewardTrigger.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1f, 0.1f);
 

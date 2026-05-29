@@ -99,7 +99,7 @@ public class SoulListener implements Listener {
         }
 
         SoulType.removeSoulReward(interaction);
-        SoulEffects.playBindEffect(player, interaction.getLocation().toCenterLocation());
+        SoulEffects.playBindEffect(player, reward, interaction.getLocation());
     }
 
     /**

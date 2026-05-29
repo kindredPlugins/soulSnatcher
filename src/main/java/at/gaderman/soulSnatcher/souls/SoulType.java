@@ -126,19 +126,7 @@ public abstract class SoulType {
 
         addUnboundSoul(player);
 
-        location.getWorld().playSound(location, Sound.BLOCK_SOUL_SAND_PLACE, 1f, 0.25f);
-        location.getWorld().spawnParticle(Particle.SOUL, location, 30, 0.2, 0.5, 0.2, 0.1);
-
-        location.getWorld().spawn(location.clone().add(0, 0.75, 0), ItemDisplay.class, display -> {
-            display.setItemStack(itemRepresentation());
-            display.setInterpolationDelay(-1);
-            display.setInterpolationDuration(40);
-
-            SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-                display.remove();
-                display.getWorld().spawnParticle(Particle.WHITE_SMOKE, display.getLocation(), 10, 0.2, 0.2, 0.2, 0);
-            }, 40L);
-        });
+        SoulEffects.spawnReleasedSoul(location, itemRepresentation());
     }
 
     /**
@@ -248,6 +236,8 @@ public abstract class SoulType {
 
             soulInteraction.remove();
             displayEntities.forEach(Entity::remove);
+
+            SoulEffects.discardSoulRewardEffect(soulInteraction.getLocation());
         }, age);
 
 //        TextDisplay soulDescription = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, description().size() * -0.75, 0), TextDisplay.class, display -> {
