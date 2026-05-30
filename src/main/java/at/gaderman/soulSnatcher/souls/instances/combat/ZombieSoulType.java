@@ -1,10 +1,11 @@
-package at.gaderman.soulSnatcher.souls.instances.monsters;
+package at.gaderman.soulSnatcher.souls.instances.combat;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.mobGoals.ReinforcementZombieGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
@@ -54,6 +55,11 @@ public class ZombieSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.ZOMBIE;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.COMBAT;
     }
 
     @Override

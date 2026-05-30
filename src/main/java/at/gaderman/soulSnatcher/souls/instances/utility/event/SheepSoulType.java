@@ -1,7 +1,8 @@
-package at.gaderman.soulSnatcher.souls.instances.animals;
+package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
@@ -36,6 +37,11 @@ public class SheepSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.SHEEP;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.UTILITY;
     }
 
     @Override

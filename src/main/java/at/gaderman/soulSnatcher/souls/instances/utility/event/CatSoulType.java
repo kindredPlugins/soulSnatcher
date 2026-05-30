@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageReceivedTrigger;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -31,6 +32,11 @@ public class CatSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.CAT;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.UTILITY;
     }
 
     @Override

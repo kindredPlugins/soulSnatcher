@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.mobGoals.MonsterGoal;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
@@ -26,14 +27,13 @@ public abstract class SoulType {
     public SoulType() {
     }
 
-    public @NotNull
-    abstract EntityType entityType();
+    public @NotNull abstract EntityType entityType();
 
-    public @NotNull
-    abstract String id();
+    public abstract @NotNull String id();
 
-    public @NotNull
-    abstract SoulInstance create(LivingEntity carrier);
+    public abstract @NotNull SoulInstance create(LivingEntity carrier);
+
+    public abstract @NotNull SoulCategory category();
 
     protected abstract @NotNull String skullTexture();
 
@@ -41,11 +41,11 @@ public abstract class SoulType {
 
     public abstract @NotNull List<Component> description();
 
-    public final ItemStack getRepresentativeSkull() {
+    public final @NotNull ItemStack getRepresentativeSkull() {
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" + skullTexture());
     }
 
-    public final ItemStack itemRepresentation() {
+    public final @NotNull ItemStack itemRepresentation() {
         ItemStack item = getRepresentativeSkull();
         item.editMeta(meta -> {
                     meta.displayName(displayName().decoration(TextDecoration.ITALIC, false));

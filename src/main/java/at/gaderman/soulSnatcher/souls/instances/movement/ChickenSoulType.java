@@ -1,8 +1,9 @@
-package at.gaderman.soulSnatcher.souls.instances.attributes;
+package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -33,6 +34,11 @@ public class ChickenSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.CHICKEN;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.MOVEMENT;
     }
 
     @Override

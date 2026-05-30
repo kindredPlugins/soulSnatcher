@@ -1,9 +1,10 @@
-package at.gaderman.soulSnatcher.souls.instances.monsters;
+package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.mobGoals.SkeletonShootGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnPlayerInteractTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
@@ -38,6 +39,11 @@ public class SkeletonSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.SKELETON;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.UTILITY;
     }
 
     @Override

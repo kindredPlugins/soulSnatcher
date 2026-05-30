@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 
 public class ActionInventory implements InventoryHolder, Listener {
     protected Inventory inventory;
+    private Component deferredInventoryName = null;
 
     private final Map<Integer, Consumer<InventoryClickEvent>> inventoryActionsMap = new HashMap<>();
 
@@ -37,9 +38,9 @@ public class ActionInventory implements InventoryHolder, Listener {
         initializeInventory(size, inventoryName);
     }
 
-    public ActionInventory(){ initializeInventory(calculateSize(), null); }
+    public ActionInventory(){ this.deferredInventoryName = null; }
 
-    public ActionInventory(Component inventoryName){ initializeInventory(calculateSize(), inventoryName); }
+    public ActionInventory(Component inventoryName){ this.deferredInventoryName = inventoryName; }
 
     protected int calculateSize(){
         return 27;
@@ -94,6 +95,10 @@ public class ActionInventory implements InventoryHolder, Listener {
     }
 
     public void openInventory(Player player) {
+        // Ensure inventory is created now that subclass construction has finished
+        if (inventory == null)
+            initializeInventory(calculateSize(), deferredInventoryName);
+
         if (Objects.equals(player.getOpenInventory().getTopInventory().getHolder(), this)) return;
 
         if(inventory.getViewers().isEmpty())
@@ -108,6 +113,7 @@ public class ActionInventory implements InventoryHolder, Listener {
 
     @Override
     public @NotNull Inventory getInventory() {
+        if(inventory == null) initializeInventory(calculateSize(), deferredInventoryName);
         return inventory;
     }
 

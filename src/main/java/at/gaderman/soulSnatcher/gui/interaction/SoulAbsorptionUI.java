@@ -28,8 +28,6 @@ public class SoulAbsorptionUI extends ActionInventory {
         this.player = player;
         this.rewardSoul = rewardSoul;
         this.rewardTrigger = rewardTrigger;
-
-        afterInit();
     }
 
     @Override
@@ -44,9 +42,7 @@ public class SoulAbsorptionUI extends ActionInventory {
         for (int i = 0; i < inventory.getSize(); i++) {
             inventory.setItem(i, getFillItem());
         }
-    }
 
-    private void afterInit() {
         int rewardIndex = 4;
         inventory.setItem(rewardIndex, rewardSoul.itemRepresentation());
         inventory.setItem(rewardIndex + 9, getDiscardItem());

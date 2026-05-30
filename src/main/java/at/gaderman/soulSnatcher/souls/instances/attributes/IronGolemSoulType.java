@@ -1,9 +1,10 @@
-package at.gaderman.soulSnatcher.souls.instances.others;
+package at.gaderman.soulSnatcher.souls.instances.attributes;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
@@ -38,6 +39,11 @@ public class IronGolemSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.IRON_GOLEM;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.ATTRIBUTES;
     }
 
     @Override

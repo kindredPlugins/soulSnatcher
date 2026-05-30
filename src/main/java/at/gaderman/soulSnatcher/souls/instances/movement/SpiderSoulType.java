@@ -1,8 +1,9 @@
-package at.gaderman.soulSnatcher.souls.instances.monsters;
+package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.mobGoals.SpiderDashGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnPlayerJumpTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.google.auto.service.AutoService;
@@ -39,6 +40,11 @@ public class SpiderSoulType extends SoulType {
     @Override
     protected @NotNull String skullTexture() {
         return "35e248da2e108f09813a6b848a0fcef111300978180eda41d3d1a7a8e4dba3c3";
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.MOVEMENT;
     }
 
     @Override

@@ -1,8 +1,9 @@
-package at.gaderman.soulSnatcher.souls.instances.animals;
+package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -33,6 +34,11 @@ public class CowSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.COW;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.UTILITY;
     }
 
     @Override

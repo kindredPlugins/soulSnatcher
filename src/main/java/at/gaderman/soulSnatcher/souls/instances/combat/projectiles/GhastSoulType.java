@@ -1,8 +1,9 @@
-package at.gaderman.soulSnatcher.souls.instances.nether;
+package at.gaderman.soulSnatcher.souls.instances.combat.projectiles;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import com.google.auto.service.AutoService;
@@ -40,6 +41,11 @@ public class GhastSoulType extends SoulType {
     @Override
     public @NotNull EntityType entityType() {
         return EntityType.GHAST;
+    }
+
+    @Override
+    public @NotNull SoulCategory category() {
+        return SoulCategory.COMBAT;
     }
 
     @Override
