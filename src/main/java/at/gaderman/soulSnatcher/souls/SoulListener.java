@@ -45,7 +45,7 @@ public class SoulListener implements Listener {
         if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.SPAWNER_EGG)
             return;
 
-        Collection<Player> nearbyPlayers = mob.getWorld().getNearbyPlayers(mob.getLocation(), 50, 50);
+        Collection<Player> nearbyPlayers = mob.getWorld().getNearbyPlayers(mob.getLocation(), 50, 30);
         if (nearbyPlayers.isEmpty()) return;
 
         Player closestPlayer = nearbyPlayers

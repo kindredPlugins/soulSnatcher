@@ -81,7 +81,7 @@ public class ZombieSoulType extends SoulType {
         );
     }
 
-    private static final NamespacedKey REINFORCEMENT_OWNER = new NamespacedKey(SoulSnatcher.getPlugin(),
+    public static final NamespacedKey REINFORCEMENT_OWNER = new NamespacedKey(SoulSnatcher.getPlugin(),
             "reinforcement_owner");
     private static final Map<Zombie, Set<LivingEntity>> reinforcementTargetMap = new LinkedHashMap<>();
 
@@ -104,9 +104,14 @@ public class ZombieSoulType extends SoulType {
         }
 
         @Override
-        public void onTarget(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
+        public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
             if(isPlayerBound())
                 combatTargets.add(entity);
+        }
+
+        @Override
+        public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
+            combatTargets.add(target);
         }
 
         @Override

@@ -43,7 +43,7 @@ public class ChickenSoulType extends SoulType {
 
     @Override
     protected @NotNull String skullTexture() {
-        return "http://textures.minecraft.net/texture/3ad3dd0083faa69a062f9ad81418f5a596180bf1592e4b8d1303b230b64bc79e";
+        return "3ad3dd0083faa69a062f9ad81418f5a596180bf1592e4b8d1303b230b64bc79e";
     }
 
     @Override

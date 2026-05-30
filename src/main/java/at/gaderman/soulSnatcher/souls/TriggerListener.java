@@ -17,7 +17,8 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import java.util.List;
 
 public class TriggerListener implements Listener {
-    @EventHandler
+
+    @EventHandler(ignoreCancelled = true)
     public void onDamageReceivedTrigger(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
@@ -30,7 +31,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onDamageReceivedByEntityTrigger(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
@@ -54,7 +55,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onItemDamageTrigger(PlayerItemDamageEvent event){
         Player player = event.getPlayer();
 
@@ -67,7 +68,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerInteractTrigger(PlayerInteractEvent event){
         Player player = event.getPlayer();
 
@@ -80,7 +81,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event){
         if(!(event.getEntity() instanceof LivingEntity entity)) return;
 
@@ -93,7 +94,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onJumpTrigger(PlayerJumpEvent event){
         Player player = event.getPlayer();
 
@@ -106,9 +107,9 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onTarget(EntityTargetLivingEntityEvent event){
-        if(event.getTarget() == null || !(event.getEntity() instanceof LivingEntity livingEntity)) return;
+        if(event.getTarget() == null || !(event.getEntity() instanceof LivingEntity provoker)) return;
 
         LivingEntity target = event.getTarget();
         List<SoulInstance> souls = SoulType.getCarriedSouls(target);
@@ -116,7 +117,15 @@ public class TriggerListener implements Listener {
                 .filter(soul -> soul instanceof OnTargetTrigger)
                 .map(soul -> (OnTargetTrigger) soul)
                 .forEach(trigger -> {
-                    trigger.onTarget(target, livingEntity, event);
+                    trigger.onBeingTargeted(target, provoker, event);
+                });
+
+        List<SoulInstance> carrierSouls = SoulType.getCarriedSouls(provoker);
+        carrierSouls.stream()
+                .filter(soul -> soul instanceof OnTargetTrigger)
+                .map(soul -> (OnTargetTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onCarrierTarget(provoker, target, event);
                 });
     }
 
@@ -135,7 +144,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onEntityLaunchProjectileTrigger(ProjectileLaunchEvent event){
         if(!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
 
@@ -148,7 +157,7 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onProjectileHit(ProjectileHitEvent event){
         if(!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
 
