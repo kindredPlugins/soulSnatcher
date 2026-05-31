@@ -41,7 +41,7 @@ public class CatSoulType extends SoulType {
 
     @Override
     protected @NotNull String skullTexture() {
-        return "http://textures.minecraft.net/texture/4fd10c8e75f67398c47587d25fc146f311c053cc5d0aeab8790bce36ee88f5f8";
+        return "4fd10c8e75f67398c47587d25fc146f311c053cc5d0aeab8790bce36ee88f5f8";
     }
 
     @Override

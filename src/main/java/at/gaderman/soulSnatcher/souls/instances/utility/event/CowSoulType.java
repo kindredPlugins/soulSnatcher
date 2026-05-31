@@ -14,6 +14,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionEffectTypeCategory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -76,7 +77,10 @@ public class CowSoulType extends SoulType {
 
                 if(!carrier.isValid()) return;
 
-                carrier.clearActivePotionEffects();
+                carrier.getActivePotionEffects().stream()
+                        .filter(effect -> effect.getType().getCategory() == PotionEffectTypeCategory.HARMFUL)
+                        .forEach(effect -> carrier.removePotionEffect(effect.getType()));
+
                 carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation().add(0, 1, 0), 30, 0.2, 0.2, 0.2, 0.1);
                 carrier.getWorld().playSound(carrier, Sound.ENTITY_SPLASH_POTION_THROW, 1f, 2f);
             }, 15L);

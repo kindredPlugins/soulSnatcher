@@ -66,7 +66,7 @@ public class SkeletonSoulType extends SoulType {
             super(carrier, soulType);
 
             if(isInfused())
-                Bukkit.getMobGoals().addGoal((Mob) carrier, 0, new SkeletonShootGoal((Mob) carrier));
+                Bukkit.getMobGoals().addGoal((Mob) carrier, 0, new SkeletonShootGoal((Mob) carrier, 5000));
         }
 
         private int arrowIndex;

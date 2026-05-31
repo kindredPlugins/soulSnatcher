@@ -21,8 +21,12 @@ import java.util.EnumSet;
  */
 public class SkeletonShootGoal extends SoulAbilityGoal {
 
-    public SkeletonShootGoal(Mob mob){
+    private final int shotCooldown;
+
+    public SkeletonShootGoal(Mob mob, int shotCooldown){
         super(mob);
+
+        this.shotCooldown = shotCooldown;
     }
 
     public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(),
@@ -39,11 +43,10 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
     }
 
     private long lastShot;
-    private static final long SHOT_COOLDOWN = 5000;
 
     @Override
     public boolean shouldActivate() {
-        return mob.getTarget() != null && lastShot < System.currentTimeMillis() - SHOT_COOLDOWN;
+        return mob.getTarget() != null && lastShot < System.currentTimeMillis() - shotCooldown;
     }
 
     private long drawingTicks;
