@@ -1,6 +1,8 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.projectiles;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.GhastShootGoal;
+import at.gaderman.soulSnatcher.mobGoals.SkeletonShootGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
@@ -9,15 +11,10 @@ import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigge
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Projectile;
+import org.bukkit.entity.*;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -66,6 +63,9 @@ public class GhastSoulType extends SoulType {
     public static class GhastSoulInstance extends SoulInstance implements OnEntityLaunchProjectileTrigger, OnProjectileHitTrigger {
         protected GhastSoulInstance(LivingEntity carrier, SoulType soulType) {
             super(carrier, soulType);
+
+            if (isInfused() && !(carrier instanceof AbstractSkeleton))
+                Bukkit.getMobGoals().addGoal((Mob) carrier, 0, new GhastShootGoal((Mob) carrier, 5000));
         }
 
         private long lastGhastShot;
@@ -113,10 +113,18 @@ public class GhastSoulType extends SoulType {
                 double distance = entity.getLocation().distance(location);
                 double damage = Math.max(MIN_DAMAGE, MAX_DAMAGE - (distance * 1.5));
                 hit.damage(damage, DamageSource.builder(DamageType.EXPLOSION)
-                                .withCausingEntity(carrier)
-                                .withDirectEntity(projectile)
-                                .withDamageLocation(location)
+                        .withCausingEntity(carrier)
+                        .withDirectEntity(projectile)
+                        .withDamageLocation(location)
                         .build());
+
+                Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () ->
+                                hit.setVelocity(hit.getLocation().toVector().subtract(location.toVector())
+                                        .setY(0)
+                                        .normalize()
+                                        .multiply(0.75)
+                                        .setY(0.5)),
+                        1L);
             });
 
             location.getWorld().spawnParticle(Particle.EXPLOSION, location, 1);
