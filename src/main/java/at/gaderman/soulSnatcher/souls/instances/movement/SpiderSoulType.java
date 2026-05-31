@@ -4,7 +4,7 @@ import at.gaderman.soulSnatcher.mobGoals.SpiderDashGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.souls.triggers.OnPlayerJumpTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;

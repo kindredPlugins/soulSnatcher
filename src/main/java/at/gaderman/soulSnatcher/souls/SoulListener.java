@@ -5,6 +5,7 @@ import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -39,6 +40,8 @@ public class SoulListener implements Listener {
         optSoul.get().releaseSoul(mob.getLocation(), mob.getKiller());
     }
 
+    public static NamespacedKey INFUSED_FROM = new NamespacedKey(SoulSnatcher.getPlugin(), "infused_from");
+
     @EventHandler
     public void onSoulInfuse(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
@@ -62,6 +65,8 @@ public class SoulListener implements Listener {
 
         randomSoul.infuseSoul(mob);
         randomSoul.removeUnboundSoul(closestPlayer);
+
+        mob.getPersistentDataContainer().set(INFUSED_FROM, PersistentDataType.STRING, closestPlayer.getUniqueId().toString());
     }
 
     @EventHandler
@@ -73,6 +78,23 @@ public class SoulListener implements Listener {
 
         souls.getFirst().soulType().offerSoulReward(mob.getLocation(), mob.getKiller());
     }
+
+    //TODO: ion order for unbound souls to not perish there needs to be a system which loads them back into the pool again, but offline players cannot have their pdc accessed, either needs to be cache only, or requires unbound souls to be restructured to file storage
+//    @EventHandler
+//    public void onInfuseNaturalDespawn(EntityRemoveEvent event){
+//        if(event.getCause() != EntityRemoveEvent.Cause.DESPAWN)
+//            return;
+//
+//        if(!(event instanceof LivingEntity entity)) return;
+//
+//        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+//        if(!pdc.has(INFUSED_FROM)) return;
+//
+//        OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(pdc.get(INFUSED_FROM, PersistentDataType.STRING)));
+//        if(!player.hasPlayedBefore()) return;
+//
+//
+//    }
 
     @EventHandler
     public void onClaimSoul(PlayerInteractEntityEvent event) {

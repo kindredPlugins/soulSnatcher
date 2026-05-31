@@ -1,6 +1,13 @@
 package at.gaderman.soulSnatcher.souls;
 
-import at.gaderman.soulSnatcher.souls.triggers.*;
+import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.OnPlayerInteractTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
@@ -13,10 +20,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import java.util.List;
 
 public class TriggerListener implements Listener {
+
+    //region Damage
 
     @EventHandler(ignoreCancelled = true)
     public void onDamageReceivedTrigger(EntityDamageEvent event) {
@@ -55,8 +65,12 @@ public class TriggerListener implements Listener {
                 });
     }
 
+    //endregion
+
+    //region Interactions
+
     @EventHandler(ignoreCancelled = true)
-    public void onItemDamageTrigger(PlayerItemDamageEvent event){
+    public void onItemDamageTrigger(PlayerItemDamageEvent event) {
         Player player = event.getPlayer();
 
         List<SoulInstance> souls = SoulType.getCarriedSouls(player);
@@ -69,7 +83,7 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerInteractTrigger(PlayerInteractEvent event){
+    public void onPlayerInteractTrigger(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
         List<SoulInstance> souls = SoulType.getCarriedSouls(player);
@@ -81,21 +95,55 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event){
-        if(!(event.getEntity() instanceof LivingEntity entity)) return;
+    //endregion
+
+    //region Projectiles
+
+    @EventHandler
+    public void onEntityShootBowTrigger(EntityShootBowEvent event) {
+        LivingEntity entity = event.getEntity();
 
         List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
-                .filter(soul -> soul instanceof OnEntityPotionEffectTrigger)
-                .map(soul -> (OnEntityPotionEffectTrigger) soul)
+                .filter(soul -> soul instanceof OnEntityShootBowTrigger)
+                .map(soul -> (OnEntityShootBowTrigger) soul)
                 .forEach(trigger -> {
-                    trigger.onEntityPotionEffect(entity, event);
+                    trigger.onEntityShootBow(entity, event);
                 });
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onJumpTrigger(PlayerJumpEvent event){
+    public void onEntityLaunchProjectileTrigger(ProjectileLaunchEvent event) {
+        if (!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityLaunchProjectileTrigger)
+                .map(soul -> (OnEntityLaunchProjectileTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityLaunchProjectile(entity, event.getEntity(), event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnProjectileHitTrigger)
+                .map(soul -> (OnProjectileHitTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onProjectileHit(entity, event.getEntity(), event);
+                });
+    }
+
+    //endregion
+
+    //region Inputs
+
+    @EventHandler(ignoreCancelled = true)
+    public void onJumpTrigger(PlayerJumpEvent event) {
         Player player = event.getPlayer();
 
         List<SoulInstance> souls = SoulType.getCarriedSouls(player);
@@ -108,8 +156,38 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onTarget(EntityTargetLivingEntityEvent event){
-        if(event.getTarget() == null || !(event.getEntity() instanceof LivingEntity provoker)) return;
+    public void onToggleSneak(PlayerToggleSneakEvent event) {
+        Player player = event.getPlayer();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnSneakToggleTrigger)
+                .map(soul -> (OnSneakToggleTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onSneakToggle(player, event);
+                });
+    }
+
+    //endregion
+
+    //region Others
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityPotionEffectTrigger)
+                .map(soul -> (OnEntityPotionEffectTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityPotionEffect(entity, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onTarget(EntityTargetLivingEntityEvent event) {
+        if (event.getTarget() == null || !(event.getEntity() instanceof LivingEntity provoker)) return;
 
         LivingEntity target = event.getTarget();
         List<SoulInstance> souls = SoulType.getCarriedSouls(target);
@@ -129,44 +207,5 @@ public class TriggerListener implements Listener {
                 });
     }
 
-    // PROJECTILES
-
-    @EventHandler
-    public void onEntityShootBowTrigger(EntityShootBowEvent event){
-        LivingEntity entity = event.getEntity();
-
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
-        souls.stream()
-                .filter(soul -> soul instanceof OnEntityShootBowTrigger)
-                .map(soul -> (OnEntityShootBowTrigger) soul)
-                .forEach(trigger -> {
-                    trigger.onEntityShootBow(entity, event);
-                });
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onEntityLaunchProjectileTrigger(ProjectileLaunchEvent event){
-        if(!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
-
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
-        souls.stream()
-                .filter(soul -> soul instanceof OnEntityLaunchProjectileTrigger)
-                .map(soul -> (OnEntityLaunchProjectileTrigger) soul)
-                .forEach(trigger -> {
-                    trigger.onEntityLaunchProjectile(entity, event.getEntity(), event);
-                });
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onProjectileHit(ProjectileHitEvent event){
-        if(!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
-
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
-        souls.stream()
-                .filter(soul -> soul instanceof OnProjectileHitTrigger)
-                .map(soul -> (OnProjectileHitTrigger) soul)
-                .forEach(trigger -> {
-                    trigger.onProjectileHit(entity, event.getEntity(), event);
-                });
-    }
+    //endregion
 }

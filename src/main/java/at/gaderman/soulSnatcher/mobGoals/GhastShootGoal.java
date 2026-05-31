@@ -4,7 +4,10 @@ import at.gaderman.soulSnatcher.SoulSnatcher;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.LargeFireball;
+import org.bukkit.entity.Mob;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
@@ -12,8 +15,6 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.util.EnumSet;
-
-//TODO: make a uniform goal, more goals will come in the future probably, there is base line potential definitely, also config will play some role
 
 /**
  * A custom behaviour mob goal that adds an ability to mobs. While pursuing a target wil spawn in a bow
