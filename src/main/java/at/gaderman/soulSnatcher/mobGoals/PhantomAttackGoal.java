@@ -41,7 +41,7 @@ public class PhantomAttackGoal extends SoulAbilityGoal{
 
     @Override
     public boolean shouldActivate() {
-        return mob.getTarget() != null && mob.isOnGround() && lastFlight < System.currentTimeMillis() - FLYOFF_COOLDOWN;
+        return mob.getTarget() != null && lastFlight < System.currentTimeMillis() - FLYOFF_COOLDOWN && mob.isOnGround();
     }
 
     @Override

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class ReinforcementZombieGoal extends SoulAbilityGoal{
+public class ReinforcementZombieGoal extends SoulAbilityGoal {
     private final LivingEntity owner;
 
     public ReinforcementZombieGoal(Mob mob, LivingEntity owner) {
@@ -32,7 +32,7 @@ public class ReinforcementZombieGoal extends SoulAbilityGoal{
         return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
     }
 
-    private static final double FOLLOW_RANGE = 50^2;
+    private static final double FOLLOW_RANGE = 50 ^ 2;
 
     @Override
     public boolean shouldActivate() {
@@ -45,7 +45,8 @@ public class ReinforcementZombieGoal extends SoulAbilityGoal{
     }
 
     @Override
-    public void start() {Location to = owner.getLocation().add(mob.getLocation().subtract(owner.getLocation()).toVector().normalize().multiply(1.5));
-       mob.getPathfinder().moveTo(to);
+    public void start() {
+        Location to = owner.getLocation().add(mob.getLocation().subtract(owner.getLocation()).toVector().normalize().multiply(1.5));
+        mob.getPathfinder().moveTo(to);
     }
 }

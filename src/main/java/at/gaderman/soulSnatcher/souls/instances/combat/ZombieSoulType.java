@@ -98,6 +98,11 @@ public class ZombieSoulType extends SoulType {
         private final Set<LivingEntity> combatTargets = new LinkedHashSet<>();
 
         @Override
+        protected void cleanUp() {
+            reinforcements.forEach(Zombie::remove); //TODO: also make puf animation
+        }
+
+        @Override
         public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
             if (isPlayerBound())
                 combatTargets.add(target);
@@ -105,13 +110,24 @@ public class ZombieSoulType extends SoulType {
 
         @Override
         public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
-            if(isPlayerBound())
+            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                if(event.isCancelled() || !carrier.isValid() || !entity.isValid()) return;
+
+                if(entity.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
+                        "").equals(carrier.getUniqueId().toString()))
+                    return;
+
                 combatTargets.add(entity);
+            }, 1L);
         }
 
         @Override
         public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
-            combatTargets.add(target);
+            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                if(event.isCancelled() || !carrier.isValid() || !target.isValid()) return;
+
+                combatTargets.add(target);
+            }, 1L);
         }
 
         @Override

@@ -130,7 +130,7 @@ public class BlazeSoulType extends SoulType {
                             Location hitLoc = target.getEyeLocation().add(0, -0.2, 0);
                             target.getWorld().spawnParticle(Particle.LAVA, hitLoc, 30);
                             target.getWorld().spawnParticle(Particle.FLAME, hitLoc, 30, 0.3, 0.3, 0.3, 0.01);
-                            target.getWorld().playSound(carrier, Sound.ENTITY_BLAZE_HURT, 1f, 1.5f);
+                            target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 1f, 1.5f);
                             break;
                         }
                     }
@@ -172,16 +172,24 @@ public class BlazeSoulType extends SoulType {
 
         @Override
         public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
-            if(entity.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
-                    "").equals(carrier.getUniqueId().toString()))
-                return;
+            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                if(event.isCancelled() || !carrier.isValid() || !entity.isValid()) return;
 
-            addCombatTarget(entity);
+                if(entity.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
+                        "").equals(carrier.getUniqueId().toString()))
+                    return;
+
+                addCombatTarget(entity);
+            }, 1L);
         }
 
         @Override
         public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
-            addCombatTarget(target);
+            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                if(event.isCancelled() || !carrier.isValid() || !target.isValid()) return;
+
+                addCombatTarget(target);
+            }, 1L);
         }
 
         @Override

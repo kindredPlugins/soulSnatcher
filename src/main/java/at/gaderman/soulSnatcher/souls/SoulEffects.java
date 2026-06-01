@@ -2,11 +2,9 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import org.bukkit.*;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
@@ -165,6 +163,8 @@ public class SoulEffects {
             final double angleStep = 360.0 / DEFAULT_REVOLUTION_TICKS;
 
             BukkitTask task = new BukkitRunnable() {
+                boolean hidden = false;
+
                 @Override
                 public void run() {
                     OrbitState current = activeOrbits.get(target.getUniqueId());
@@ -174,6 +174,30 @@ public class SoulEffects {
                         stopAllSoulOrbits(target);
                         cancel();
                         return;
+                    }
+
+                    if (target instanceof LivingEntity livingEntity && livingEntity.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                        if (!hidden) {
+                            current.displays.forEach(display -> {
+                                display.setVisibleByDefault(false);
+                                Bukkit.getOnlinePlayers().stream()
+                                        .filter(player -> !player.equals(target))
+                                        .forEach(player -> player.hideEntity(SoulSnatcher.getPlugin(), display));
+                            });
+                            hidden = true;
+                        }
+                        return;
+                    }
+
+                    if (hidden) {
+                        current.displays.stream()
+                                .filter(player -> !player.equals(target))
+                                .forEach(display -> {
+                                    display.setVisibleByDefault(true);
+                                    Bukkit.getOnlinePlayers().forEach(player -> player.showEntity(SoulSnatcher.getPlugin(), display));
+                                });
+
+                        hidden = false;
                     }
 
                     Location center = target.getLocation().clone().add(0, HEIGHT_OFFSET, 0);
@@ -358,8 +382,8 @@ public class SoulEffects {
         display.setTransformation(
                 new Transformation(
                         new Vector3f(),
-                        new AxisAngle4f((float)Math.PI,0,1,0),
-                        new Vector3f(1f,1f,1f),
+                        new AxisAngle4f((float) Math.PI, 0, 1, 0),
+                        new Vector3f(1f, 1f, 1f),
                         new AxisAngle4f()
                 )
         );
@@ -376,7 +400,7 @@ public class SoulEffects {
                 display.setTransformation(
                         new Transformation(
                                 new Vector3f(0, tick * 0.015f, 0),
-                                new AxisAngle4f((float)Math.PI, 0,1,0),
+                                new AxisAngle4f((float) Math.PI, 0, 1, 0),
                                 new Vector3f(scale, scale, scale),
                                 new AxisAngle4f()
                         )
@@ -389,7 +413,7 @@ public class SoulEffects {
         SoulSnatcher.getPlugin().registerDelayedTask(() -> {
             display.remove();
 
-            player.setVelocity(player.getVelocity().add(new Vector(0,0.28,0)));
+            player.setVelocity(player.getVelocity().add(new Vector(0, 0.28, 0)));
 
             world.playSound(player, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 0.8f);
             world.playSound(player, Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1f, 0.6f);
@@ -398,9 +422,9 @@ public class SoulEffects {
                     () -> world.playSound(player, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.6f),
                     10L);
 
-            Location effectLoc = player.getLocation().add(0,1,0);
-            world.spawnParticle(Particle.SOUL_FIRE_FLAME, effectLoc, 45, .25,.25,.25, .12);
-            world.spawnParticle(Particle.SOUL, effectLoc, 30, .3,.3,.3, .05);
+            Location effectLoc = player.getLocation().add(0, 1, 0);
+            world.spawnParticle(Particle.SOUL_FIRE_FLAME, effectLoc, 45, .25, .25, .25, .12);
+            world.spawnParticle(Particle.SOUL, effectLoc, 30, .3, .3, .3, .05);
 
             animationTask.cancel();
         }, 15);
