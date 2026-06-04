@@ -89,5 +89,4 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
         mob.getWorld().playSound(mob, Sound.ENTITY_ARROW_SHOOT, 1f, 1f);
         mob.launchProjectile(Arrow.class, mob.getLocation().getDirection().multiply(2));
     }
-
 }

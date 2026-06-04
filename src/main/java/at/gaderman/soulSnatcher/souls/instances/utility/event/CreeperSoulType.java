@@ -62,13 +62,9 @@ public class CreeperSoulType extends SoulType {
     }
 
     public static class CreeperSoulInstance extends SoulInstance implements OnTargetTrigger {
-        private final boolean wasSilentBefore;
 
         protected CreeperSoulInstance(LivingEntity carrier, SoulType soulType) {
             super(carrier, soulType);
-
-            this.wasSilentBefore = carrier.isSilent();
-            carrier.setSilent(true);
         }
 
         @Override
@@ -119,11 +115,6 @@ public class CreeperSoulType extends SoulType {
                     }
                 }.runTaskTimer(SoulSnatcher.getPlugin(), 5L, 5L);
             }, 1L);
-        }
-
-        @Override
-        protected void cleanUp() {
-            carrier().setSilent(wasSilentBefore);
         }
     }
 }
