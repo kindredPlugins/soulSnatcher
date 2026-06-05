@@ -13,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -23,6 +24,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
@@ -79,22 +81,25 @@ public class SoulListener implements Listener {
         souls.getFirst().soulType().offerSoulReward(mob.getLocation(), mob.getKiller());
     }
 
-    //TODO: ion order for unbound souls to not perish there needs to be a system which loads them back into the pool again, but offline players cannot have their pdc accessed, either needs to be cache only, or requires unbound souls to be restructured to file storage
-//    @EventHandler
-//    public void onInfuseNaturalDespawn(EntityRemoveEvent event){
-//        if(event.getCause() != EntityRemoveEvent.Cause.DESPAWN)
-//            return;
-//
-//        if(!(event instanceof LivingEntity entity)) return;
-//
-//        PersistentDataContainer pdc = entity.getPersistentDataContainer();
-//        if(!pdc.has(INFUSED_FROM)) return;
-//
-//        OfflinePlayer player = Bukkit.getOfflinePlayer(UUID.fromString(pdc.get(INFUSED_FROM, PersistentDataType.STRING)));
-//        if(!player.hasPlayedBefore()) return;
-//
-//
-//    }
+    //TODO: this is not almighty, sometimes a player logs off before a mob despawns, making their soul unretrievable
+    @EventHandler
+    public void onInfuseNaturalDespawn(EntityRemoveEvent event){
+        if(event.getCause() != EntityRemoveEvent.Cause.DESPAWN)
+            return;
+
+        if(!(event.getEntity() instanceof LivingEntity entity)) return;
+
+        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+        if(!pdc.has(INFUSED_FROM)) return;
+
+        Player player = Bukkit.getPlayer(UUID.fromString(pdc.get(INFUSED_FROM, PersistentDataType.STRING)));
+        if(player == null) return;
+
+        var souls = SoulType.getCarriedSouls(entity);
+        if(souls.isEmpty()) return;
+
+        souls.forEach(soul -> soul.soulType().releaseSoul(entity.getLocation(), player));
+    }
 
     @EventHandler
     public void onClaimSoul(PlayerInteractEntityEvent event) {
@@ -159,7 +164,7 @@ public class SoulListener implements Listener {
     @EventHandler
     public void onInfusedRemovedFromWorld(EntityRemoveFromWorldEvent event) {
         if (event.getEntity() instanceof Mob mob) {
-            SoulType.removeFromCache(mob);
+            //SoulType.removeFromCache(mob);
         }
     }
 
