@@ -4,6 +4,7 @@ import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
+import at.gaderman.soulSnatcher.souls.instances.combat.targeting.TargetTrackerSoulInstance;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
@@ -73,13 +74,10 @@ public class BlazeSoulType extends SoulType {
         );
     }
 
-    public static class BlazeSoulInstance extends SoulInstance implements OnDamageReceivedTrigger, OnDamageDealtTrigger, OnTargetTrigger {
+    public static class BlazeSoulInstance extends TargetTrackerSoulInstance {
         protected BlazeSoulInstance(LivingEntity carrier, SoulType soulType) {
             super(carrier, soulType);
 
-            combatTargets = carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), 50).stream()
-                    .filter(target -> (target instanceof Mob mob && carrier.equals(mob.getTarget())))
-                    .collect(Collectors.toSet());
             if(!combatTargets.isEmpty())
                 auraTask = createAuraTask();
         }
@@ -92,7 +90,6 @@ public class BlazeSoulType extends SoulType {
         private static final int AURA_HIT_COOLDOWN = 2000;
 
         private BukkitTask auraTask;
-        private Set<LivingEntity> combatTargets = new LinkedHashSet<>();
 
         private BukkitTask createAuraTask() {
             lastAuraHit = System.currentTimeMillis();
@@ -158,47 +155,12 @@ public class BlazeSoulType extends SoulType {
                 this.auraTask.cancel();
         }
 
-        private void addCombatTarget(LivingEntity target) {
-            combatTargets.add(target);
+        @Override
+        protected void addCombatTarget(LivingEntity target) {
+            super.addCombatTarget(target);
 
             if (this.auraTask == null)
                 auraTask = createAuraTask();
-        }
-
-        @Override
-        public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
-            addCombatTarget(target);
-        }
-
-        @Override
-        public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
-            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
-                if(event.isCancelled() || !carrier.isValid() || !entity.isValid()) return;
-
-                if(entity.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
-                        "").equals(carrier.getUniqueId().toString()))
-                    return;
-
-                addCombatTarget(entity);
-            }, 1L);
-        }
-
-        @Override
-        public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
-            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
-                if(event.isCancelled() || !carrier.isValid() || !target.isValid()) return;
-
-                addCombatTarget(target);
-            }, 1L);
-        }
-
-        @Override
-        public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
-        }
-
-        @Override
-        public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
-            addCombatTarget(damager);
         }
     }
 }
