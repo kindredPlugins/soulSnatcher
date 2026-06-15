@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ public abstract class TargetTrackerSoulInstance extends SoulInstance implements 
 
         combatTargets = carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), 50).stream()
                 .filter(target -> (target instanceof Mob mob && carrier.equals(mob.getTarget())))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     protected Set<LivingEntity> combatTargets;
