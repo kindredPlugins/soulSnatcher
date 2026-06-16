@@ -3,7 +3,6 @@ package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
-import at.gaderman.soulSnatcher.souls.instances.combat.ZombieSoulType;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;

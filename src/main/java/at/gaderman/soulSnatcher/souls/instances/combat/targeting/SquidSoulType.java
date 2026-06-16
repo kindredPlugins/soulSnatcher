@@ -1,10 +1,9 @@
-package at.gaderman.soulSnatcher.souls.instances.combat;
+package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.souls.instances.combat.targeting.TargetTrackerSoulInstance;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -21,7 +20,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @AutoService(SoulType.class)

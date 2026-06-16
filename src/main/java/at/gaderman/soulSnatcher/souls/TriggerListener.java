@@ -11,6 +11,7 @@ import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnHitByProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import org.bukkit.damage.DamageSource;
@@ -19,10 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemConsumeEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.*;
 
 import java.util.List;
 
@@ -142,6 +140,16 @@ public class TriggerListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onProjectileHit(ProjectileHitEvent event) {
+        if (event.getHitEntity() instanceof LivingEntity target) {
+            List<SoulInstance> souls = SoulType.getCarriedSouls(target);
+            souls.stream()
+                    .filter(soul -> soul instanceof OnHitByProjectileTrigger)
+                    .map(soul -> (OnHitByProjectileTrigger) soul)
+                    .forEach(trigger -> {
+                        trigger.onHitByProjectile(target, event.getEntity(), event);
+                    });
+        }
+
         if (!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
 
         List<SoulInstance> souls = SoulType.getCarriedSouls(entity);

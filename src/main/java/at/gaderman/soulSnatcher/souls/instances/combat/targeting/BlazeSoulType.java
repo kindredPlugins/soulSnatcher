@@ -1,13 +1,9 @@
-package at.gaderman.soulSnatcher.souls.instances.combat;
+package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.souls.instances.combat.targeting.TargetTrackerSoulInstance;
-import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -20,18 +16,11 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @AutoService(SoulType.class)
