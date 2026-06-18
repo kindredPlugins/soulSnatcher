@@ -58,6 +58,10 @@ public abstract class SoulType {
         return item;
     }
 
+    public boolean isEliglible(LivingEntity entity){
+        return !(entity instanceof Boss) && !(entity instanceof Fish) && !(entity instanceof Bat);
+    }
+
     public static final int MAX_BOUND_SOULS = 2;
     public static final int MAX_UNBOUND_SOULS = 15;
     public static final String NO_SOUL_RELEASE_TAG = "no_soul_release";

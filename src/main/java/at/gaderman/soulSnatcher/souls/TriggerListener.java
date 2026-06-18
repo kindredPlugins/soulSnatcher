@@ -1,19 +1,21 @@
 package at.gaderman.soulSnatcher.souls;
 
+import at.gaderman.soulSnatcher.souls.triggers.OnEntityEquipmentTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnPlayerInteractTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnHitByProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
+import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -227,6 +229,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnTargetTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onCarrierTarget(provoker, target, event);
+                });
+    }
+
+    @EventHandler
+    public void onEquipmentChange(EntityEquipmentChangedEvent event){
+        LivingEntity entity = event.getEntity();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityEquipmentTrigger)
+                .map(soul -> (OnEntityEquipmentTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityEquipmentChange(entity, event);
                 });
     }
 

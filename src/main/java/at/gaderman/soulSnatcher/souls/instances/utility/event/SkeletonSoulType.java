@@ -6,7 +6,7 @@ import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnPlayerInteractTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;

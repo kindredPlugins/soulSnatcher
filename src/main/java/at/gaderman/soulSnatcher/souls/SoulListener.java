@@ -21,10 +21,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
@@ -58,12 +55,22 @@ public class SoulListener implements Listener {
                 .min(Comparator.comparing(player -> player.getLocation().distanceSquared(mob.getLocation())))
                 .get();
 
-        List<SoulType> unboundSouls = SoulType.getUnboundSouls(closestPlayer);
+        List<SoulType> unboundSouls = new ArrayList<>(SoulType.getUnboundSouls(closestPlayer));
 
-        if (unboundSouls.isEmpty()) return;
-        SoulType randomSoul = unboundSouls.get((int) (Math.random() * unboundSouls.size()));
+        SoulType randomSoul = null;
+        boolean foundValidSoul = false;
+        while(!unboundSouls.isEmpty()){
+            randomSoul = unboundSouls.remove((int) (Math.random() * unboundSouls.size()));
 
-        if (randomSoul.entityType().equals(mob.getType())) return;
+            if(!randomSoul.isEliglible(mob)) continue;
+            if (randomSoul.entityType().equals(mob.getType())) continue;
+
+            foundValidSoul = true;
+            break;
+        }
+
+        if(!foundValidSoul)
+            return;
 
         randomSoul.infuseSoul(mob);
         randomSoul.removeUnboundSoul(closestPlayer);
