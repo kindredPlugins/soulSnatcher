@@ -12,7 +12,7 @@ import java.util.Map;
 
 public abstract class AttributeSoul extends SoulInstance {
 
-    private final NamespacedKey attributeKey = new NamespacedKey(SoulSnatcher.getPlugin(),
+    protected final NamespacedKey attributeKey = new NamespacedKey(SoulSnatcher.getPlugin(),
             "soul_attributes/" + soulType().id());
 
     protected AttributeSoul(LivingEntity carrier, SoulType soulType) {

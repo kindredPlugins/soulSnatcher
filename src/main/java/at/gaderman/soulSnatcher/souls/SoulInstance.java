@@ -42,4 +42,12 @@ public abstract class SoulInstance {
      * Called when this soulInstance is removed. Is important for some souls in order to clean up abilities.
      */
     protected void cleanUp(){}
+
+    /**
+     * Calls cleanUp and completely resets any leftover data the soul could have, this is important for certain souls
+     * which appear different on first obtaining
+     */
+    protected void reset(){
+        cleanUp();
+    }
 }

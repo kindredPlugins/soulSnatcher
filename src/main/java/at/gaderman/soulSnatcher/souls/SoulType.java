@@ -58,8 +58,20 @@ public abstract class SoulType {
         return item;
     }
 
-    public boolean isEliglible(LivingEntity entity){
-        return !(entity instanceof Boss) && !(entity instanceof Fish) && !(entity instanceof Bat);
+    public boolean isInvalidInfusionTarget(LivingEntity entity) {
+        return entity instanceof Boss || entity instanceof Fish || entity instanceof Bat;
+    }
+
+    /**
+     * If this soul can be picked up again and replace the old instance, can be used when souls
+     * make use of random variables or just to reset soul state, default should be false except
+     * if specifically needed
+     *
+     * @return If this soul can be placed
+     * @see at.gaderman.soulSnatcher.souls.instances.attributes.HorseSoulType
+     */
+    public boolean canOverwriteItself() {
+        return false;
     }
 
     public static final int MAX_BOUND_SOULS = 2;
@@ -182,7 +194,7 @@ public abstract class SoulType {
     public void offerSoulReward(Location location, Player owner) {
         location.setPitch(0);
 
-        boolean duplicateSoul = getCarriedSouls(owner).stream().anyMatch(soul -> soul.soulType().id().equals(id()));
+        boolean duplicateSoul = !canOverwriteItself() && getCarriedSouls(owner).stream().anyMatch(soul -> soul.soulType().id().equals(id()));
 
         location.getWorld().playSound(location, Sound.BLOCK_LEVER_CLICK, 1f, 0.5f);
         location.getWorld().playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
@@ -285,8 +297,25 @@ public abstract class SoulType {
      */
     public boolean bindSoul(Player player) {
         List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
-        if (boundSouls.size() >= MAX_BOUND_SOULS
-                || boundSouls.stream().anyMatch(soul -> soul.soulType().equals(this))) return false;
+
+        boolean sizeLimitReached = boundSouls.size() >= MAX_BOUND_SOULS;
+        if (!canOverwriteItself() && sizeLimitReached) return false;
+
+        boolean isDuplicate = boundSouls.stream().anyMatch(soul -> soul.soulType().equals(this));
+
+        if (isDuplicate) {
+            if (!canOverwriteItself())
+                return false;
+
+            boundSouls.stream().toList().stream()
+                    .filter(soul -> soul.soulType().equals(this))
+                    .forEach(soulInstance -> {
+                        soulInstance.soulType().removeSoul(player);
+                    });
+
+        } else if (sizeLimitReached) {
+            return false;
+        }
 
         addSoulToPdc(player);
         boundSouls.add(create(player));
@@ -325,7 +354,7 @@ public abstract class SoulType {
 
         if (livingEntity instanceof Player player)
             SoulLanternManager.updateActiveLanterns(player);
-        removedSoul.cleanUp();
+        removedSoul.reset();
         SoulEffects.removeOneSoulFromOrbit(livingEntity, this);
         return true;
     }
@@ -354,6 +383,7 @@ public abstract class SoulType {
         pdc.remove(UNBOUND_SOULS);
         pdc.remove(BOUND_SOULS);
 
+        cachedBoundSouls.getOrDefault(player.getUniqueId(), Collections.emptyList()).forEach(SoulInstance::reset);
         removeFromCache(player);
     }
 

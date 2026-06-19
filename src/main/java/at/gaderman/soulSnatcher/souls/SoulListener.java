@@ -62,7 +62,7 @@ public class SoulListener implements Listener {
         while(!unboundSouls.isEmpty()){
             randomSoul = unboundSouls.remove((int) (Math.random() * unboundSouls.size()));
 
-            if(!randomSoul.isEliglible(mob)) continue;
+            if(randomSoul.isInvalidInfusionTarget(mob)) continue;
             if (randomSoul.entityType().equals(mob.getType())) continue;
 
             foundValidSoul = true;

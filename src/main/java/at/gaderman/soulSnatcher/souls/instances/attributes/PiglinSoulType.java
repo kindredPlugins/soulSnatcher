@@ -53,8 +53,8 @@ public class PiglinSoulType extends SoulType {
     }
 
     @Override
-    public boolean isEliglible(LivingEntity entity) {
-        return super.isEliglible(entity) && (entity instanceof Zombie || entity instanceof Skeleton);
+    public boolean isInvalidInfusionTarget(LivingEntity entity) {
+        return super.isInvalidInfusionTarget(entity) || (!(entity instanceof Zombie) && !(entity instanceof Skeleton));
     }
 
     @Override
