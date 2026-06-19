@@ -80,31 +80,31 @@ public class HorseSoulType extends SoulType {
                 double jumpBonus = player.getAttribute(Attribute.JUMP_STRENGTH).getModifier(attributeKey).getAmount();
 
                 double movRatio = Math.min(1.0, movBonus / MAX_MOVEMENT_BONUS);
-                double jumpRatio = Math.min(1.0, jumpBonus / MAX_JUMP_BONUS);
-
-                String displayMovBonus = String.format("%.3f", movBonus);
-                String displayJumpBonus = String.format("%.3f", jumpBonus);
-
-                int movBars = (int) Math.round(movRatio * 10);
-                int jumpBars = (int) Math.round(jumpRatio * 10);
-
-                Component subtitle =
-                        Component.text("⚡ Speed ", NamedTextColor.GREEN)
-                                .append(Component.text("+" + displayMovBonus, NamedTextColor.GOLD))
-                                .append(Component.text(" (" + Math.round(movRatio * 100) + "%)", NamedTextColor.GRAY))
-
-                                .append(Component.text("  │  ", NamedTextColor.DARK_GRAY))
-
-                                .append(Component.text("⤴ Jump ", NamedTextColor.GREEN))
-                                .append(Component.text("+" + displayJumpBonus, NamedTextColor.GOLD))
-                                .append(Component.text(" (" + Math.round(jumpRatio * 100) + "%)", NamedTextColor.GRAY)
-                                );
+                Component subtitle = createSubtitle(jumpBonus, movBonus, movRatio);
 
                 player.sendTitlePart(TitlePart.TITLE, Component.text(""));
                 player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
 
                 player.playSound(player, Sound.ENTITY_HORSE_AMBIENT, 1f, (float) (movRatio * 2));
             }
+        }
+
+        private @NotNull Component createSubtitle(double jumpBonus, double movBonus, double movRatio) {
+            double jumpRatio = Math.min(1.0, jumpBonus / MAX_JUMP_BONUS);
+
+            String displayMovBonus = String.format("%.3f", movBonus);
+            String displayJumpBonus = String.format("%.3f", jumpBonus);
+
+            return Component.text("⚡ Speed ", NamedTextColor.GREEN)
+                    .append(Component.text("+" + displayMovBonus, NamedTextColor.GOLD))
+                    .append(Component.text(" (" + Math.round(movRatio * 100) + "%)", NamedTextColor.GRAY))
+
+                    .append(Component.text("  │  ", NamedTextColor.DARK_GRAY))
+
+                    .append(Component.text("⤴ Jump ", NamedTextColor.GREEN))
+                    .append(Component.text("+" + displayJumpBonus, NamedTextColor.GOLD))
+                    .append(Component.text(" (" + Math.round(jumpRatio * 100) + "%)", NamedTextColor.GRAY)
+                    );
         }
 
         private static final NamespacedKey MOD_MOV_SEED = new NamespacedKey(SoulSnatcher.getPlugin(), "horse_soul_mov_mod_seed");

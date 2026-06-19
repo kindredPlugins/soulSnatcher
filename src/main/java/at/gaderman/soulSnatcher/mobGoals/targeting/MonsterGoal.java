@@ -1,4 +1,4 @@
-package at.gaderman.soulSnatcher.mobGoals;
+package at.gaderman.soulSnatcher.mobGoals.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import com.destroystokyo.paper.entity.ai.Goal;

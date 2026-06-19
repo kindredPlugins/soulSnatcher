@@ -1,4 +1,4 @@
-package at.gaderman.soulSnatcher.mobGoals;
+package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.instances.movement.PhantomSoulType;

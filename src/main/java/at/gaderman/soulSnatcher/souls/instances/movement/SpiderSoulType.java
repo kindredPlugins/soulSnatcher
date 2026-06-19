@@ -1,6 +1,6 @@
 package at.gaderman.soulSnatcher.souls.instances.movement;
 
-import at.gaderman.soulSnatcher.mobGoals.SpiderDashGoal;
+import at.gaderman.soulSnatcher.mobGoals.ability.SpiderDashGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;

@@ -1,4 +1,4 @@
-package at.gaderman.soulSnatcher.mobGoals;
+package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import com.destroystokyo.paper.entity.ai.Goal;
 import org.bukkit.entity.Mob;

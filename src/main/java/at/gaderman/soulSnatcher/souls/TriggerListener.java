@@ -9,6 +9,7 @@ import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
@@ -94,6 +95,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnPlayerInteractTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onPlayerInteract(player, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerInteractEntityTrigger(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnPlayerInteractEntityTrigger)
+                .map(soul -> (OnPlayerInteractEntityTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onPlayerInteractEntity(player, event.getRightClicked(), event);
                 });
     }
 

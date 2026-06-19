@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.SkeletonShootGoal;
+import at.gaderman.soulSnatcher.mobGoals.ability.SkeletonShootGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;

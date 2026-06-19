@@ -1,6 +1,7 @@
-package at.gaderman.soulSnatcher.mobGoals;
+package at.gaderman.soulSnatcher.mobGoals.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.ability.SoulAbilityGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.Location;

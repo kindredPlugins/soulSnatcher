@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.ReinforcementZombieGoal;
+import at.gaderman.soulSnatcher.mobGoals.targeting.ReinforcementZombieGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;

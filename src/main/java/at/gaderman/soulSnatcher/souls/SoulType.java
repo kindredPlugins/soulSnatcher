@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.MonsterGoal;
+import at.gaderman.soulSnatcher.mobGoals.targeting.MonsterGoal;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
