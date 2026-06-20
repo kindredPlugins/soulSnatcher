@@ -81,7 +81,7 @@ public class PigSoulType extends SoulType {
                 measurementObject.remove();
             }
 
-            return target.getWidth() <= boatWidth;
+            return target.getWidth() <= boatWidth || target instanceof Spider;
         }
 
         @Override

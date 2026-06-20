@@ -8,6 +8,8 @@ import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.OnSprintToggleTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.OnSwimToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
@@ -204,6 +206,32 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnSneakToggleTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onSneakToggle(player, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onToggleSprint(PlayerToggleSprintEvent event) {
+        Player player = event.getPlayer();
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnSprintToggleTrigger)
+                .map(soul -> (OnSprintToggleTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onSprintToggle(player, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onToggleSwim(EntityToggleSwimEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnSwimToggleTrigger)
+                .map(soul -> (OnSwimToggleTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onSwimToggle(entity, event);
                 });
     }
 
