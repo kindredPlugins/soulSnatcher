@@ -6,6 +6,7 @@ import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSprintToggleTrigger;
@@ -23,6 +24,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
@@ -67,6 +69,23 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnDamageDealtTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onDamageDealt(damager, entity, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    public void onEntityKillTrigger(EntityDeathEvent event){
+        LivingEntity killed = event.getEntity();
+        Player player = killed.getKiller();
+
+        if(player == null)
+            return;
+
+        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityKillTrigger)
+                .map(soul -> (OnEntityKillTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onEntityKillTrigger(player, killed, event);
                 });
     }
 
