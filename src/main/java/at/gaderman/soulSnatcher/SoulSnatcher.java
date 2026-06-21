@@ -5,6 +5,7 @@ import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.TriggerListener;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
+import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -23,6 +24,7 @@ public final class SoulSnatcher extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SoulListener(), this);
         Bukkit.getPluginManager().registerEvents(new TriggerListener(), this);
         Bukkit.getPluginManager().registerEvents(new SoulLanternManager(), this);
+        Bukkit.getPluginManager().registerEvents(new SoulVialManager(), this);
 
         getCommand("soulIndex").setExecutor(new SoulIndexCommand());
 

@@ -232,9 +232,7 @@ public abstract class SoulType {
             owner.showEntity(SoulSnatcher.getPlugin(), interaction);
 
             interaction.getPersistentDataContainer().set(REWARD_OWNER, PersistentDataType.STRING, owner.getUniqueId().toString());
-
-            if (!duplicateSoul)
-                interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, id());
+            interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, id());
         });
         List<Entity> displayEntities = List.of(skullDisplay, soulTitle, interactText);
         displayEntities.forEach(entity -> {

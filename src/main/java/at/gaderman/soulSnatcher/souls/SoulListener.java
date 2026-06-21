@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
+import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import org.bukkit.Bukkit;
@@ -121,6 +122,11 @@ public class SoulListener implements Listener {
         if (reward == null) {
             SoulSnatcher.getPlugin().getLogger().warning("Could not load soul reward " + pdc.get(SoulType.SOUL_REWARD, PersistentDataType.STRING));
             interaction.getWorld().spawnParticle(Particle.EXPLOSION, interaction.getLocation().toCenterLocation(), 1);
+            return;
+        }
+
+        if(SoulVialManager.checkAndFillVialIfPresent(player, reward, interaction.getLocation())) {
+            SoulType.removeSoulReward(interaction);
             return;
         }
 

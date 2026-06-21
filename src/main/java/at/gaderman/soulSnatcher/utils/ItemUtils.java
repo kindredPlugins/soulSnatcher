@@ -16,7 +16,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerTextures;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -47,10 +47,10 @@ public class ItemUtils {
     public static ItemStack createCustomHead(String skinURL) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         head.editMeta(SkullMeta.class, skullMeta -> {
-            PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
+            PlayerProfile profile = Bukkit.createProfile(UUID.nameUUIDFromBytes(skinURL.getBytes()));
             PlayerTextures textures = profile.getTextures();
             try {
-                textures.setSkin(new URL(skinURL));
+                textures.setSkin(URI.create(skinURL).toURL());
             } catch (MalformedURLException e) {
                 throw new IllegalArgumentException("Invalid URL for skin: " + skinURL, e);
             }
