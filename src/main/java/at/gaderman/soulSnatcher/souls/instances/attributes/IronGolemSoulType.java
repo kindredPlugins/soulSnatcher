@@ -3,6 +3,8 @@ package at.gaderman.soulSnatcher.souls.instances.attributes;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
@@ -14,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -24,10 +27,10 @@ import java.util.List;
 import java.util.Map;
 
 @AutoService(SoulType.class)
-public class IronGolemSoulType extends SoulType {
+public class IronGolemSoulType extends ConfigHoldingSoulType {
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<IronGolemSoulType> create(LivingEntity carrier) {
         return new IronGolemSoulInstance(carrier, this);
     }
 
@@ -64,9 +67,18 @@ public class IronGolemSoulType extends SoulType {
         );
     }
 
-    public static class IronGolemSoulInstance extends AttributeSoul implements OnDamageDealtTrigger {
+    private static final String UPWARDS_THROW_CONFIG_ID = "upwards_throw_enabled";
 
-        protected IronGolemSoulInstance(LivingEntity carrier, SoulType soulType) {
+    private final ConfigOption<Boolean> isUpwardsThrowEnabled = configOption(UPWARDS_THROW_CONFIG_ID, true, FileConfiguration::getBoolean);
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(UPWARDS_THROW_CONFIG_ID, "If true non-critical hits will throw hit entities into the air similar to an iron golem");
+    }
+
+    public static class IronGolemSoulInstance extends AttributeSoul<IronGolemSoulType> implements OnDamageDealtTrigger {
+
+        protected IronGolemSoulInstance(LivingEntity carrier, IronGolemSoulType soulType) {
             super(carrier, soulType);
         }
 
@@ -80,6 +92,7 @@ public class IronGolemSoulType extends SoulType {
         @Override
         public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
             if(event.isCritical() || event.getDamageSource().isIndirect()) return;
+            if(!soulType().isUpwardsThrowEnabled.cached()) return;
 
             Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
                 var knockbackResistance = target.getAttribute(Attribute.KNOCKBACK_RESISTANCE);

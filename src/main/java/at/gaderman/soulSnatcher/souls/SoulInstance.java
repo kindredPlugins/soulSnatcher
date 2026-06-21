@@ -7,18 +7,18 @@ import org.bukkit.entity.Player;
  * The abstract definition of a Soul.
  * A soul is an object that can be bound to an entity introducing new abilities or mechanic changes
  */
-public abstract class SoulInstance {
+public abstract class SoulInstance<T extends SoulType> {
 
     private final LivingEntity carrier;
-    private final SoulType soulType;
+    private final T soulType;
 
-    protected SoulInstance(LivingEntity carrier, SoulType soulType){
+    protected SoulInstance(LivingEntity carrier, T soulType){
         this.carrier = carrier;
         this.soulType = soulType;
     }
 
     public LivingEntity carrier() { return carrier; }
-    public SoulType soulType() { return soulType; }
+    public T soulType() { return soulType; }
 
     /**
      * If this soul is player-bound. This essentially means that the carrier is a player.

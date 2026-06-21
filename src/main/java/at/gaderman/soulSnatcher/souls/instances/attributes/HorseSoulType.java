@@ -3,6 +3,8 @@ package at.gaderman.soulSnatcher.souls.instances.attributes;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
@@ -15,6 +17,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -27,10 +30,10 @@ import java.util.Map;
 import java.util.Random;
 
 @AutoService(SoulType.class)
-public class HorseSoulType extends SoulType {
+public class HorseSoulType extends ConfigHoldingSoulType {
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<HorseSoulType> create(LivingEntity carrier) {
         return new HorseSoulInstance(carrier, this);
     }
 
@@ -71,15 +74,25 @@ public class HorseSoulType extends SoulType {
         return true;
     }
 
-    public static class HorseSoulInstance extends AttributeSoul {
-        protected HorseSoulInstance(LivingEntity carrier, SoulType soulType) {
+    private static final String MAX_MOVEMENT_BONUS_CONFIG_ID = "max_movement_bonus";
+
+    private final ConfigOption<Double> maxMovementBonus = configOption(MAX_MOVEMENT_BONUS_CONFIG_ID, 0.05, FileConfiguration::getDouble);
+    private final ConfigOption<Double> maxJumpBonus = configOption("max_jump_bonus", 0.2, FileConfiguration::getDouble);
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(MAX_MOVEMENT_BONUS_CONFIG_ID, "Max amount of movement bonus a player can obtain from a bonus roll from this soul");
+    }
+
+    public static class HorseSoulInstance extends AttributeSoul<HorseSoulType> {
+        protected HorseSoulInstance(LivingEntity carrier, HorseSoulType soulType) {
             super(carrier, soulType);
 
             if (carrier instanceof Player player) {
                 double movBonus = player.getAttribute(Attribute.MOVEMENT_SPEED).getModifier(attributeKey).getAmount();
                 double jumpBonus = player.getAttribute(Attribute.JUMP_STRENGTH).getModifier(attributeKey).getAmount();
 
-                double movRatio = Math.min(1.0, movBonus / MAX_MOVEMENT_BONUS);
+                double movRatio = Math.min(1.0, movBonus / soulType.maxMovementBonus.cached());
                 Component subtitle = createSubtitle(jumpBonus, movBonus, movRatio);
 
                 player.sendTitlePart(TitlePart.TITLE, Component.text(""));
@@ -90,7 +103,7 @@ public class HorseSoulType extends SoulType {
         }
 
         private @NotNull Component createSubtitle(double jumpBonus, double movBonus, double movRatio) {
-            double jumpRatio = Math.min(1.0, jumpBonus / MAX_JUMP_BONUS);
+            double jumpRatio = Math.min(1.0, jumpBonus / soulType().maxJumpBonus.cached());
 
             String displayMovBonus = String.format("%.3f", movBonus);
             String displayJumpBonus = String.format("%.3f", jumpBonus);
@@ -110,9 +123,6 @@ public class HorseSoulType extends SoulType {
         private static final NamespacedKey MOD_MOV_SEED = new NamespacedKey(SoulSnatcher.getPlugin(), "horse_soul_mov_mod_seed");
         private static final NamespacedKey MOD_JUMP_SEED = new NamespacedKey(SoulSnatcher.getPlugin(), "horse_soul_jump_mod_seed");
 
-        private static final double MAX_MOVEMENT_BONUS = 0.05;
-        private static final double MAX_JUMP_BONUS = 0.2;
-
         @Override
         public Map<Attribute, AttributeModifier> attributeModifierMap() {
             PersistentDataContainer pdc = carrier().getPersistentDataContainer();
@@ -123,8 +133,8 @@ public class HorseSoulType extends SoulType {
             pdc.set(MOD_MOV_SEED, PersistentDataType.LONG, moveSeed);
             pdc.set(MOD_JUMP_SEED, PersistentDataType.LONG, jumpSeed);
 
-            double randomMov = (new Random(moveSeed).nextDouble() * MAX_MOVEMENT_BONUS);
-            double randomJump = (new Random(jumpSeed).nextDouble() * MAX_JUMP_BONUS);
+            double randomMov = (new Random(moveSeed).nextDouble() * soulType().maxJumpBonus.cached());
+            double randomJump = (new Random(jumpSeed).nextDouble() * soulType().maxJumpBonus.cached());
 
             return Map.of(
                     Attribute.MOVEMENT_SPEED, createModifier(randomMov, AttributeModifier.Operation.ADD_NUMBER),

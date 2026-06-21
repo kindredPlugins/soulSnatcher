@@ -10,12 +10,12 @@ import org.bukkit.entity.LivingEntity;
 
 import java.util.Map;
 
-public abstract class AttributeSoul extends SoulInstance {
+public abstract class AttributeSoul<T extends SoulType> extends SoulInstance<T> {
 
     protected final NamespacedKey attributeKey = new NamespacedKey(SoulSnatcher.getPlugin(),
             "soul_attributes/" + soulType().id());
 
-    protected AttributeSoul(LivingEntity carrier, SoulType soulType) {
+    protected AttributeSoul(LivingEntity carrier, T soulType) {
         super(carrier, soulType);
 
         cleanUp();

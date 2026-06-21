@@ -7,6 +7,7 @@ import at.gaderman.soulSnatcher.souls.TriggerListener;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -16,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class SoulSnatcher extends JavaPlugin {
 
     public static SoulSnatcher getPlugin() { return SoulSnatcher.getPlugin(SoulSnatcher.class); }
+
+    private static YamlConfiguration soulsConfig;
 
     @Override
     public void onEnable() {
@@ -42,6 +45,8 @@ public final class SoulSnatcher extends JavaPlugin {
         runningTasks.clear();
         getLogger().info("Completed running cleanup tasks");
     }
+
+    //region Shutdown
 
     private boolean disabling = false;
 
@@ -82,4 +87,18 @@ public final class SoulSnatcher extends JavaPlugin {
         if(disabling) return;
         runningTasks.remove(id);
     }
+
+    //endregion
+
+    //region Config
+
+    public static YamlConfiguration getSoulsConfig(){
+        return soulsConfig;
+    }
+
+    public static void setSoulsConfig(YamlConfiguration config){
+        soulsConfig = config;
+    }
+
+    //endregion
 }
