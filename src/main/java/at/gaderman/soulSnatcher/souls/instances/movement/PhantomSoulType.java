@@ -3,15 +3,20 @@ package at.gaderman.soulSnatcher.souls.instances.movement;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.mobGoals.ability.PhantomAttackGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -22,11 +27,12 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
-public class PhantomSoulType extends SoulType {
+public class PhantomSoulType extends ConfigHoldingSoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<PhantomSoulType> create(LivingEntity carrier) {
         return new PhantomSoulInstance(carrier, this);
     }
 
@@ -57,11 +63,40 @@ public class PhantomSoulType extends SoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("While falling downwards, hold ")
+                        .append(Component.keybind("key.sneak", NamedTextColor.GOLD)),
+                Component.text("to begin gliding downwards, steadily"),
+                Component.text("reducing your downwards momentum")
+        );
     }
 
-    public static class PhantomSoulInstance extends SoulInstance implements OnSneakToggleTrigger {
-        protected PhantomSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Values
+
+    private static final String DECAY_K_CONFIG_ID = "glide_decay_k";
+    private static final String MIN_DOWNWARD_CONFIG_ID = "glide_min_downward";
+    private static final String SMOOTH_CONFIG_ID = "glide_smooth";
+    private static final String FORWARD_MULTIPLIER_CONFIG_ID = "glide_forward_multiplier";
+
+    private final ConfigOption<Double> decayK = configOption(DECAY_K_CONFIG_ID, 0.06, FileConfiguration::getDouble);
+    private final ConfigOption<Double> minDownward = configOption(MIN_DOWNWARD_CONFIG_ID, 0.1, FileConfiguration::getDouble);
+    private final ConfigOption<Double> smooth = configOption(SMOOTH_CONFIG_ID, 0.18, FileConfiguration::getDouble);
+    private final ConfigOption<Double> forwardMultiplier = configOption(FORWARD_MULTIPLIER_CONFIG_ID, 0.05, FileConfiguration::getDouble);
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                DECAY_K_CONFIG_ID, "The k factor which describes the gliding curve based on the initial downward speed: f(t) = <minDownward> + (1 - <minDownward>) * exp(-k * t)",
+                MIN_DOWNWARD_CONFIG_ID, "The asymptote to the gliding curve, downwards speed will gradually near this speed",
+                SMOOTH_CONFIG_ID, "Smoothes out the gliding curve following the function: smoothedY = currentY * (1 - smoothFactor) + y * smoothFactor",
+                FORWARD_MULTIPLIER_CONFIG_ID, "In addition to the gliding gives a slight boost in facing direction using this force"
+        );
+    }
+
+    //endregion
+
+    public static class PhantomSoulInstance extends SoulInstance<PhantomSoulType> implements OnSneakToggleTrigger {
+        protected PhantomSoulInstance(LivingEntity carrier, PhantomSoulType soulType) {
             super(carrier, soulType);
 
             if (carrier instanceof Mob mob)
@@ -99,22 +134,21 @@ public class PhantomSoulType extends SoulType {
 
                     long ticks = Bukkit.getCurrentTick() - startTick;
 
-                    // decay curve: starts stronger and asymptotically approaches 0.1
-                    // factor(t) = 0.1 + 0.9 * exp(-k * t)
-                    double k = 0.06;
-                    double decayFactor = 0.1 + 0.9 * Math.exp(-k * ticks);
+                    // decay curve: starts stronger and asymptotically approaches configured minDownward
+                    double k = soulType().decayK.cached();
+                    double decayFactor = soulType().minDownward.cached() + (1 - soulType().minDownward.cached()) * Math.exp(-k * ticks);
 
-                    double desiredDownward = Math.max(initialDownwardSpeed * decayFactor, 0.1);
+                    double desiredDownward = Math.max(initialDownwardSpeed * decayFactor, soulType().minDownward.cached());
                     double desiredY = -desiredDownward;
 
                     Vector currentVelocity = carrier.getVelocity();
-                    double smooth = 0.18;
-                    double newY = currentVelocity.getY() * (1 - smooth) + desiredY * smooth;
+                    double smoothFactor = soulType().smooth.cached();
+                    double newY = currentVelocity.getY() * (1 - smoothFactor) + desiredY * smoothFactor;
 
                     if (newY > 0) newY = Math.min(newY, 0);
 
                     currentVelocity.setY(newY);
-                    currentVelocity.add(carrier.getLocation().getDirection().normalize().setY(0).multiply(0.05));
+                    currentVelocity.add(carrier.getLocation().getDirection().normalize().setY(0).multiply(soulType().forwardMultiplier.cached()));
                     carrier.setVelocity(currentVelocity);
 
                     if (ticks % 5 == 0) {

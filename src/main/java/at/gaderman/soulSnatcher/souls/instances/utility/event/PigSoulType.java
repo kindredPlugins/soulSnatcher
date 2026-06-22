@@ -3,6 +3,8 @@ package at.gaderman.soulSnatcher.souls.instances.utility.event;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.mobGoals.targeting.SearchAndAddPassengerGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
@@ -14,6 +16,7 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.entity.boat.OakBoat;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
@@ -24,11 +27,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
-public class PigSoulType extends SoulType {
+public class PigSoulType extends ConfigHoldingSoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<PigSoulType> create(LivingEntity carrier) {
         return new PigSoulInstance(carrier, this);
     }
 
@@ -62,8 +66,20 @@ public class PigSoulType extends SoulType {
         return List.of();
     }
 
-    public static class PigSoulInstance extends SoulInstance implements OnPlayerInteractEntityTrigger, OnTargetTrigger, OnSneakToggleTrigger {
-        protected PigSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Valfues
+
+    private static final String DROP_PASSENGER_DELAY_CONFIG_ID = "drop_passenger_delay_ticks";
+    private final ConfigOption<Integer> dropPassengerDelay = configOption(DROP_PASSENGER_DELAY_CONFIG_ID, 30, FileConfiguration::getInt, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(DROP_PASSENGER_DELAY_CONFIG_ID, "How long players have to sneak for a passenger to be dropped in ticks (20 ticks = 1 second)");
+    }
+
+    //endregion
+
+    public static class PigSoulInstance extends SoulInstance<PigSoulType> implements OnPlayerInteractEntityTrigger, OnTargetTrigger, OnSneakToggleTrigger {
+        protected PigSoulInstance(LivingEntity carrier, PigSoulType soulType) {
             super(carrier, soulType);
 
             if(carrier instanceof Mob mob)
@@ -109,7 +125,7 @@ public class PigSoulType extends SoulType {
                         carrier.eject();
                         carrier.getWorld().playSound(carrier, Sound.ITEM_SADDLE_UNEQUIP, 1f, 1f);
                     }
-                }.runTaskLater(SoulSnatcher.getPlugin(), 30L);
+                }.runTaskLater(SoulSnatcher.getPlugin(), soulType().dropPassengerDelay.cached());
             }
 
             if(!event.isSneaking() && dropPassengerTask != null){

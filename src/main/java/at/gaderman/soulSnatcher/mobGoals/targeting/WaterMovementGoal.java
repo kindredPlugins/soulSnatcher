@@ -90,7 +90,8 @@ public class WaterMovementGoal extends SoulAbilityGoal {
 
         if(mob.isInWater() && mob.getTarget() != null){
             DolphinSoulType.DolphinSoulInstance.doDolphinJump(mob,
-                    mob.getTarget().getLocation().toVector().subtract(mob.getLocation().toVector()));
+                    mob.getTarget().getLocation().toVector().subtract(mob.getLocation().toVector()),
+                    1.5, 1);
             waterTarget = null;
         }
     }

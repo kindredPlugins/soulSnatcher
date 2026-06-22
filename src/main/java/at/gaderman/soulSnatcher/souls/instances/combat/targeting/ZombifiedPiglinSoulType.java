@@ -76,7 +76,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     private static final String ENGAGE_BOOST_CONFIG_ID = "engage_boost";
 
     private final ConfigOption<Integer> engageTimeout = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
-    private final ConfigOption<Double> engageBoost = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> engageBoost = configOption(ENGAGE_BOOST_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> Math.max(value, 0));
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

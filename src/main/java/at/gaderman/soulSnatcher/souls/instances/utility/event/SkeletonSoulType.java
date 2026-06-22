@@ -27,7 +27,7 @@ import java.util.List;
 @AutoService(SoulType.class)
 public class SkeletonSoulType extends SoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<SkeletonSoulType> create(LivingEntity carrier) {
         return new SkeletonSoulInstance(carrier, this);
     }
 
@@ -61,8 +61,8 @@ public class SkeletonSoulType extends SoulType {
         return List.of();
     }
 
-    public static class SkeletonSoulInstance extends SoulInstance implements OnPlayerInteractTrigger, OnItemDamageTrigger, OnEntityShootBowTrigger {
-        protected SkeletonSoulInstance(LivingEntity carrier, SoulType soulType) {
+    public static class SkeletonSoulInstance extends SoulInstance<SkeletonSoulType> implements OnPlayerInteractTrigger, OnItemDamageTrigger, OnEntityShootBowTrigger {
+        protected SkeletonSoulInstance(LivingEntity carrier, SkeletonSoulType soulType) {
             super(carrier, soulType);
 
             if(isInfused())

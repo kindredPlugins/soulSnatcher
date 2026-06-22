@@ -27,7 +27,7 @@ import java.util.List;
 @AutoService(SoulType.class)
 public class CreeperSoulType extends SoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<CreeperSoulType> create(LivingEntity carrier) {
         return new CreeperSoulInstance(carrier, this);
     }
 
@@ -61,9 +61,9 @@ public class CreeperSoulType extends SoulType {
         return List.of();
     }
 
-    public static class CreeperSoulInstance extends SoulInstance implements OnTargetTrigger {
+    public static class CreeperSoulInstance extends SoulInstance<CreeperSoulType> implements OnTargetTrigger {
 
-        protected CreeperSoulInstance(LivingEntity carrier, SoulType soulType) {
+        protected CreeperSoulInstance(LivingEntity carrier, CreeperSoulType soulType) {
             super(carrier, soulType);
         }
 
@@ -90,7 +90,6 @@ public class CreeperSoulType extends SoulType {
                 if(event.isCancelled() || !carrier.isValid() || !target.isValid()) return;
 
                 double distance = target.getLocation().distance(carrier.getLocation());
-
                 if (distance <= 10) return;
 
                 carrier.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, PotionEffect.INFINITE_DURATION, 0, false, false));

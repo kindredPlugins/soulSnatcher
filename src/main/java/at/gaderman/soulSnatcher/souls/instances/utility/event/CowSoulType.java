@@ -2,6 +2,8 @@ package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
@@ -10,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
@@ -18,12 +21,13 @@ import org.bukkit.potion.PotionEffectTypeCategory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
-public class CowSoulType extends SoulType {
+public class CowSoulType extends ConfigHoldingSoulType {
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<CowSoulType> create(LivingEntity carrier) {
         return new CowSoulInstance(carrier, this);
     }
 
@@ -57,8 +61,20 @@ public class CowSoulType extends SoulType {
         return List.of();
     }
 
-    public static class CowSoulInstance extends SoulInstance implements OnEntityPotionEffectTrigger {
-        protected CowSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Values
+
+    private static final String MILK_DELAY_TICKS_CONFIG_ID = "milk_delay_ticks";
+    private final ConfigOption<Integer> milkDelayTicks = configOption(MILK_DELAY_TICKS_CONFIG_ID, 15, FileConfiguration::getInt, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(MILK_DELAY_TICKS_CONFIG_ID, "How much delay before the milk clears all negative effects in ticks (20 ticks = 1 second)");
+    }
+
+    //endregion
+
+    public static class CowSoulInstance extends SoulInstance<CowSoulType> implements OnEntityPotionEffectTrigger {
+        protected CowSoulInstance(LivingEntity carrier, CowSoulType soulType) {
             super(carrier, soulType);
         }
 
@@ -83,7 +99,7 @@ public class CowSoulType extends SoulType {
 
                 carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation().add(0, 1, 0), 30, 0.2, 0.2, 0.2, 0.1);
                 carrier.getWorld().playSound(carrier, Sound.ENTITY_SPLASH_POTION_THROW, 1f, 2f);
-            }, 15L);
+            }, soulType().milkDelayTicks.cached());
         }
     }
 }

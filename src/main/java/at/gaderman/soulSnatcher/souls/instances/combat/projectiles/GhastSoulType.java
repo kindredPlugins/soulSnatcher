@@ -67,13 +67,12 @@ public class GhastSoulType extends ConfigHoldingSoulType {
 
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("Every ")
-                        .append(Component.text((isInt ? (int) (cooldown) : cooldown) + " ", NamedTextColor.GOLD)
-                                        .append(Component.text("your next shot projectile")),
-                                Component.text("will explode upon impact, dealing"),
-                                Component.text("knockback and up to ")
-                                        .append(Component.text("6 ", NamedTextColor.RED))
-                                        .append(Component.text("AOE damage"))
-                        )
+                        .append(Component.text((isInt ? (int) (cooldown) : cooldown) + " ", NamedTextColor.GOLD))
+                        .append(Component.text("your next shot projectile")),
+                Component.text("will explode upon impact, dealing"),
+                Component.text("knockback and up to ")
+                        .append(Component.text(maxAoeDamage.cached() + " ", NamedTextColor.RED))
+                        .append(Component.text("AOE damage"))
         );
     }
 
@@ -85,9 +84,9 @@ public class GhastSoulType extends ConfigHoldingSoulType {
 
     private final ConfigOption<Integer> ghastShotCooldown = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0));
     private final ConfigOption<Double> aoeRadius = configOption(AOE_RADIUS_CONFIG_ID, 3.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
-    private final ConfigOption<Double> maxAoeDamage = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
-    private final ConfigOption<Double> minAoeDamage = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
-    private final ConfigOption<Double> projectileSpeedMultiplier = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 0.9, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> maxAoeDamage = configOption(MAX_DAMAGE_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> minAoeDamage = configOption(MIN_DAMAGE_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> projectileSpeedMultiplier = configOption(PROJECTILE_SPEED_MULTIPLIER_CONFIG_ID, 0.9, FileConfiguration::getDouble, value -> Math.max(value, 0));
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

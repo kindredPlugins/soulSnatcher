@@ -1,6 +1,8 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
@@ -11,6 +13,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Color;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -20,9 +23,10 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
-public class SheepSoulType extends SoulType {
+public class SheepSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull SoulInstance create(LivingEntity carrier) {
@@ -58,15 +62,31 @@ public class SheepSoulType extends SoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When being hit reduce damage by"),
-                Component.text((int) (ABSORPTION_AMOUNT * 100) + "%", NamedTextColor.GOLD)
+                Component.text((int) (absorptionAmount.defaultValue() * 100) + "% ", NamedTextColor.GOLD)
+                        .append(Component.text("every " + absorbCooldown.cached() / 1000.0 + "s", NamedTextColor.WHITE))
         );
     }
 
-    private static final double ABSORPTION_AMOUNT = 0.5;
-    private static final long ABSORB_COOLDOWN = 15 * 1000L;
+    //region Config Values
 
-    public static class SheepSoulInstance extends SoulInstance implements OnDamageReceivedTrigger {
-        protected SheepSoulInstance(LivingEntity carrier, SoulType soulType) {
+    private static final String ABSORPTION_AMOUNT_CONFIG_ID = "absorption_amount";
+    private static final String ABSORB_COOLDOWN_CONFIG_ID = "absorb_cooldown";
+
+    private final ConfigOption<Double> absorptionAmount = configOption(ABSORPTION_AMOUNT_CONFIG_ID, 0.5, FileConfiguration::getDouble);
+    private final ConfigOption<Integer> absorbCooldown = configOption(ABSORB_COOLDOWN_CONFIG_ID, 15 * 1000, FileConfiguration::getInt, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                ABSORPTION_AMOUNT_CONFIG_ID, "How much percentage of the damage is absorbed with the ability (0.6 -> 60% damage absorbed 40% taken)",
+                ABSORB_COOLDOWN_CONFIG_ID, "How long it takes to regrow the wool shield in milliseconds (1000ms = 1s)"
+        );
+    }
+
+    //endregion
+
+    public static class SheepSoulInstance extends SoulInstance<SheepSoulType> implements OnDamageReceivedTrigger {
+        protected SheepSoulInstance(LivingEntity carrier, SheepSoulType soulType) {
             super(carrier, soulType);
         }
 
@@ -74,10 +94,10 @@ public class SheepSoulType extends SoulType {
 
         @Override
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
-            if(lastHitAbsorb > System.currentTimeMillis() - ABSORB_COOLDOWN) return;
+            if(lastHitAbsorb > System.currentTimeMillis() - soulType().absorbCooldown.cached()) return;
 
             lastHitAbsorb = System.currentTimeMillis();
-            event.setDamage(event.getDamage() * (1 - ABSORPTION_AMOUNT));
+            event.setDamage(event.getDamage() * (1 - soulType().absorptionAmount.cached()));
 
             carrier.getWorld().spawnParticle(Particle.DUST, carrier.getLocation().add(0, 0.8, 0), 50, 0.3, 0.5, 0.3, 0.2,
                     new Particle.DustOptions(Color.WHITE, 2));

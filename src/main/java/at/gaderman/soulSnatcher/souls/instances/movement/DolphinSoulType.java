@@ -2,15 +2,20 @@ package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.mobGoals.targeting.WaterMovementGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSwimToggleTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -22,11 +27,12 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
-public class DolphinSoulType extends SoulType {
+public class DolphinSoulType extends ConfigHoldingSoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<DolphinSoulType> create(LivingEntity carrier) {
         return new DolphinSoulInstance(carrier, this);
     }
 
@@ -57,11 +63,34 @@ public class DolphinSoulType extends SoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("While swimming gain ")
+                        .append(Component.text("Dolphins Grace", NamedTextColor.AQUA)),
+                Component.text("Swimming to the water surface makes you"),
+                Component.text("dolphin dash ahead")
+        );
     }
 
-    public static class DolphinSoulInstance extends SoulInstance implements OnSwimToggleTrigger {
-        protected DolphinSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Values
+
+    private static final String JUMP_MULTIPLIER_CONFIG_ID = "dolphin_jump_multiplier";
+    private static final String JUMP_Y_CONFIG_ID = "dolphin_jump_y";
+
+    private final ConfigOption<Double> jumpMultiplier = configOption(JUMP_MULTIPLIER_CONFIG_ID, 1.5, FileConfiguration::getDouble);
+    private final ConfigOption<Double> jumpY = configOption(JUMP_Y_CONFIG_ID, 1.0, FileConfiguration::getDouble);
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                JUMP_MULTIPLIER_CONFIG_ID, "The horizontal force when dolphin jumping out of water (applied as direction vector multiplication)",
+                JUMP_Y_CONFIG_ID, "Fixed y value of the dolphin jump vector"
+        );
+    }
+
+    //endregion
+
+    public static class DolphinSoulInstance extends SoulInstance<DolphinSoulType> implements OnSwimToggleTrigger {
+        protected DolphinSoulInstance(LivingEntity carrier, DolphinSoulType soulType) {
             super(carrier, soulType);
 
             if(carrier instanceof Mob mob)
@@ -78,19 +107,19 @@ public class DolphinSoulType extends SoulType {
                 carrier.getWorld().spawnParticle(Particle.BUBBLE, carrier.getLocation(), 100);
             }else {
                 if(!carrier.isUnderWater()){
-                    doDolphinJump(carrier, carrier.getLocation().getDirection());
+                    doDolphinJump(carrier, carrier.getLocation().getDirection(), soulType().jumpMultiplier.cached(), soulType().jumpY.cached());
                 }
 
                 carrier.removePotionEffect(PotionEffectType.DOLPHINS_GRACE);
             }
         }
 
-        public static void doDolphinJump(LivingEntity entity, Vector jumpDirection){
+        public static void doDolphinJump(LivingEntity entity, Vector jumpDirection, double multiplier, double y){
             entity.getWorld().spawnParticle(Particle.BUBBLE_COLUMN_UP, entity.getLocation(), 100, 0.5, 0, 0.5, 0.2);
             entity.getWorld().spawnParticle(Particle.SPLASH, entity.getLocation(), 100, 0.5, 0.5, 0.5, 1);
             entity.getWorld().playSound(entity.getLocation(), Sound.AMBIENT_UNDERWATER_EXIT, 2f, 2f);
 
-            entity.setVelocity(jumpDirection.normalize().multiply(1.5).setY(1));
+            entity.setVelocity(jumpDirection.normalize().multiply(multiplier).setY(y));
         }
     }
 }

@@ -1,6 +1,8 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
@@ -11,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.Tag;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -21,12 +24,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 @AutoService(SoulType.class)
-public class PillagerSoulType extends SoulType {
+public class PillagerSoulType extends ConfigHoldingSoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<PillagerSoulType> create(LivingEntity carrier) {
         return new PillagerSoulInstance(carrier, this);
     }
 
@@ -66,10 +70,21 @@ public class PillagerSoulType extends SoulType {
                 && !(entity instanceof Piglin) && !(entity instanceof Illager));
     }
 
-    private static final double EXTRA_LOOT_CHANCE = 0.2;
+    //region Config Values
 
-    public static class PillagerSoulInstance extends SoulInstance implements OnEntityKillTrigger {
-        protected PillagerSoulInstance(LivingEntity carrier, SoulType soulType) {
+    private static final String EXTRA_LOOT_CHANCE_CONFIG_ID = "extra_loot_chance";
+
+    private final ConfigOption<Double> extraLootChance = configOption(EXTRA_LOOT_CHANCE_CONFIG_ID, 0.2, FileConfiguration::getDouble);
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(EXTRA_LOOT_CHANCE_CONFIG_ID, "Chance to be granted an extra mob loot on mob kill if something drops, value in percent (0.2 -> 20%)");
+    }
+
+    //endregion
+
+    public static class PillagerSoulInstance extends SoulInstance<PillagerSoulType> implements OnEntityKillTrigger {
+        protected PillagerSoulInstance(LivingEntity carrier, PillagerSoulType soulType) {
             super(carrier, soulType);
 
             if (isInfused()) {
@@ -114,7 +129,7 @@ public class PillagerSoulType extends SoulType {
                     .filter(drop -> drop.getMaxStackSize() != 1)
                     .toList();
 
-            if (Math.random() >= EXTRA_LOOT_CHANCE) return;
+            if (Math.random() >= soulType().extraLootChance.cached()) return;
 
             event.getDrops().add(drops.get((int) (Math.random() * drops.size())).asOne());
 
