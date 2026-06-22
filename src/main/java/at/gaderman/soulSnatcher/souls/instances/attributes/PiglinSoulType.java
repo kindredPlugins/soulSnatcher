@@ -33,7 +33,7 @@ import java.util.Random;
 @AutoService(SoulType.class)
 public class PiglinSoulType extends SoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<PiglinSoulType> create(LivingEntity carrier) {
         return new PiglinSoulInstance(carrier, this);
     }
 
@@ -72,8 +72,8 @@ public class PiglinSoulType extends SoulType {
         return List.of();
     }
 
-    public static class PiglinSoulInstance extends SoulInstance implements OnEntityEquipmentTrigger, OnTargetTrigger {
-        protected PiglinSoulInstance(LivingEntity carrier, SoulType soulType) {
+    public static class PiglinSoulInstance extends SoulInstance<PiglinSoulType> implements OnEntityEquipmentTrigger, OnTargetTrigger {
+        protected PiglinSoulInstance(LivingEntity carrier, PiglinSoulType soulType) {
             super(carrier, soulType);
 
             if (isInfused()) {

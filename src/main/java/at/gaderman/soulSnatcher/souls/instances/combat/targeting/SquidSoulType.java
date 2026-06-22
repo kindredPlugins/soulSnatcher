@@ -3,16 +3,20 @@ package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -25,13 +29,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @AutoService(SoulType.class)
-public class SquidSoulType extends SoulType {
+public class SquidSoulType extends ConfigHoldingSoulType {
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<SquidSoulType> create(LivingEntity carrier) {
         return new SquidSoulInstance(carrier, this);
     }
 
@@ -63,19 +68,37 @@ public class SquidSoulType extends SoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-
+                Component.text("When damaged applies ")
+                        .append(Component.text("ink ", NamedTextColor.BLACK))
+                        .append(Component.text("onto nearby")),
+                Component.text("enemies causing blindness and follow range loss")
         );
     }
 
-    public static class SquidSoulInstance extends TargetTrackerSoulInstance {
-        protected SquidSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Values
+
+    private static final String INK_COOLDOWN_CONFIG_ID = "ink_cooldown";
+    private static final String INK_DURATION_CONFIG_ID = "aura_range";
+
+    private final ConfigOption<Integer> inkCooldown = configOption(INK_COOLDOWN_CONFIG_ID, 8000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> inkDuration = configOption(INK_DURATION_CONFIG_ID, 60, FileConfiguration::getInt, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                INK_COOLDOWN_CONFIG_ID, "Cooldown between each damage taken triggers the ink effect in milliseconds (1000ms = 1s)",
+                INK_DURATION_CONFIG_ID, "How long the ink effect persists in ticks (20 ticks = 1 second)"
+        );
+    }
+
+    //endregion
+
+    public static class SquidSoulInstance extends TargetTrackerSoulInstance<SquidSoulType> {
+        protected SquidSoulInstance(LivingEntity carrier, SquidSoulType soulType) {
             super(carrier, soulType);
         }
 
         private long lastInkBurst;
-        private static final long INK_COOLDOWN = 8000;
-
-        private static final int INK_DURATION = 60;
 
         private static final NamespacedKey INK_DEBUFF = new NamespacedKey(SoulSnatcher.getPlugin(), "ink_debuff");
 
@@ -83,7 +106,7 @@ public class SquidSoulType extends SoulType {
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
             super.onDamageReceivedByEntity(carrier, damager, event);
 
-            if (lastInkBurst > System.currentTimeMillis() - INK_COOLDOWN) return;
+            if (lastInkBurst > System.currentTimeMillis() - soulType().inkCooldown.cached()) return;
 
             lastInkBurst = System.currentTimeMillis();
 
@@ -98,14 +121,14 @@ public class SquidSoulType extends SoulType {
             carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), 5).forEach(target -> {
                 if (!combatTargets.contains(target)) return;
 
-                target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, INK_DURATION, 0, true));
+                target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, soulType().inkDuration.cached(), 0, true));
 
-                new BukkitRunnable(){
+                new BukkitRunnable() {
                     int ticks = 0;
 
                     @Override
                     public void run() {
-                        if(!target.isValid() || ticks >= INK_DURATION){
+                        if (!target.isValid() || ticks >= soulType().inkDuration.cached()) {
                             cancel();
                             return;
                         }
@@ -117,28 +140,28 @@ public class SquidSoulType extends SoulType {
                     }
                 }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 2L);
 
-                if(target instanceof Mob mob){
+                if (target instanceof Mob mob) {
                     var followRange = mob.getAttribute(Attribute.FOLLOW_RANGE);
-                    if(followRange != null)
+                    if (followRange != null)
                         followRange.addModifier(new AttributeModifier(INK_DEBUFF, -0.85, AttributeModifier.Operation.ADD_SCALAR));
 
                     var movSpeed = mob.getAttribute(Attribute.MOVEMENT_SPEED);
-                    if(movSpeed != null)
+                    if (movSpeed != null)
                         movSpeed.addModifier(new AttributeModifier(INK_DEBUFF, -0.2, AttributeModifier.Operation.ADD_SCALAR));
 
                     mob.getPersistentDataContainer().set(INK_DEBUFF, PersistentDataType.STRING, carrier.getUniqueId().toString());
 
                     SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-                        if(mob.isDead()) return;
+                        if (mob.isDead()) return;
 
-                        if(!mob.getPersistentDataContainer().getOrDefault(INK_DEBUFF, PersistentDataType.STRING, "")
+                        if (!mob.getPersistentDataContainer().getOrDefault(INK_DEBUFF, PersistentDataType.STRING, "")
                                 .equals(carrier.getUniqueId().toString())) return;
 
-                        if(followRange != null) followRange.removeModifier(INK_DEBUFF);
-                        if(movSpeed != null) movSpeed.removeModifier(INK_DEBUFF);
+                        if (followRange != null) followRange.removeModifier(INK_DEBUFF);
+                        if (movSpeed != null) movSpeed.removeModifier(INK_DEBUFF);
 
                         mob.getPersistentDataContainer().remove(INK_DEBUFF);
-                    }, INK_DURATION);
+                    }, soulType().inkDuration.cached());
                 }
             });
         }

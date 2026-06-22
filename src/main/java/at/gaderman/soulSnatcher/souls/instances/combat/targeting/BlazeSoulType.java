@@ -3,15 +3,19 @@ package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.EntityType;
@@ -21,13 +25,14 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @AutoService(SoulType.class)
-public class BlazeSoulType extends SoulType {
+public class BlazeSoulType extends ConfigHoldingSoulType {
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<BlazeSoulType> create(LivingEntity carrier) {
         return new BlazeSoulInstance(carrier, this);
     }
 
@@ -59,25 +64,46 @@ public class BlazeSoulType extends SoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-
+                Component.text("When engaging in combat activate ")
+                        .append(Component.text("Aura", NamedTextColor.GOLD)),
+                Component.text("Enemies who enter your close proximity"),
+                Component.text("will be struck down")
         );
     }
 
-    public static class BlazeSoulInstance extends TargetTrackerSoulInstance {
-        protected BlazeSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Values
+
+    private static final String AURA_TIMEOUT_CONFIG_ID = "aura_timeout";
+    private static final String AURA_RANGE_CONFIG_ID = "aura_range";
+    private static final String AURA_DAMAGE_CONFIG_ID = "aura_damage";
+    private static final String AURA_HIT_COOLDOWN_CONFIG_ID = "aura_hit_cooldown";
+
+    private final ConfigOption<Integer> auraTimeout = configOption(AURA_TIMEOUT_CONFIG_ID, 30000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Double> auraRange = configOption(AURA_RANGE_CONFIG_ID, 2.4, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> auraDamage = configOption(AURA_DAMAGE_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> auraHitCooldown = configOption(AURA_HIT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                AURA_TIMEOUT_CONFIG_ID, "After how much time without casting a hit should aura disable itself in milliseconds (1000ms = 1s)",
+                AURA_RANGE_CONFIG_ID, "In which sphere around the player aura can hit entities (XYZ hitbox detection)",
+                AURA_DAMAGE_CONFIG_ID, "How much damage a hit from aura does",
+                AURA_HIT_COOLDOWN_CONFIG_ID, "How much cooldown time there is between each aura hit in milliseconds (1000ms = 1s)"
+        );
+    }
+
+    //endregion
+
+    public static class BlazeSoulInstance extends TargetTrackerSoulInstance<BlazeSoulType> {
+        protected BlazeSoulInstance(LivingEntity carrier, BlazeSoulType soulType) {
             super(carrier, soulType);
 
-            if(!combatTargets.isEmpty())
+            if (!combatTargets.isEmpty())
                 auraTask = createAuraTask();
         }
 
-        private static final int AURA_TIMEOUT = 30000;
-        private static final float AURA_RANGE = 2.5f;
-        private static final float AURA_DAMAGE = 6;
-
         private long lastAuraHit;
-        private static final int AURA_HIT_COOLDOWN = 2000;
-
         private BukkitTask auraTask;
 
         private BukkitTask createAuraTask() {
@@ -88,14 +114,14 @@ public class BlazeSoulType extends SoulType {
 
                 @Override
                 public void run() {
-                    boolean isActive = lastAuraHit < System.currentTimeMillis() - AURA_HIT_COOLDOWN;
+                    boolean isActive = lastAuraHit < System.currentTimeMillis() - soulType().auraHitCooldown.cached();
 
                     if (isActive) {
                         carrier.getWorld().spawnParticle(Particle.FLAME, carrier.getLocation().add(0, 1, 0),
                                 1, 0.1, 0.5, 0.1, 0.01);
                     }
 
-                    if (combatTargets.isEmpty()){
+                    if (combatTargets.isEmpty()) {
                         extinguish();
                         return;
                     }
@@ -104,12 +130,12 @@ public class BlazeSoulType extends SoulType {
                         combatTargets = combatTargets.stream().filter(LivingEntity::isValid).collect(Collectors.toSet());
 
                     if (isActive) {
-                        for (LivingEntity target : carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), AURA_RANGE)) {
+                        for (LivingEntity target : carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached())) {
                             if (target.getNoDamageTicks() != 0 || !combatTargets.contains(target)) continue;
 
                             lastAuraHit = System.currentTimeMillis();
 
-                            target.damage(AURA_DAMAGE, DamageSource.builder(DamageType.MOB_ATTACK)
+                            target.damage(soulType().auraDamage.cached(), DamageSource.builder(DamageType.MOB_ATTACK)
                                     .withDirectEntity(carrier)
                                     .build());
 
@@ -121,12 +147,12 @@ public class BlazeSoulType extends SoulType {
                         }
                     }
 
-                    if (lastAuraHit < System.currentTimeMillis() - AURA_TIMEOUT) {
+                    if (lastAuraHit < System.currentTimeMillis() - soulType().auraTimeout.cached()) {
                         extinguish();
                     }
                 }
 
-                private void extinguish(){
+                private void extinguish() {
                     combatTargets.clear();
                     carrier.getWorld().spawnParticle(Particle.SMOKE, carrier.getLocation().add(0, 1, 0),
                             30, 0.5, 0.5, 0.5, 0.1);

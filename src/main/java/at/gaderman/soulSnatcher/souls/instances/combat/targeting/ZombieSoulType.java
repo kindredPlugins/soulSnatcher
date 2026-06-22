@@ -5,6 +5,8 @@ import at.gaderman.soulSnatcher.mobGoals.targeting.ReinforcementZombieGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.BlockUtils;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
@@ -13,6 +15,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,20 +30,20 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 @AutoService(SoulType.class)
-public class ZombieSoulType extends SoulType {
+public class ZombieSoulType extends ConfigHoldingSoulType {
 
     private static ZombieSoulListener listener;
 
-    public ZombieSoulType(){
+    public ZombieSoulType() {
         super();
-        if(listener == null) {
+        if (listener == null) {
             listener = new ZombieSoulListener();
             Bukkit.getPluginManager().registerEvents(listener, SoulSnatcher.getPlugin());
         }
     }
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<ZombieSoulType> create(LivingEntity carrier) {
         return new ZombieSoulInstance(carrier, this);
     }
 
@@ -74,22 +77,39 @@ public class ZombieSoulType extends SoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When being hit summons a ")
                         .append(Component.text("reinforcement zombie", NamedTextColor.AQUA)),
-                Component.text("nearby who will aid you in combat")
+                Component.text("nearby who will aid you in combat "),
+                Component.text("(Max " + maxReinforcements.cached() + ")", NamedTextColor.GRAY)
         );
     }
+
+    //region Config Values
+
+    private static final String REINFORCEMENT_COOLDOWN_CONFIG_ID = "reinforcement_cooldown";
+    private static final String MAX_REINFORCEMENTS_CONFIG_ID = "max_reinforcement";
+
+    private final ConfigOption<Integer> reinforcementCooldown = configOption(REINFORCEMENT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> maxReinforcements = configOption(MAX_REINFORCEMENTS_CONFIG_ID, 3, FileConfiguration::getInt, value -> Math.max(value, 1));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                REINFORCEMENT_COOLDOWN_CONFIG_ID, "Cooldown between each damage taken triggers a reinforcement spawn in milliseconds (1000ms = 1s)",
+                MAX_REINFORCEMENTS_CONFIG_ID, "How many reinforcements can be present at the same time"
+        );
+    }
+
+    //endregion
 
     public static final NamespacedKey REINFORCEMENT_OWNER = new NamespacedKey(SoulSnatcher.getPlugin(),
             "reinforcement_owner");
     private static final Map<Zombie, Set<LivingEntity>> reinforcementTargetMap = new LinkedHashMap<>();
 
-    public static class ZombieSoulInstance extends TargetTrackerSoulInstance {
-        protected ZombieSoulInstance(LivingEntity carrier, SoulType soulType) {
+    public static class ZombieSoulInstance extends TargetTrackerSoulInstance<ZombieSoulType> {
+        protected ZombieSoulInstance(LivingEntity carrier, ZombieSoulType soulType) {
             super(carrier, soulType);
         }
 
-        private static final long REINFORCEMENT_COOLDOWN = 2000;
         private long lastReinforcement;
-        private static final int MAX_REINFORCEMENTS = 3;
         private final Set<Zombie> reinforcements = new LinkedHashSet<>();
 
         @Override
@@ -97,7 +117,7 @@ public class ZombieSoulType extends SoulType {
             reinforcements.forEach(this::removeReinforcement);
         }
 
-        private void removeReinforcement(Zombie zombie){
+        private void removeReinforcement(Zombie zombie) {
             zombie.remove();
 
             zombie.getWorld().spawnParticle(Particle.WHITE_SMOKE, zombie.getLocation().add(0, 0.5, 0), 30, 0, 0, 0, 0.1);
@@ -106,7 +126,7 @@ public class ZombieSoulType extends SoulType {
 
         @Override
         protected void addCombatTarget(LivingEntity target) {
-            if(target.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
+            if (target.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
                     "").equals(carrier().getUniqueId().toString()))
                 return;
 
@@ -117,7 +137,7 @@ public class ZombieSoulType extends SoulType {
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
             super.onDamageReceivedByEntity(carrier, damager, event);
 
-            if (lastReinforcement > System.currentTimeMillis() - REINFORCEMENT_COOLDOWN || reinforcements.size() >= MAX_REINFORCEMENTS)
+            if (lastReinforcement > System.currentTimeMillis() - soulType().reinforcementCooldown.cached() || reinforcements.size() >= soulType().maxReinforcements.cached())
                 return;
 
             lastReinforcement = System.currentTimeMillis();
@@ -137,7 +157,7 @@ public class ZombieSoulType extends SoulType {
             zombie.getPersistentDataContainer().set(REINFORCEMENT_OWNER, PersistentDataType.STRING, carrier.getUniqueId().toString());
 
             var zombieEquip = zombie.getEquipment();
-            if(carrier.getEquipment() != null){
+            if (carrier.getEquipment() != null) {
                 var carrierEquip = carrier.getEquipment();
 
                 zombieEquip.setHelmet(carrierEquip.getHelmet());
@@ -156,7 +176,7 @@ public class ZombieSoulType extends SoulType {
 
             if (carrier instanceof Player player) {
                 zombieEquip.setHelmet(ItemUtils.getHeadOfPlayer(player));
-            }else{
+            } else {
                 var potSoulConnection = SoulRegistry.getInstance().getSoul(carrier.getType());
                 potSoulConnection.ifPresent(soulType -> zombieEquip.setHelmet(soulType.getRepresentativeSkull()));
             }
@@ -208,22 +228,22 @@ public class ZombieSoulType extends SoulType {
     private static class ZombieSoulListener implements Listener {
 
         @EventHandler
-        public void onReinforcementTarget(EntityTargetLivingEntityEvent event){
-            if(event.getTarget() == null || !(event.getEntity() instanceof Zombie zombie)) return;
-            if(!reinforcementTargetMap.containsKey(zombie)) return;
+        public void onReinforcementTarget(EntityTargetLivingEntityEvent event) {
+            if (event.getTarget() == null || !(event.getEntity() instanceof Zombie zombie)) return;
+            if (!reinforcementTargetMap.containsKey(zombie)) return;
 
-            if(!reinforcementTargetMap.get(zombie).contains(event.getTarget()))
+            if (!reinforcementTargetMap.get(zombie).contains(event.getTarget()))
                 event.setCancelled(true);
         }
 
         @EventHandler
-        public void onProjectileHitZombie(ProjectileHitEvent event){
-            if(!(event.getHitEntity() instanceof Zombie zombie)) return;
-            if(!zombie.getPersistentDataContainer().has(REINFORCEMENT_OWNER)) return;
-            if(!(event.getEntity().getShooter() instanceof LivingEntity shooter)) return;
+        public void onProjectileHitZombie(ProjectileHitEvent event) {
+            if (!(event.getHitEntity() instanceof Zombie zombie)) return;
+            if (!zombie.getPersistentDataContainer().has(REINFORCEMENT_OWNER)) return;
+            if (!(event.getEntity().getShooter() instanceof LivingEntity shooter)) return;
 
             String ownerUUID = zombie.getPersistentDataContainer().get(REINFORCEMENT_OWNER, PersistentDataType.STRING);
-            if(shooter.getUniqueId().toString().equals(ownerUUID))
+            if (shooter.getUniqueId().toString().equals(ownerUUID))
                 event.setCancelled(true);
         }
 

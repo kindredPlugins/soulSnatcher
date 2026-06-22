@@ -3,14 +3,18 @@ package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -20,12 +24,13 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
-public class ZombifiedPiglinSoulType extends SoulType {
+public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
 
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<ZombifiedPiglinSoulType> create(LivingEntity carrier) {
         return new ZombifiedPiglinSoulInstance(carrier, this);
     }
 
@@ -57,19 +62,40 @@ public class ZombifiedPiglinSoulType extends SoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-
+                Component.text("When engaging in combat ")
+                        .append(Component.text("mark ", NamedTextColor.DARK_RED)),
+                Component.text("a target and gain ")
+                        .append(Component.text("+ " + engageBoost.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
+                Component.text("Mark automatically jumps to the next target on death", NamedTextColor.GRAY)
         );
     }
 
-    public static class ZombifiedPiglinSoulInstance extends TargetTrackerSoulInstance {
-        protected ZombifiedPiglinSoulInstance(LivingEntity carrier, SoulType soulType) {
+    //region Config Values
+
+    private static final String ENGAGE_TIMEOUT_CONFIG_ID = "engage_timeout";
+    private static final String ENGAGE_BOOST_CONFIG_ID = "engage_boost";
+
+    private final ConfigOption<Integer> engageTimeout = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Double> engageBoost = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                ENGAGE_TIMEOUT_CONFIG_ID, "Time how long after not actively engaging in combat for the mark to run out in milliseconds (1000ms = 1s)",
+                ENGAGE_BOOST_CONFIG_ID, "Factor by how much the carriers walk speed increases while being engaged with a mark (applied as %, 0.2 -> 120%)"
+        );
+    }
+
+    //endregion
+
+    public static class ZombifiedPiglinSoulInstance extends TargetTrackerSoulInstance<ZombifiedPiglinSoulType> {
+        protected ZombifiedPiglinSoulInstance(LivingEntity carrier, ZombifiedPiglinSoulType soulType) {
             super(carrier, soulType);
         }
 
         private BlockDisplay markDisplay;
         private LivingEntity marked;
 
-        private static final int ENGAGE_TIMEOUT = 10000;
         private long lastMarkEngage;
 
         private static final NamespacedKey HUNT_BOOST = new NamespacedKey(SoulSnatcher.getPlugin(), "zombified_piglin_hunter");
@@ -81,7 +107,7 @@ public class ZombifiedPiglinSoulType extends SoulType {
 
             if (marked == null) {
                 if (carrier().getAttribute(Attribute.MOVEMENT_SPEED).getModifier(HUNT_BOOST) == null)
-                    carrier().getAttribute(Attribute.MOVEMENT_SPEED).addModifier(new AttributeModifier(HUNT_BOOST, 0.2, AttributeModifier.Operation.ADD_SCALAR));
+                    carrier().getAttribute(Attribute.MOVEMENT_SPEED).addModifier(new AttributeModifier(HUNT_BOOST, soulType().engageBoost.cached(), AttributeModifier.Operation.ADD_SCALAR));
 
                 selectNewMark(target);
 
@@ -118,7 +144,7 @@ public class ZombifiedPiglinSoulType extends SoulType {
                             return;
                         }
 
-                        if (!marked.isValid() || lastMarkEngage < System.currentTimeMillis() - ENGAGE_TIMEOUT) {
+                        if (!marked.isValid() || lastMarkEngage < System.currentTimeMillis() - soulType().engageTimeout.cached()) {
                             combatTargets.remove(marked);
 
                             LivingEntity nextMark = combatTargets.stream()

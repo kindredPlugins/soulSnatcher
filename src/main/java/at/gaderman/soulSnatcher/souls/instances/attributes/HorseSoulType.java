@@ -74,6 +74,8 @@ public class HorseSoulType extends ConfigHoldingSoulType {
         return true;
     }
 
+    //region Config Values
+
     private static final String MAX_MOVEMENT_BONUS_CONFIG_ID = "max_movement_bonus";
 
     private final ConfigOption<Double> maxMovementBonus = configOption(MAX_MOVEMENT_BONUS_CONFIG_ID, 0.05, FileConfiguration::getDouble);
@@ -83,6 +85,8 @@ public class HorseSoulType extends ConfigHoldingSoulType {
     public Map<String, String> extraConfigPathCommentMap() {
         return Map.of(MAX_MOVEMENT_BONUS_CONFIG_ID, "Max amount of movement bonus a player can obtain from a bonus roll from this soul");
     }
+
+    //endregion
 
     public static class HorseSoulInstance extends AttributeSoul<HorseSoulType> {
         protected HorseSoulInstance(LivingEntity carrier, HorseSoulType soulType) {

@@ -18,8 +18,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class TargetTrackerSoulInstance extends SoulInstance implements OnDamageReceivedTrigger, OnDamageDealtTrigger, OnTargetTrigger {
-    protected TargetTrackerSoulInstance(LivingEntity carrier, SoulType soulType) {
+public abstract class TargetTrackerSoulInstance<T extends SoulType> extends SoulInstance<T> implements OnDamageReceivedTrigger, OnDamageDealtTrigger, OnTargetTrigger {
+    protected TargetTrackerSoulInstance(LivingEntity carrier, T soulType) {
         super(carrier, soulType);
 
         combatTargets = carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), 50).stream()

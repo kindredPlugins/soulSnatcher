@@ -67,6 +67,8 @@ public class IronGolemSoulType extends ConfigHoldingSoulType {
         );
     }
 
+    //region Config values
+
     private static final String UPWARDS_THROW_CONFIG_ID = "upwards_throw_enabled";
 
     private final ConfigOption<Boolean> isUpwardsThrowEnabled = configOption(UPWARDS_THROW_CONFIG_ID, true, FileConfiguration::getBoolean);
@@ -75,6 +77,8 @@ public class IronGolemSoulType extends ConfigHoldingSoulType {
     public Map<String, String> extraConfigPathCommentMap() {
         return Map.of(UPWARDS_THROW_CONFIG_ID, "If true non-critical hits will throw hit entities into the air similar to an iron golem");
     }
+
+    //endregion
 
     public static class IronGolemSoulInstance extends AttributeSoul<IronGolemSoulType> implements OnDamageDealtTrigger {
 

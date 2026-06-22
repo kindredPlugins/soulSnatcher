@@ -5,6 +5,8 @@ import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.util.function.Function;
+
 public final class ConfigOption<T> {
     private final String id;
     private final SoulType soulType;
@@ -18,6 +20,10 @@ public final class ConfigOption<T> {
     }
 
     public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader){
+       this(id, soulType, defaultValue, reader, value -> value);
+    }
+
+    public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction){
         this.id = id;
         this.soulType = soulType;
         this.defaultValue = defaultValue;

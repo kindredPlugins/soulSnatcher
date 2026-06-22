@@ -15,7 +15,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class SkeletonSoulVariantInstance extends SoulInstance implements OnEntityLaunchProjectileTrigger, OnProjectileHitTrigger {
+public class SkeletonSoulVariantInstance extends SoulInstance<SoulType> implements OnEntityLaunchProjectileTrigger, OnProjectileHitTrigger {
     private final Options options;
     private final NamespacedKey shot_key;
 

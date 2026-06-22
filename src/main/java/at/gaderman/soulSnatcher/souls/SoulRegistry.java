@@ -96,6 +96,7 @@ public class SoulRegistry {
         String path = soulConfigPath(soul);
         boolean enabled = SoulSnatcher.getSoulsConfig().getBoolean(path + ".enabled", true);
 
+        //TODO: keep legacy system, players with legacy bound souls need to be rewarded a vial so they can switch back when an admin decides to enable a soul again eventually
         if (!enabled) {
             SoulSnatcher.getPlugin().getLogger().info("Soul '" + soul.id() + "' is disabled in config, skipping.");
             return;
