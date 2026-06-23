@@ -34,7 +34,7 @@ public abstract class SoulType {
 
     public abstract @NotNull String id();
 
-    public abstract @NotNull SoulInstance create(LivingEntity carrier);
+    public abstract @NotNull SoulInstance<?> create(LivingEntity carrier);
 
     public abstract @NotNull SoulCategory category();
 
@@ -82,7 +82,7 @@ public abstract class SoulType {
     public static final NamespacedKey BOUND_SOULS = new NamespacedKey(SoulSnatcher.getPlugin(), "infused_soul");
 
     private static final Map<UUID, List<SoulType>> cachedUnboundSouls = new LinkedHashMap<>();
-    private static final Map<UUID, List<SoulInstance>> cachedBoundSouls = new LinkedHashMap<>();
+    private static final Map<UUID, List<SoulInstance<?>>> cachedBoundSouls = new LinkedHashMap<>();
 
     /**
      * Lists all souls connected to the given entity. This works for both infused and bound souls.
@@ -90,7 +90,7 @@ public abstract class SoulType {
      *
      * @return A list of carried souls of the given entity or a Collections empty list
      */
-    public static List<SoulInstance> getCarriedSouls(LivingEntity livingEntity) {
+    public static List<SoulInstance<?>> getCarriedSouls(LivingEntity livingEntity) {
         return cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
     }
 
@@ -106,7 +106,7 @@ public abstract class SoulType {
     }
 
     private void addSoul(LivingEntity livingEntity) {
-        List<SoulInstance> cachedSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), new ArrayList<>());
+        List<SoulInstance<?>> cachedSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), new ArrayList<>());
         cachedSouls.add(create(livingEntity));
         cachedBoundSouls.put(livingEntity.getUniqueId(), cachedSouls);
     }
@@ -294,7 +294,7 @@ public abstract class SoulType {
      * or already bound with this soul, false will be returned
      */
     public boolean bindSoul(Player player) {
-        List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
+        List<SoulInstance<?>> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
 
         boolean sizeLimitReached = boundSouls.size() >= MAX_BOUND_SOULS;
         if (!canOverwriteItself() && sizeLimitReached) return false;
@@ -331,13 +331,13 @@ public abstract class SoulType {
      * @return true if a soul of this type was removed successfully, otherwise false
      */
     public boolean removeSoul(LivingEntity livingEntity) {
-        List<SoulInstance> boundSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
+        List<SoulInstance<?>> boundSouls = cachedBoundSouls.getOrDefault(livingEntity.getUniqueId(), Collections.emptyList());
         if (boundSouls.isEmpty()) return false;
 
         var potSoul = boundSouls.stream().filter(soul -> soul.soulType().id().equals(id())).findFirst();
         if (potSoul.isEmpty()) return false;
 
-        SoulInstance removedSoul = potSoul.get();
+        SoulInstance<?> removedSoul = potSoul.get();
         boundSouls.remove(removedSoul);
         PersistentDataContainer pdc = livingEntity.getPersistentDataContainer();
 

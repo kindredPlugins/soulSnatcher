@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
+import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
@@ -15,10 +16,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
-import org.bukkit.event.player.PlayerChangedWorldEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.EntityTransformEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -60,17 +59,17 @@ public class SoulListener implements Listener {
 
         SoulType randomSoul = null;
         boolean foundValidSoul = false;
-        while(!unboundSouls.isEmpty()){
+        while (!unboundSouls.isEmpty()) {
             randomSoul = unboundSouls.remove((int) (Math.random() * unboundSouls.size()));
 
-            if(randomSoul.isInvalidInfusionTarget(mob)) continue;
+            if (randomSoul.isInvalidInfusionTarget(mob)) continue;
             if (randomSoul.entityType().equals(mob.getType())) continue;
 
             foundValidSoul = true;
             break;
         }
 
-        if(!foundValidSoul)
+        if (!foundValidSoul)
             return;
 
         randomSoul.infuseSoul(mob);
@@ -83,7 +82,7 @@ public class SoulListener implements Listener {
     public void onSoulFreed(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(mob);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(mob);
         if (souls.isEmpty()) return;
 
         souls.getFirst().soulType().offerSoulReward(mob.getLocation(), mob.getKiller());
@@ -91,20 +90,20 @@ public class SoulListener implements Listener {
 
     //TODO: this is not almighty, sometimes a player logs off before a mob despawns, making their soul unretrievable
     @EventHandler
-    public void onInfuseNaturalDespawn(EntityRemoveEvent event){
-        if(event.getCause() != EntityRemoveEvent.Cause.DESPAWN)
+    public void onInfuseNaturalDespawn(EntityRemoveEvent event) {
+        if (event.getCause() != EntityRemoveEvent.Cause.DESPAWN)
             return;
 
-        if(!(event.getEntity() instanceof LivingEntity entity)) return;
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
-        if(!pdc.has(INFUSED_FROM)) return;
+        if (!pdc.has(INFUSED_FROM)) return;
 
         Player player = Bukkit.getPlayer(UUID.fromString(pdc.get(INFUSED_FROM, PersistentDataType.STRING)));
-        if(player == null) return;
+        if (player == null) return;
 
         var souls = SoulType.getCarriedSouls(entity);
-        if(souls.isEmpty()) return;
+        if (souls.isEmpty()) return;
 
         souls.forEach(soul -> soul.soulType().releaseSoul(entity.getLocation(), player));
     }
@@ -125,7 +124,7 @@ public class SoulListener implements Listener {
             return;
         }
 
-        if(SoulVialManager.checkAndFillVialIfPresent(player, reward, interaction.getLocation())) {
+        if (SoulVialManager.checkAndFillVialIfPresent(player, reward, interaction.getLocation())) {
             SoulType.removeSoulReward(interaction);
             return;
         }
@@ -154,6 +153,19 @@ public class SoulListener implements Listener {
     }
 
     @EventHandler
+    public void onSoulMobTransformation(EntityTransformEvent event) {
+        if (!(event.getEntity() instanceof Mob mob) || !(event.getTransformedEntity() instanceof Mob transformed))
+            return;
+
+        PersistentDataContainer pdc = mob.getPersistentDataContainer();
+        if (!pdc.has(SoulType.BOUND_SOULS, PersistentDataType.LIST.strings())) return;
+        var x = SoulType.getCarriedSouls(mob);
+        if (SoulType.getCarriedSouls(mob).isEmpty()) return;
+
+        SoulType.getCarriedSouls(mob).forEach(soul -> soul.soulType().infuseSoul(transformed));
+    }
+
+    @EventHandler
     public void onInfusedAddedToWorld(EntityAddToWorldEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
 
@@ -177,7 +189,7 @@ public class SoulListener implements Listener {
     @EventHandler
     public void onInfusedRemovedFromWorld(EntityRemoveFromWorldEvent event) {
         if (event.getEntity() instanceof Mob mob) {
-            //SoulType.removeFromCache(mob);
+            SoulType.removeFromCache(mob);
         }
     }
 
@@ -199,11 +211,24 @@ public class SoulListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChangeWorld(PlayerChangedWorldEvent event) {
-       loadSouls(event.getPlayer());
+    public void onPlayerTeleportCrossWorlds(PlayerTeleportEvent event) {
+        if(event.getFrom().getWorld() == event.getTo().getWorld())
+            return;
+
+        Player player = event.getPlayer();
+        loadSouls(player);
+
+        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+            List<SoulInstance<?>> soulTypes = SoulType.getCarriedSouls(player);
+            SoulEffects.stopAllSoulOrbits(player);
+            soulTypes.forEach(soul -> SoulEffects.addSoulToOrbit(player, soul.soulType()));
+
+            if(SoulLanternManager.isLookingAtOrbits(player))
+                SoulEffects.showSoulOrbits(player);
+        }, 1L);
     }
 
-    private void loadSouls(Player player){
+    private void loadSouls(Player player) {
         Stream.of(
                         player.getWorld().getEntitiesByClass(TextDisplay.class),
                         player.getWorld().getEntitiesByClass(ItemDisplay.class),

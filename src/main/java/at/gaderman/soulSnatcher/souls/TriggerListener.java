@@ -39,7 +39,7 @@ public class TriggerListener implements Listener {
     public void onDamageReceivedTrigger(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnDamageReceivedTrigger)
                 .map(soul -> (OnDamageReceivedTrigger) soul)
@@ -55,7 +55,7 @@ public class TriggerListener implements Listener {
         DamageSource source = event.getDamageSource();
         if (!(source.getCausingEntity() instanceof LivingEntity damager)) return;
 
-        List<SoulInstance> targetSouls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> targetSouls = SoulType.getCarriedSouls(entity);
         targetSouls.stream()
                 .filter(soul -> soul instanceof OnDamageReceivedTrigger)
                 .map(soul -> (OnDamageReceivedTrigger) soul)
@@ -63,7 +63,7 @@ public class TriggerListener implements Listener {
                     trigger.onDamageReceivedByEntity(entity, damager, event);
                 });
 
-        List<SoulInstance> damagerSouls = SoulType.getCarriedSouls(damager);
+        List<SoulInstance<?>> damagerSouls = SoulType.getCarriedSouls(damager);
         damagerSouls.stream()
                 .filter(soul -> soul instanceof OnDamageDealtTrigger)
                 .map(soul -> (OnDamageDealtTrigger) soul)
@@ -80,7 +80,7 @@ public class TriggerListener implements Listener {
         if(player == null)
             return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnEntityKillTrigger)
                 .map(soul -> (OnEntityKillTrigger) soul)
@@ -97,7 +97,7 @@ public class TriggerListener implements Listener {
     public void onItemDamageTrigger(PlayerItemDamageEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnItemDamageTrigger)
                 .map(soul -> (OnItemDamageTrigger) soul)
@@ -110,7 +110,7 @@ public class TriggerListener implements Listener {
     public void onPlayerInteractTrigger(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnPlayerInteractTrigger)
                 .map(soul -> (OnPlayerInteractTrigger) soul)
@@ -123,7 +123,7 @@ public class TriggerListener implements Listener {
     public void onPlayerInteractEntityTrigger(PlayerInteractEntityEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnPlayerInteractEntityTrigger)
                 .map(soul -> (OnPlayerInteractEntityTrigger) soul)
@@ -136,7 +136,7 @@ public class TriggerListener implements Listener {
     public void onConsumeItemTrigger(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnConsumeItemTrigger)
                 .map(soul -> (OnConsumeItemTrigger) soul)
@@ -153,7 +153,7 @@ public class TriggerListener implements Listener {
     public void onEntityShootBowTrigger(EntityShootBowEvent event) {
         LivingEntity entity = event.getEntity();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnEntityShootBowTrigger)
                 .map(soul -> (OnEntityShootBowTrigger) soul)
@@ -166,7 +166,7 @@ public class TriggerListener implements Listener {
     public void onEntityLaunchProjectileTrigger(ProjectileLaunchEvent event) {
         if (!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnEntityLaunchProjectileTrigger)
                 .map(soul -> (OnEntityLaunchProjectileTrigger) soul)
@@ -178,7 +178,7 @@ public class TriggerListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getHitEntity() instanceof LivingEntity target) {
-            List<SoulInstance> souls = SoulType.getCarriedSouls(target);
+            List<SoulInstance<?>> souls = SoulType.getCarriedSouls(target);
             souls.stream()
                     .filter(soul -> soul instanceof OnHitByProjectileTrigger)
                     .map(soul -> (OnHitByProjectileTrigger) soul)
@@ -189,7 +189,7 @@ public class TriggerListener implements Listener {
 
         if (!(event.getEntity().getShooter() instanceof LivingEntity entity)) return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnProjectileHitTrigger)
                 .map(soul -> (OnProjectileHitTrigger) soul)
@@ -206,7 +206,7 @@ public class TriggerListener implements Listener {
     public void onJumpTrigger(PlayerJumpEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnPlayerJumpTrigger)
                 .map(soul -> (OnPlayerJumpTrigger) soul)
@@ -219,7 +219,7 @@ public class TriggerListener implements Listener {
     public void onToggleSneak(PlayerToggleSneakEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnSneakToggleTrigger)
                 .map(soul -> (OnSneakToggleTrigger) soul)
@@ -232,7 +232,7 @@ public class TriggerListener implements Listener {
     public void onToggleSprint(PlayerToggleSprintEvent event) {
         Player player = event.getPlayer();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         souls.stream()
                 .filter(soul -> soul instanceof OnSprintToggleTrigger)
                 .map(soul -> (OnSprintToggleTrigger) soul)
@@ -245,7 +245,7 @@ public class TriggerListener implements Listener {
     public void onToggleSwim(EntityToggleSwimEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnSwimToggleTrigger)
                 .map(soul -> (OnSwimToggleTrigger) soul)
@@ -262,7 +262,7 @@ public class TriggerListener implements Listener {
     public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnEntityPotionEffectTrigger)
                 .map(soul -> (OnEntityPotionEffectTrigger) soul)
@@ -276,7 +276,7 @@ public class TriggerListener implements Listener {
         if (event.getTarget() == null || !(event.getEntity() instanceof LivingEntity provoker)) return;
 
         LivingEntity target = event.getTarget();
-        List<SoulInstance> souls = SoulType.getCarriedSouls(target);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(target);
         souls.stream()
                 .filter(soul -> soul instanceof OnTargetTrigger)
                 .map(soul -> (OnTargetTrigger) soul)
@@ -284,7 +284,7 @@ public class TriggerListener implements Listener {
                     trigger.onBeingTargeted(target, provoker, event);
                 });
 
-        List<SoulInstance> carrierSouls = SoulType.getCarriedSouls(provoker);
+        List<SoulInstance<?>> carrierSouls = SoulType.getCarriedSouls(provoker);
         carrierSouls.stream()
                 .filter(soul -> soul instanceof OnTargetTrigger)
                 .map(soul -> (OnTargetTrigger) soul)
@@ -297,7 +297,7 @@ public class TriggerListener implements Listener {
     public void onEquipmentChange(EntityEquipmentChangedEvent event){
         LivingEntity entity = event.getEntity();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(entity);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
                 .filter(soul -> soul instanceof OnEntityEquipmentTrigger)
                 .map(soul -> (OnEntityEquipmentTrigger) soul)

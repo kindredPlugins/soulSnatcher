@@ -16,7 +16,7 @@ import java.util.List;
 public class SoulLanternGUI extends ActionInventory {
 
     private final Player player;
-    private final List<SoulInstance> carriedSouls;
+    private final List<SoulInstance<?>> carriedSouls;
 
     public SoulLanternGUI(Player player) {
         super(Component.text("Soul Lantern", NamedTextColor.BLUE));
@@ -40,7 +40,7 @@ public class SoulLanternGUI extends ActionInventory {
 
         int startIndex = 11;
         for (int i = 0; i < carriedSouls.size(); i++) {
-            SoulInstance soul = carriedSouls.get(i);
+            SoulInstance<?> soul = carriedSouls.get(i);
             int soulSlot = startIndex + (i * 4);
 
             inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
@@ -55,14 +55,14 @@ public class SoulLanternGUI extends ActionInventory {
         }
     }
 
-    private void remove(SoulInstance replaced){
+    private void remove(SoulInstance<?> replaced){
         replaced.soulType().removeSoul(player);
         SoulEffects.discardSoulRewardEffect(player.getLocation().add(0, 1, 0));
 
         inventory.close();
     }
 
-    private ItemStack getRemoveItem(SoulInstance soul) {
+    private ItemStack getRemoveItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.BARRIER);
         item.editMeta(meta -> {
                     meta.itemName(Component.text("Remove ", NamedTextColor.DARK_RED)

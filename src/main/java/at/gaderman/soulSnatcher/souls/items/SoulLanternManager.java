@@ -38,7 +38,7 @@ public class SoulLanternManager implements Listener {
     private static final NamespacedKey LANTERN_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_lantern");
 
     public static ItemStack getLantern(Player player){
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
 
         ItemStack lantern = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
                 "20bd20128c71210505d8062a51ae2abe0cc3fca50107f89f12d3a8d6dcfdaea1");
@@ -65,7 +65,7 @@ public class SoulLanternManager implements Listener {
     public static void updateActiveLanterns(Player player){
         PlayerInventory inv = player.getInventory();
 
-        List<SoulInstance> souls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
         if(souls.isEmpty()){
             for (int i = 0; i < inv.getSize(); i++) {
                 ItemStack item = inv.getItem(i);
@@ -125,7 +125,11 @@ public class SoulLanternManager implements Listener {
         player.playSound(player, Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.25f);
     }
 
-    private final Set<UUID> lookingAtOrbits = new HashSet<>();
+    private static final Set<UUID> lookingAtOrbits = new HashSet<>();
+
+    public static boolean isLookingAtOrbits(Player player){
+        return lookingAtOrbits.contains(player.getUniqueId());
+    }
 
     @EventHandler
     public void updateHeld(EntityEquipmentChangedEvent event){

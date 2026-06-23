@@ -47,10 +47,10 @@ public class SoulAbsorptionUI extends ActionInventory {
         inventory.setItem(rewardIndex + 9, getDiscardItem());
         defineInventoryAction(rewardIndex + 9, event -> discard());
 
-        List<SoulInstance> activeSouls = SoulType.getCarriedSouls(player);
+        List<SoulInstance<?>> activeSouls = SoulType.getCarriedSouls(player);
         int startIndex = 11;
         for (int i = 0; i < activeSouls.size(); i++) {
-            SoulInstance soul = activeSouls.get(i);
+            SoulInstance<?> soul = activeSouls.get(i);
             int soulSlot = startIndex + (i * 4);
 
             inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
@@ -66,7 +66,7 @@ public class SoulAbsorptionUI extends ActionInventory {
         inventory.close();
     }
 
-    private void replace(SoulInstance replaced){
+    private void replace(SoulInstance<?> replaced){
         SoulType.removeSoulReward(rewardTrigger);
 
         replaced.soulType().removeSoul(player);
@@ -88,7 +88,7 @@ public class SoulAbsorptionUI extends ActionInventory {
         return item;
     }
 
-    private ItemStack getOfferItem(SoulInstance soul) {
+    private ItemStack getOfferItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.ORANGE_DYE);
         item.editMeta(meta -> {
                     meta.itemName(Component.text("Replace ", TextColor.color(0xd38531))

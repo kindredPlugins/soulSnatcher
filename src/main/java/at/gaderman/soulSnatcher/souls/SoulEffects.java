@@ -176,7 +176,7 @@ public class SoulEffects {
                         return;
                     }
 
-                    if (target instanceof LivingEntity livingEntity && livingEntity.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+                    if (target instanceof LivingEntity livingEntity && (livingEntity.isInvisible() || livingEntity.hasPotionEffect(PotionEffectType.INVISIBILITY))) {
                         if (!hidden) {
                             current.displays.forEach(display -> {
                                 display.setVisibleByDefault(false);
@@ -190,12 +190,12 @@ public class SoulEffects {
                     }
 
                     if (hidden) {
-                        current.displays.stream()
-                                .filter(player -> !player.equals(target))
-                                .forEach(display -> {
-                                    display.setVisibleByDefault(true);
-                                    Bukkit.getOnlinePlayers().forEach(player -> player.showEntity(SoulSnatcher.getPlugin(), display));
-                                });
+                        current.displays.forEach(display -> {
+                            display.setVisibleByDefault(true);
+                            Bukkit.getOnlinePlayers().stream()
+                                    .filter(player -> !player.equals(target))
+                                    .forEach(player -> player.showEntity(SoulSnatcher.getPlugin(), display));
+                        });
 
                         hidden = false;
                     }
@@ -301,7 +301,7 @@ public class SoulEffects {
         if (state == null) return;
 
         playerViewingOrbits.remove(player.getUniqueId());
-        state.displays.forEach(display -> player.hideEntity(SoulSnatcher.getPlugin(), display));
+        state.displays.stream().filter(player::canSee).forEach(display -> player.hideEntity(SoulSnatcher.getPlugin(), display));
 
         player.playSound(player, Sound.ITEM_FIRECHARGE_USE, 1f, 0.5f);
     }
