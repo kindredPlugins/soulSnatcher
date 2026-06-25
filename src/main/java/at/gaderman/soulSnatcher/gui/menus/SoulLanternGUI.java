@@ -1,9 +1,9 @@
 package at.gaderman.soulSnatcher.gui.menus;
 
 import at.gaderman.soulSnatcher.gui.ActionInventory;
-import at.gaderman.soulSnatcher.souls.SoulEffects;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

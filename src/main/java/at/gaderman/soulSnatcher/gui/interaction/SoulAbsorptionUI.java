@@ -1,9 +1,10 @@
 package at.gaderman.soulSnatcher.gui.interaction;
 
 import at.gaderman.soulSnatcher.gui.ActionInventory;
-import at.gaderman.soulSnatcher.souls.SoulEffects;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
+import at.gaderman.soulSnatcher.souls.effects.SoulReward;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -60,14 +61,14 @@ public class SoulAbsorptionUI extends ActionInventory {
     }
 
     private void discard() {
-        SoulType.removeSoulReward(rewardTrigger);
+        SoulReward.removeSoulReward(rewardTrigger);
         SoulEffects.discardSoulRewardEffect(rewardTrigger.getLocation());
 
         inventory.close();
     }
 
     private void replace(SoulInstance<?> replaced){
-        SoulType.removeSoulReward(rewardTrigger);
+        SoulReward.removeSoulReward(rewardTrigger);
 
         replaced.soulType().removeSoul(player);
         rewardSoul.bindSoul(player);

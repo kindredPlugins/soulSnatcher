@@ -3,6 +3,7 @@ package at.gaderman.soulSnatcher.souls.items;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.effects.SoulReward;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.UseCooldown;
@@ -145,7 +146,7 @@ public class SoulVialManager implements Listener {
         player.setCooldown(VIAL_KEY, 60 * 20);
 
         Location rewardLocation = player.getLocation().clone().add(player.getLocation().getDirection().normalize().multiply(1));
-        soul.offerSoulReward(rewardLocation, player);
+        SoulReward.offerSoulReward(rewardLocation, player, soul);
 
         player.getWorld().spawnParticle(Particle.SOUL, rewardLocation, 30, 0.4, 0.4, 0.4, 0.1);
         player.getWorld().spawnParticle(Particle.EXPLOSION, rewardLocation, 1);

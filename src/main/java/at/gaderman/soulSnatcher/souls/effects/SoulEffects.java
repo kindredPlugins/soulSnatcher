@@ -1,6 +1,7 @@
-package at.gaderman.soulSnatcher.souls;
+package at.gaderman.soulSnatcher.souls.effects;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.souls.SoulType;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;

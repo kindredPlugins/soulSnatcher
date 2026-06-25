@@ -2,9 +2,9 @@ package at.gaderman.soulSnatcher.souls.items;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.menus.SoulLanternGUI;
-import at.gaderman.soulSnatcher.souls.SoulEffects;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.kyori.adventure.text.Component;

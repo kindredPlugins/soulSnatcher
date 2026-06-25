@@ -2,6 +2,8 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
+import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
+import at.gaderman.soulSnatcher.souls.effects.SoulReward;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
@@ -17,7 +19,10 @@ import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityRemoveEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -85,7 +90,7 @@ public class SoulListener implements Listener {
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(mob);
         if (souls.isEmpty()) return;
 
-        souls.getFirst().soulType().offerSoulReward(mob.getLocation(), mob.getKiller());
+        SoulReward.offerSoulReward(mob.getLocation(), mob.getKiller(), souls.getFirst().soulType());
     }
 
     //TODO: this is not almighty, sometimes a player logs off before a mob despawns, making their soul unretrievable
@@ -113,19 +118,19 @@ public class SoulListener implements Listener {
         if (!(event.getRightClicked() instanceof Interaction interaction)) return;
 
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-        if (!pdc.has(SoulType.SOUL_REWARD)) return;
+        if (!pdc.has(SoulReward.SOUL_REWARD)) return;
 
         Player player = event.getPlayer();
 
-        SoulType reward = SoulRegistry.getInstance().getSoul(pdc.get(SoulType.SOUL_REWARD, PersistentDataType.STRING));
+        SoulType reward = SoulRegistry.getInstance().getSoul(pdc.get(SoulReward.SOUL_REWARD, PersistentDataType.STRING));
         if (reward == null) {
-            SoulSnatcher.getPlugin().getLogger().warning("Could not load soul reward " + pdc.get(SoulType.SOUL_REWARD, PersistentDataType.STRING));
+            SoulSnatcher.getPlugin().getLogger().warning("Could not load soul reward " + pdc.get(SoulReward.SOUL_REWARD, PersistentDataType.STRING));
             interaction.getWorld().spawnParticle(Particle.EXPLOSION, interaction.getLocation().toCenterLocation(), 1);
             return;
         }
 
         if (SoulVialManager.checkAndFillVialIfPresent(player, reward, interaction.getLocation())) {
-            SoulType.removeSoulReward(interaction);
+            SoulReward.removeSoulReward(interaction);
             return;
         }
 
@@ -137,7 +142,7 @@ public class SoulListener implements Listener {
             return;
         }
 
-        SoulType.removeSoulReward(interaction);
+        SoulReward.removeSoulReward(interaction);
         SoulEffects.playBindEffect(player, reward, interaction.getLocation());
     }
 
@@ -236,7 +241,12 @@ public class SoulListener implements Listener {
                 )
                 .flatMap(Collection::stream)
                 .filter(display -> display.getPersistentDataContainer()
-                        .getOrDefault(SoulType.REWARD_OWNER, PersistentDataType.STRING, "").equals(player.getUniqueId().toString()))
-                .forEach(display -> player.showEntity(SoulSnatcher.getPlugin(), display));
+                        .getOrDefault(SoulReward.REWARD_OWNER, PersistentDataType.STRING, "").equals(player.getUniqueId().toString()))
+                .forEach(display -> {
+                    if(display.getPersistentDataContainer().has(SoulReward.HIDDEN_FOR))
+                        player.hideEntity(SoulSnatcher.getPlugin(), display);
+
+                    else player.showEntity(SoulSnatcher.getPlugin(), display);
+                });
     }
 }

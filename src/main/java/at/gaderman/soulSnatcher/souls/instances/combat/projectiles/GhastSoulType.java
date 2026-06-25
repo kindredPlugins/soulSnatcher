@@ -10,6 +10,7 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
+import com.destroystokyo.paper.entity.RangedEntity;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -18,7 +19,10 @@ import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.*;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -103,7 +107,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
         protected GhastSoulInstance(LivingEntity carrier, GhastSoulType soulType) {
             super(carrier, soulType);
 
-            if (isInfused() && !(carrier instanceof AbstractSkeleton))
+            if (isInfused() && !(carrier instanceof RangedEntity))
                 Bukkit.getMobGoals().addGoal((Mob) carrier, 0, new GhastShootGoal((Mob) carrier, 5000));
         }
 
