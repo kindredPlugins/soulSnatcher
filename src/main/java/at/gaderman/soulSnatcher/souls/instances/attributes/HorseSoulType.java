@@ -65,7 +65,12 @@ public class HorseSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-                Component.text("Rolls random movement stats.")
+                Component.text("Rolls random movement stats."),
+                Component.text("Gain up to ")
+                        .append(Component.text(maxMovementBonus.cached() + " Speed ", NamedTextColor.GOLD))
+                        .append(Component.text("and ", NamedTextColor.WHITE))
+                        .append(Component.text(maxJumpBonus.cached() + " Jump Strength", NamedTextColor.GOLD))
+                        .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
 

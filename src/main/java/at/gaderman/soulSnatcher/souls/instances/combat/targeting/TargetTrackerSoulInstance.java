@@ -7,12 +7,15 @@ import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,8 +32,26 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
 
     protected Set<LivingEntity> combatTargets;
 
+    private static final int MAX_COMBAT_TIME = 30_000;
+    private BukkitTask cancelCombat;
+
     protected void addCombatTarget(LivingEntity target) {
         combatTargets.add(target);
+
+        combatTargets = combatTargets.stream()
+                .filter(Entity::isValid)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (cancelCombat != null) {
+            cancelCombat.cancel();
+        }
+
+        cancelCombat = new BukkitRunnable() {
+            @Override
+            public void run() {
+                combatTargets.clear();
+            }
+        }.runTaskLater(SoulSnatcher.getPlugin(), MAX_COMBAT_TIME);
     }
 
     @Override

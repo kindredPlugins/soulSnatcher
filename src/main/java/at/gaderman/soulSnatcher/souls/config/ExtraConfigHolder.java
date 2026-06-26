@@ -1,5 +1,7 @@
 package at.gaderman.soulSnatcher.souls.config;
 
+import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -21,4 +23,9 @@ public interface ExtraConfigHolder {
     default Map<String, String> extraConfigPathCommentMap() {
         return Collections.emptyMap();
     }
+
+    /**
+     * Used when a config holder has a unique serialization instead of the usual configMap
+     */
+    default void writeExtraConfigDefaults(YamlConfiguration config, String basePath) {}
 }

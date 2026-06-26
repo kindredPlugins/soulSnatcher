@@ -3,9 +3,13 @@ package at.gaderman.soulSnatcher.souls.instances.attributes;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
+import at.gaderman.soulSnatcher.souls.config.ExtraConfigHolder;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnEntityEquipmentTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.kyori.adventure.text.Component;
@@ -15,6 +19,8 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
@@ -25,13 +31,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @AutoService(SoulType.class)
-public class PiglinSoulType extends SoulType {
+public class PiglinSoulType extends ConfigHoldingSoulType {
+
     @Override
     public @NotNull SoulInstance<PiglinSoulType> create(LivingEntity carrier) {
         return new PiglinSoulInstance(carrier, this);
@@ -69,8 +73,88 @@ public class PiglinSoulType extends SoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("Gain multiple ")
+                        .append(Component.text("attribute bonuses ", NamedTextColor.BLUE)),
+                Component.text("per ")
+                        .append(Component.text("gold piece ", NamedTextColor.GOLD))
+                        .append(Component.text("worn.", NamedTextColor.WHITE))
+        );
     }
+
+    //region Config Values
+
+    private static String GOLD_BONUS_CONFIG_ID = "gold_bonus";
+
+    private static final List<GoldBonusEntry> DEFAULT_GOLD_BONUS_LIST = List.of(
+            new GoldBonusEntry(Attribute.ATTACK_DAMAGE, +1, AttributeModifier.Operation.ADD_NUMBER),
+            new GoldBonusEntry(Attribute.ARMOR, +2, AttributeModifier.Operation.ADD_NUMBER),
+            new GoldBonusEntry(Attribute.MOVEMENT_SPEED, +0.2, AttributeModifier.Operation.ADD_SCALAR),
+            new GoldBonusEntry(Attribute.ARMOR_TOUGHNESS, +2, AttributeModifier.Operation.ADD_NUMBER),
+            new GoldBonusEntry(Attribute.ATTACK_SPEED, +0.2, AttributeModifier.Operation.ADD_NUMBER),
+            new GoldBonusEntry(Attribute.KNOCKBACK_RESISTANCE, +0.25, AttributeModifier.Operation.ADD_NUMBER)
+    );
+
+    private final ConfigOption<List<GoldBonusEntry>> goldBonusMap = configOption(
+            GOLD_BONUS_CONFIG_ID,
+            DEFAULT_GOLD_BONUS_LIST,
+            (config, path, def) -> {
+                ConfigurationSection section = config.getConfigurationSection(path);
+                if (section == null) return def;
+
+                List<GoldBonusEntry> entries = new ArrayList<>();
+                List<String> keys = new ArrayList<>(section.getKeys(false));
+                keys.sort(Comparator.comparingInt(k -> {
+                    try { return Integer.parseInt(k); }
+                    catch (NumberFormatException e) { return Integer.MAX_VALUE; }
+                }));
+
+                for (String key : keys) {
+                    ConfigurationSection entry = section.getConfigurationSection(key);
+                    if (entry == null) continue;
+
+                    try {
+                        Attribute attr = Registry.ATTRIBUTE.get(
+                                NamespacedKey.minecraft(entry.getString("attribute", "").toLowerCase()));
+                        double value = entry.getDouble("value");
+                        AttributeModifier.Operation op = AttributeModifier.Operation.valueOf(
+                                entry.getString("operation", "ADD_NUMBER").toUpperCase());
+
+                        if (attr != null) entries.add(new GoldBonusEntry(attr, value, op));
+                    } catch (IllegalArgumentException e) {
+                        SoulSnatcher.getPlugin().getLogger().warning(
+                                "Invalid gold_bonus entry '" + key + "' in piglin_soul config, skipping");
+                    }
+                }
+                return entries.isEmpty() ? def : entries;
+            }
+    );
+
+    @Override
+    public Map<String, Object> extraConfigPathValueMap() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(GOLD_BONUS_CONFIG_ID, "List of attribute buffs per gold piece worn, attribute is a direct key to minecraft attribute, operation is either ADD_NUMBER, ADD_SCALAR or MULTIPLY_SCALAR_1");
+    }
+
+    @Override
+    public void writeExtraConfigDefaults(YamlConfiguration config, String basePath) {
+        String sectionPath = basePath + "." + GOLD_BONUS_CONFIG_ID;
+        if (config.contains(sectionPath)) return;
+
+        for (int i = 0; i < DEFAULT_GOLD_BONUS_LIST.size(); i++) {
+            GoldBonusEntry entry = DEFAULT_GOLD_BONUS_LIST.get(i);
+            String entryPath = sectionPath + "." + i;
+            config.set(entryPath + ".attribute", entry.attribute().key().value());
+            config.set(entryPath + ".value", entry.value());
+            config.set(entryPath + ".operation", entry.operation().name());
+        }
+    }
+
+    //endregion
 
     public static class PiglinSoulInstance extends SoulInstance<PiglinSoulType> implements OnEntityEquipmentTrigger, OnTargetTrigger {
         protected PiglinSoulInstance(LivingEntity carrier, PiglinSoulType soulType) {
@@ -92,29 +176,16 @@ public class PiglinSoulType extends SoulType {
             updateGoldCount();
         }
 
-        private static final NamespacedKey GOLD_BONUS = new NamespacedKey(SoulSnatcher.getPlugin(), "piglin_soul_gold_bonus");
+        private static final String GOLD_BONUS = "piglin_soul_gold_bonus_";
 
         private int previousGoldCount;
         private BukkitTask goldSparkle;
 
-        private static final List<AbstractMap.SimpleEntry<Attribute, AttributeModifier>> GOLD_BONUS_MAP = List.of(
-                createAttributeModEntry(Attribute.ATTACK_DAMAGE, +1, AttributeModifier.Operation.ADD_NUMBER),
-                createAttributeModEntry(Attribute.ARMOR, +2, AttributeModifier.Operation.ADD_NUMBER),
-                createAttributeModEntry(Attribute.MOVEMENT_SPEED, +0.2, AttributeModifier.Operation.ADD_SCALAR),
-                createAttributeModEntry(Attribute.ARMOR_TOUGHNESS, +2, AttributeModifier.Operation.ADD_NUMBER),
-                createAttributeModEntry(Attribute.ATTACK_SPEED, +0.2, AttributeModifier.Operation.ADD_NUMBER),
-                createAttributeModEntry(Attribute.KNOCKBACK_RESISTANCE, +0.25, AttributeModifier.Operation.ADD_NUMBER)
-        );
-
-        private static AbstractMap.SimpleEntry<Attribute, AttributeModifier> createAttributeModEntry(Attribute attribute, double amount, AttributeModifier.Operation operation) {
-            return new AbstractMap.SimpleEntry<>(attribute, new AttributeModifier(GOLD_BONUS, amount, operation));
-        }
-
-        private void updateGoldCount(){
+        private void updateGoldCount() {
             LivingEntity carrier = carrier();
 
             EntityEquipment equipment = carrier.getEquipment();
-            if(equipment == null) return;
+            if (equipment == null) return;
 
             int goldAmount = Math.toIntExact(Arrays.stream(EquipmentSlot.values())
                     .filter(slot -> slot.isArmor() || slot.isHand())
@@ -124,22 +195,22 @@ public class PiglinSoulType extends SoulType {
             cleanUp();
 
             for (int i = 0; i < goldAmount; i++) {
-                var goldBonusEntry = GOLD_BONUS_MAP.get(i);
+                var goldBonusEntry = soulType().goldBonusMap.cached().get(i);
 
-                AttributeInstance attribute = carrier.getAttribute(goldBonusEntry.getKey());
+                AttributeInstance attribute = carrier.getAttribute(goldBonusEntry.attribute);
                 if (attribute != null)
-                    attribute.addModifier(goldBonusEntry.getValue());
+                    attribute.addModifier(new AttributeModifier(new NamespacedKey(SoulSnatcher.getPlugin(), GOLD_BONUS + i), goldBonusEntry.value, goldBonusEntry.operation));
             }
 
-            if(previousGoldCount < goldAmount){
+            if (previousGoldCount < goldAmount) {
                 carrier.getWorld().playSound(carrier, Sound.ENTITY_PIGLIN_ADMIRING_ITEM, 1f, 1f);
                 carrier.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, carrier.getEyeLocation(), 20, 0.2, 0.2, 0.2, 0.5);
 
-                if(goldSparkle == null){
-                    goldSparkle = new BukkitRunnable(){
+                if (goldSparkle == null) {
+                    goldSparkle = new BukkitRunnable() {
                         @Override
                         public void run() {
-                            if(previousGoldCount == 0 || !carrier.isValid()){
+                            if (previousGoldCount == 0 || !carrier.isValid()) {
                                 goldSparkle = null;
                                 cancel();
                                 return;
@@ -186,19 +257,20 @@ public class PiglinSoulType extends SoulType {
         }
 
         @Override
-        public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {}
+        public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
+        }
 
         @Override
         public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
-            if(event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_PLAYER) return;
-            if(!(target instanceof Player player)) return;
+            if (event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_PLAYER) return;
+            if (!(target instanceof Player player)) return;
 
             EntityEquipment equipment = player.getEquipment();
             boolean shouldIgnore = Arrays.stream(EquipmentSlot.values())
                     .filter(EquipmentSlot::isArmor)
                     .anyMatch(slot -> equipment.getItem(slot).getType().toString().contains("GOLD"));
 
-            if(shouldIgnore)
+            if (shouldIgnore)
                 event.setCancelled(true);
         }
 
@@ -206,8 +278,13 @@ public class PiglinSoulType extends SoulType {
         protected void cleanUp() {
             Registry.ATTRIBUTE.stream().forEach(attr -> {
                 var carrierAttribute = carrier().getAttribute(attr);
-                if (carrierAttribute != null) carrierAttribute.removeModifier(GOLD_BONUS);
+                if (carrierAttribute != null) carrierAttribute.getModifiers().forEach(mod -> {
+                    if(mod.getKey().value().startsWith(GOLD_BONUS))
+                        carrierAttribute.removeModifier(mod);
+                });
             });
         }
     }
+
+    private record GoldBonusEntry(Attribute attribute, double value, AttributeModifier.Operation operation){}
 }

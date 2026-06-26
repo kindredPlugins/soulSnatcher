@@ -14,12 +14,14 @@ import at.gaderman.soulSnatcher.souls.triggers.input.OnSwimToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.interact.OnStopUsingItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnHitByProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -73,11 +75,11 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    public void onEntityKillTrigger(EntityDeathEvent event){
+    public void onEntityKillTrigger(EntityDeathEvent event) {
         LivingEntity killed = event.getEntity();
         Player player = killed.getKiller();
 
-        if(player == null)
+        if (player == null)
             return;
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
@@ -103,6 +105,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnItemDamageTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onItemDamage(player, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onStopUsingItemTrigger(PlayerStopUsingItemEvent event) {
+        Player player = event.getPlayer();
+
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
+        souls.stream()
+                .filter(soul -> soul instanceof OnStopUsingItemTrigger)
+                .map(soul -> (OnStopUsingItemTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onStopUsingItem(player, event);
                 });
     }
 
@@ -294,7 +309,7 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler
-    public void onEquipmentChange(EntityEquipmentChangedEvent event){
+    public void onEquipmentChange(EntityEquipmentChangedEvent event) {
         LivingEntity entity = event.getEntity();
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);

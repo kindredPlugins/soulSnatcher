@@ -59,7 +59,8 @@ public class ChickenSoulType extends ConfigHoldingSoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("Adds various ")
                         .append(Component.text("lightweight ", NamedTextColor.AQUA))
-                        .append(Component.text("attributes", NamedTextColor.WHITE))
+                        .append(Component.text("attributes", NamedTextColor.WHITE)),
+                Component.text("like reduced gravity and fall damage.")
         );
     }
 

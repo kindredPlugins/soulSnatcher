@@ -63,7 +63,7 @@ public class IronGolemSoulType extends ConfigHoldingSoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("Grants knockback resistance."),
-                Component.text("Non-crit melee attacks throw targets in the air")
+                Component.text("Non-crit melee attacks throw targets in the air.")
         );
     }
 

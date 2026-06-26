@@ -6,17 +6,18 @@ import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.interact.OnStopUsingItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityShootBowEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -58,10 +59,15 @@ public class SkeletonSoulType extends SoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("Shoot ")
+                        .append(Component.text("infinite ", NamedTextColor.GREEN))
+                        .append(Component.text(" arrows of any kind")),
+                Component.text("while using no durability of bows.")
+        );
     }
 
-    public static class SkeletonSoulInstance extends SoulInstance<SkeletonSoulType> implements OnPlayerInteractTrigger, OnItemDamageTrigger, OnEntityShootBowTrigger {
+    public static class SkeletonSoulInstance extends SoulInstance<SkeletonSoulType> implements OnStopUsingItemTrigger, OnItemDamageTrigger, OnEntityShootBowTrigger {
         protected SkeletonSoulInstance(LivingEntity carrier, SkeletonSoulType soulType) {
             super(carrier, soulType);
 
@@ -72,10 +78,9 @@ public class SkeletonSoulType extends SoulType {
         private int arrowIndex;
 
         @Override
-        public void onPlayerInteract(Player player, PlayerInteractEvent event) {
-            if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) return;
+        public void onStopUsingItem(Player player, PlayerStopUsingItemEvent event) {
             ItemStack bow = event.getItem();
-            if(bow == null || bow.getType() != Material.BOW) return;
+            if(bow.getType() != Material.BOW) return;
 
             PlayerInventory inv = player.getInventory();
 
@@ -106,13 +111,21 @@ public class SkeletonSoulType extends SoulType {
 
             PlayerInventory inv = player.getInventory();
 
-            SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-                ItemStack itemAtIndex = inv.getItem(arrowIndex);
-                if(itemAtIndex == null || itemAtIndex.getType().isAir())
-                    inv.setItem(arrowIndex, consumed);
+            if(!player.getGameMode().isInvulnerable()) {
+                Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
+                    ItemStack itemAtIndex = inv.getItem(arrowIndex);
+                    if(inv.getItemInMainHand().getEnchantmentLevel(Enchantment.INFINITY) > 0 && consumed.getType() == Material.ARROW)
+                        return;
 
-                else inv.setItem(arrowIndex, itemAtIndex.add(1));
-            }, 1L);
+                    if (itemAtIndex == null || itemAtIndex.getType().isAir())
+                        inv.setItem(arrowIndex, consumed);
+
+                    else inv.setItem(arrowIndex, itemAtIndex.add(1));
+                });
+                SoulSnatcher.getPlugin().registerDelayedTask(() -> {
+
+                }, 1L);
+            }
 
             if(event.getProjectile() instanceof AbstractArrow arrow)
                 arrow.setPickupStatus(AbstractArrow.PickupStatus.CREATIVE_ONLY);

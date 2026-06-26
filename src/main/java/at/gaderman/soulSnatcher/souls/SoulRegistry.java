@@ -66,7 +66,7 @@ public class SoulRegistry {
     }
 
     private boolean syncPath(YamlConfiguration config, String path, SoulType soulType) {
-        final boolean[] changeOccurred = {config.contains(path)};
+        final boolean[] changeOccurred = {!config.contains(path)};
 
         String enabledPath = path + ".enabled";
         if (!config.contains(enabledPath))
@@ -87,6 +87,8 @@ public class SoulRegistry {
 
                 changeOccurred[0] = true;
             });
+
+            extraConfigHolder.writeExtraConfigDefaults(config, path);
         }
 
         return changeOccurred[0];

@@ -26,6 +26,10 @@ public abstract class ConfigHoldingSoulType extends SoulType implements ExtraCon
         return Collections.unmodifiableMap(configOptions);
     }
 
+    public void clearConfigOptions(){
+        configOptions.clear();
+    }
+
     public void reloadConfig() {
         configOptions.values().forEach(ConfigOption::reloadFromConfig);
     }
