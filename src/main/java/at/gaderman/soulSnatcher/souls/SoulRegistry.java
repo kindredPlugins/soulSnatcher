@@ -22,6 +22,7 @@ public class SoulRegistry {
     }
 
     private final Map<String, SoulType> soulRegistry = new LinkedHashMap<>();
+    private final Map<String, SoulType> legacySoulRegistry = new LinkedHashMap<>();
 
     private SoulRegistry() {
         SoulSnatcher.getPlugin().getLogger().info("Starting to read souls.yml");
@@ -98,8 +99,8 @@ public class SoulRegistry {
         String path = soulConfigPath(soul);
         boolean enabled = SoulSnatcher.getSoulsConfig().getBoolean(path + ".enabled", true);
 
-        //TODO: keep legacy system, players with legacy bound souls need to be rewarded a vial so they can switch back when an admin decides to enable a soul again eventually
         if (!enabled) {
+            legacySoulRegistry.put(soul.id(), soul);
             SoulSnatcher.getPlugin().getLogger().info("Soul '" + soul.id() + "' is disabled in config, skipping.");
             return;
         }
@@ -121,5 +122,9 @@ public class SoulRegistry {
 
     public Map<String, SoulType> soulRegistryMap() {
         return new LinkedHashMap<>(soulRegistry);
+    }
+
+    public Map<String, SoulType> legacySoulRegistryMap(){
+        return new LinkedHashMap<>(legacySoulRegistry);
     }
 }

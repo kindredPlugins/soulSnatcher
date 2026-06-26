@@ -22,6 +22,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -65,9 +66,10 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When engaging in combat activate ")
-                        .append(Component.text("Aura", NamedTextColor.GOLD)),
+                        .append(Component.text("Aura", NamedTextColor.GOLD))
+                        .append(Component.text(".", NamedTextColor.WHITE)),
                 Component.text("Enemies who enter your close proximity"),
-                Component.text("will be struck down")
+                Component.text("will be struck down.")
         );
     }
 
@@ -77,11 +79,13 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
     private static final String AURA_RANGE_CONFIG_ID = "aura_range";
     private static final String AURA_DAMAGE_CONFIG_ID = "aura_damage";
     private static final String AURA_HIT_COOLDOWN_CONFIG_ID = "aura_hit_cooldown";
+    private static final String AURA_WINDUP_CONFIG_ID = "aura_windup";
 
     private final ConfigOption<Integer> auraTimeout = configOption(AURA_TIMEOUT_CONFIG_ID, 30000, FileConfiguration::getInt, value -> Math.max(value, 0));
     private final ConfigOption<Double> auraRange = configOption(AURA_RANGE_CONFIG_ID, 2.4, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> auraDamage = configOption(AURA_DAMAGE_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Integer> auraHitCooldown = configOption(AURA_HIT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> auraWindUp = configOption(AURA_WINDUP_CONFIG_ID, 4, FileConfiguration::getInt, value -> Math.max(value, 0));
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {
@@ -89,7 +93,8 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
                 AURA_TIMEOUT_CONFIG_ID, "After how much time without casting a hit should aura disable itself in milliseconds (1000ms = 1s)",
                 AURA_RANGE_CONFIG_ID, "In which sphere around the player aura can hit entities (XYZ hitbox detection)",
                 AURA_DAMAGE_CONFIG_ID, "How much damage a hit from aura does",
-                AURA_HIT_COOLDOWN_CONFIG_ID, "How much cooldown time there is between each aura hit in milliseconds (1000ms = 1s)"
+                AURA_HIT_COOLDOWN_CONFIG_ID, "How much cooldown time there is between each aura hit in milliseconds (1000ms = 1s)",
+                AURA_WINDUP_CONFIG_ID, "Time between aura dealing damage and a target stepping in ticks (20 ticks = 1 second)"
         );
     }
 
@@ -133,16 +138,32 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
                         for (LivingEntity target : carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached())) {
                             if (target.getNoDamageTicks() != 0 || !combatTargets.contains(target)) continue;
 
+                            if (carrier.getWorld().rayTraceBlocks(carrier.getEyeLocation(), target.getLocation().toVector().subtract(carrier.getLocation().toVector()),
+                                    (Math.sqrt(2 * soulType().auraRange.cached()))) != null)
+                                return;
+
                             lastAuraHit = System.currentTimeMillis();
 
-                            target.damage(soulType().auraDamage.cached(), DamageSource.builder(DamageType.MOB_ATTACK)
-                                    .withDirectEntity(carrier)
-                                    .build());
+                            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                                if (!target.isValid() || !carrier.isValid())
+                                    return;
 
-                            Location hitLoc = target.getEyeLocation().add(0, -0.2, 0);
-                            target.getWorld().spawnParticle(Particle.LAVA, hitLoc, 30);
-                            target.getWorld().spawnParticle(Particle.FLAME, hitLoc, 30, 0.3, 0.3, 0.3, 0.01);
-                            target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 1f, 1.5f);
+                                if(!carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached()).contains(target))
+                                    return;
+
+                                target.damage(soulType().auraDamage.cached(), DamageSource.builder(DamageType.MOB_ATTACK)
+                                        .withDirectEntity(carrier)
+                                        .withCausingEntity(carrier)
+                                        .build());
+
+                                Location hitLoc = target.getEyeLocation().add(0, -0.2, 0);
+                                target.getWorld().spawnParticle(Particle.LAVA, hitLoc, 30);
+                                target.getWorld().spawnParticle(Particle.FLAME, hitLoc, 30, 0.3, 0.3, 0.3, 0.01);
+                                target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 1f, 1.5f);
+                            }, soulType().auraWindUp.cached());
+
+                            target.getWorld().spawnParticle(Particle.FLAME, target.getEyeLocation().add(0, -0.2, 0), 5, 0.3, 0.3, 0.3, 0);
+                            target.getWorld().playSound(target.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 0.5f, 2f);
                             break;
                         }
                     }

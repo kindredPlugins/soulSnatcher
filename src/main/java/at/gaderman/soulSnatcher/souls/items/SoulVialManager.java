@@ -129,10 +129,24 @@ public class SoulVialManager implements Listener {
 
         if (!item.getPersistentDataContainer().has(VIAL_KEY)) return;
 
-        SoulType soul = SoulRegistry.getInstance().getSoul(item.getPersistentDataContainer().get(VIAL_KEY, PersistentDataType.STRING));
-        if(soul == null) return;
-
         Player player = event.getPlayer();
+
+        SoulRegistry soulRegistry = SoulRegistry.getInstance();
+        String soulId = item.getPersistentDataContainer().get(VIAL_KEY, PersistentDataType.STRING);
+        SoulType soul = soulRegistry.getSoul(soulId);
+        if(soul == null){
+            SoulType legacySoul = soulRegistry.legacySoulRegistryMap().getOrDefault(soulId, null);
+            if(legacySoul == null)
+                return;
+
+            event.setCancelled(true);
+            player.sendActionBar(Component.text("This soul has been disabled by an admin", NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 1f);
+            return;
+        }
+
+        event.setCancelled(true);
+
         if(player.getCooldown(VIAL_KEY) > 0) return;
 
         if(SoulType.getCarriedSouls(player).stream()

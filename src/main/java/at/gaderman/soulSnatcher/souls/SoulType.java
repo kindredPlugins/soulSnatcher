@@ -5,12 +5,15 @@ import at.gaderman.soulSnatcher.mobGoals.targeting.MonsterGoal;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
+import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -18,6 +21,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public abstract class SoulType {
@@ -156,8 +160,8 @@ public abstract class SoulType {
 
         SoulEffects.addSoulToOrbit(mob, this);
 
-        if (!(mob instanceof Monster) && (Monster.class.isAssignableFrom(Objects.requireNonNull(entityType().getEntityClass()))))
-            Bukkit.getMobGoals().addGoal(mob, 0, new MonsterGoal(mob));
+//        if (!(mob instanceof Monster) && (Monster.class.isAssignableFrom(Objects.requireNonNull(entityType().getEntityClass()))))
+//            Bukkit.getMobGoals().addGoal(mob, 0, new MonsterGoal(mob));
     }
 
     /**
@@ -281,8 +285,6 @@ public abstract class SoulType {
 
     /**
      * Loads all soul data stored in the pdc of a mob into cache and sets up all infusions.
-     *
-     * @param mob
      */
     public static void loadIntoCache(Mob mob) {
         PersistentDataContainer pdc = mob.getPersistentDataContainer();
@@ -312,14 +314,71 @@ public abstract class SoulType {
         clearSouls(player);
 
         if (!boundSouls.isEmpty()) {
-            List<SoulType> souls = boundSouls.stream().map(soulRegistry::getSoul).toList();
+            List<SoulType> souls = boundSouls.stream()
+                    .map(soulRegistry::getSoul)
+                    .filter(Objects::nonNull)
+                    .toList();
             souls.forEach(soulType -> {
                 soulType.bindSoul(player);
             });
+
+            List<SoulType> legacySouls = boundSouls.stream()
+                    .map(legacyId -> soulRegistry.legacySoulRegistryMap().getOrDefault(legacyId, null))
+                    .filter(Objects::nonNull)
+                    .toList();
+            AtomicBoolean hadDrops = new AtomicBoolean(false);
+            legacySouls.forEach(soulType -> {
+                ItemStack filledVial = SoulVialManager.getFilledVial(soulType);
+
+                if(player.getInventory().firstEmpty() == -1){
+                    player.getWorld().dropItem(player.getLocation(), filledVial, drop -> {
+                        drop.setOwner(player.getUniqueId());
+                        drop.setGlowing(true);
+                        drop.setHealth(100);
+                        drop.setVelocity(drop.getVelocity().multiply(0));
+                    });
+                    hadDrops.set(true);
+                }else {
+                    player.give(filledVial);
+                }
+
+                boundSouls.remove(soulType.id());
+            });
+
+            if (!legacySouls.isEmpty()) {
+                Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                    player.sendMessage(Component.empty());
+                    player.sendMessage(Component.text("------------- ", NamedTextColor.GRAY)
+                            .append(Component.text("SoulSnatcher", NamedTextColor.BLUE).decoration(TextDecoration.BOLD, true))
+                            .append(Component.text(" -------------", NamedTextColor.GRAY)));
+                    player.sendMessage(Component.text("Souls you had bound were ")
+                            .append(Component.text("disabled ", NamedTextColor.RED))
+                            .append(Component.text("while you were offline", NamedTextColor.WHITE)));
+                    legacySouls.stream()
+                            .map(soul -> Component.text("➤ ", NamedTextColor.GRAY)
+                                    .append(soul.displayName().decoration(TextDecoration.ITALIC, false)))
+                            .toList()
+                            .forEach(player::sendMessage);
+                    player.sendMessage(Component.empty());
+                    player.sendMessage(Component.text("You have received them as ")
+                            .append(Component.text("Soul Vial", SoulVialManager.getEmptyVial().displayName().color())));
+                    if(hadDrops.get()) {
+                        player.sendMessage(Component.text("Some vials have been dropped due to full inventory!", NamedTextColor.RED));
+                    }
+                    player.sendMessage(Component.empty());
+
+                    player.playSound(player, Sound.ENTITY_WITHER_AMBIENT, 3f, 0.5f);
+                }, 20L);
+
+                pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls);
+            }
         }
 
         if (!unBoundSouls.isEmpty()) {
-            List<SoulType> floatingSouls = unBoundSouls.stream().map(soulRegistry::getSoul).toList();
+            List<SoulType> floatingSouls = unBoundSouls.stream()
+                    .map(soulRegistry::getSoul)
+                    .filter(Objects::nonNull)
+                    .toList();
             floatingSouls.forEach(soulType -> {
                 soulType.addUnboundSoul(player);
             });

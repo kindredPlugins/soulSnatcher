@@ -142,7 +142,7 @@ public class HorseSoulType extends ConfigHoldingSoulType {
             pdc.set(MOD_MOV_SEED, PersistentDataType.LONG, moveSeed);
             pdc.set(MOD_JUMP_SEED, PersistentDataType.LONG, jumpSeed);
 
-            double randomMov = (new Random(moveSeed).nextDouble() * soulType().maxJumpBonus.cached());
+            double randomMov = (new Random(moveSeed).nextDouble() * soulType().maxMovementBonus.cached());
             double randomJump = (new Random(jumpSeed).nextDouble() * soulType().maxJumpBonus.cached());
 
             return Map.of(
