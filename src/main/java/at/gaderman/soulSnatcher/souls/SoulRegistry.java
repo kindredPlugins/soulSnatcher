@@ -3,6 +3,7 @@ package at.gaderman.soulSnatcher.souls;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.config.ExtraConfigHolder;
 import com.google.common.base.Stopwatch;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +22,8 @@ public class SoulRegistry {
         return instance;
     }
 
+    private List<SoulType> soulsToRegister;
+
     private final Map<String, SoulType> soulRegistry = new LinkedHashMap<>();
     private final Map<String, SoulType> legacySoulRegistry = new LinkedHashMap<>();
 
@@ -30,8 +33,7 @@ public class SoulRegistry {
 
         syncSoulConfig();
 
-        ServiceLoader<SoulType> loader = ServiceLoader.load(SoulType.class, getClass().getClassLoader());
-        for (SoulType soul : loader) {
+        for (SoulType soul : soulsToRegister) {
             register(soul);
         }
 
@@ -48,9 +50,20 @@ public class SoulRegistry {
         boolean dirty = false;
 
         ServiceLoader<SoulType> loader = ServiceLoader.load(SoulType.class, getClass().getClassLoader());
-        for (SoulType soul : StreamSupport.stream(loader.spliterator(), false)
+        soulsToRegister = StreamSupport.stream(loader.spliterator(), false)
                 .sorted(Comparator.comparing(SoulType::id))
-                .toList()) {
+                .filter(soul -> {
+                    try {
+                        soul.entityType();
+                    } catch (NoSuchFieldError error) {
+                        SoulSnatcher.getPlugin().getLogger().warning(PlainTextComponentSerializer.plainText().serialize(soul.displayName()) + " cannot be registered as the entity is not available in this Minecraft version");
+                        return false;
+                    }
+                    return true;
+                })
+                .toList();
+
+        for (SoulType soul : soulsToRegister) {
             String path = soulConfigPath(soul);
 
             if (syncPath(config, path, soul))
@@ -124,7 +137,7 @@ public class SoulRegistry {
         return new LinkedHashMap<>(soulRegistry);
     }
 
-    public Map<String, SoulType> legacySoulRegistryMap(){
+    public Map<String, SoulType> legacySoulRegistryMap() {
         return new LinkedHashMap<>(legacySoulRegistry);
     }
 }
