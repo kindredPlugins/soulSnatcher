@@ -6,6 +6,7 @@ import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.TriggerListener;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
+import at.gaderman.soulSnatcher.utils.UpdateChecker;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,6 +33,8 @@ public final class SoulSnatcher extends JavaPlugin {
         getCommand("soulIndex").setExecutor(new SoulIndexCommand());
 
         SoulRegistry.getInstance();
+
+        new UpdateChecker(this).check();
     }
 
     @Override
