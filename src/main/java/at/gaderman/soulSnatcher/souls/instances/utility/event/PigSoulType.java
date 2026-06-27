@@ -10,8 +10,10 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -63,7 +65,16 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.keybind("key.sneak", NamedTextColor.GOLD)
+                        .append(Component.text(" + "))
+                        .append(Component.keybind("key.use", NamedTextColor.GOLD))
+                        .append(Component.text(" an entity to", NamedTextColor.WHITE)),
+                Component.text("saddle them up on yourself."),
+                Component.text("(Hold ", NamedTextColor.GRAY)
+                        .append(Component.keybind("key.sneak"))
+                        .append(Component.text(" to drop them)"))
+        );
     }
 
     //region Config Valfues
@@ -82,7 +93,7 @@ public class PigSoulType extends ConfigHoldingSoulType {
         protected PigSoulInstance(LivingEntity carrier, PigSoulType soulType) {
             super(carrier, soulType);
 
-            if(carrier instanceof Mob mob)
+            if (carrier instanceof Mob mob)
                 Bukkit.getMobGoals().addGoal(mob, 0, new SearchAndAddPassengerGoal(mob));
         }
 
@@ -90,8 +101,8 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
         private static double boatWidth;
 
-        public static boolean isValidPassengerTarget(Entity target){
-            if(boatWidth == 0){
+        public static boolean isValidPassengerTarget(Entity target) {
+            if (boatWidth == 0) {
                 Boat measurementObject = target.getWorld().spawn(new Location(target.getWorld(), 0, -500, 0), OakBoat.class);
                 boatWidth = measurementObject.getWidth();
                 measurementObject.remove();
@@ -102,22 +113,22 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onPlayerInteractEntity(Player player, Entity entity, PlayerInteractEntityEvent event) {
-            if(!player.isSneaking()) return;
-            if(!player.getPassengers().isEmpty()) return;
-            if(!player.getEquipment().getItemInMainHand().isEmpty()) return;
-            if(!isValidPassengerTarget(entity)) return;
+            if (!player.isSneaking()) return;
+            if (!player.getPassengers().isEmpty()) return;
+            if (!player.getEquipment().getItemInMainHand().isEmpty()) return;
+            if (!isValidPassengerTarget(entity)) return;
 
-            if(!player.addPassenger(entity)) return;
+            if (!player.addPassenger(entity)) return;
 
             player.getWorld().playSound(player, Sound.ENTITY_PIG_SADDLE, 1f, 0.5f);
-            if(entity instanceof Mob mob && player.equals(mob.getTarget()))
+            if (entity instanceof Mob mob && player.equals(mob.getTarget()))
                 mob.setTarget(null);
         }
 
         @Override
         public void onSneakToggle(Player carrier, PlayerToggleSneakEvent event) {
-            if(event.isSneaking() && dropPassengerTask == null){
-                dropPassengerTask = new BukkitRunnable(){
+            if (event.isSneaking() && dropPassengerTask == null) {
+                dropPassengerTask = new BukkitRunnable() {
                     @Override
                     public void run() {
                         dropPassengerTask = null;
@@ -128,7 +139,7 @@ public class PigSoulType extends ConfigHoldingSoulType {
                 }.runTaskLater(SoulSnatcher.getPlugin(), soulType().dropPassengerDelay.cached());
             }
 
-            if(!event.isSneaking() && dropPassengerTask != null){
+            if (!event.isSneaking() && dropPassengerTask != null) {
                 dropPassengerTask.cancel();
                 dropPassengerTask = null;
             }
@@ -136,11 +147,12 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
-            if(carrier.getPassengers().contains(entity))
+            if (carrier.getPassengers().contains(entity))
                 event.setCancelled(true);
         }
 
         @Override
-        public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {}
+        public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
+        }
     }
 }

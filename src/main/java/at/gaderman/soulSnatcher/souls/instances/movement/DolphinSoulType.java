@@ -65,9 +65,10 @@ public class DolphinSoulType extends ConfigHoldingSoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("While swimming gain ")
-                        .append(Component.text("Dolphins Grace", NamedTextColor.AQUA)),
+                        .append(Component.text("Dolphins Grace", NamedTextColor.AQUA))
+                        .append(Component.text(".", NamedTextColor.WHITE)),
                 Component.text("Swimming to the water surface makes you"),
-                Component.text("dolphin dash ahead")
+                Component.text("dolphin dash ahead.")
         );
     }
 

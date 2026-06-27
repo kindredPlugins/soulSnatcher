@@ -5,8 +5,10 @@ import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -58,7 +60,11 @@ public class CreeperSoulType extends SoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("Mobs sight on you is reduced by ")
+                        .append(Component.text("50%", NamedTextColor.GOLD))
+                        .append(Component.text(".", NamedTextColor.WHITE))
+        );
     }
 
     public static class CreeperSoulInstance extends SoulInstance<CreeperSoulType> implements OnTargetTrigger {

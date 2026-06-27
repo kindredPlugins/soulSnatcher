@@ -9,10 +9,12 @@ import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.UseCooldown;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -66,13 +68,19 @@ public class WitchSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("When drinking potions they go on cooldown"),
+                Component.text("instead of being consumed."),
+                Component.text("Gain ")
+                        .append(Component.text((1 - magicDamageMultiplier.cached()) * 100 + "% Magic Damage Reduction", NamedTextColor.DARK_PURPLE))
+                        .append(Component.text(".", NamedTextColor.WHITE))
+        );
     }
 
     //region
 
     private static final String MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID = "magic_damage_multiplier";
-    private final ConfigOption<Double> magicDamageMultiplier = configOption(MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID, 0.4, FileConfiguration::getDouble);
+    private final ConfigOption<Double> magicDamageMultiplier = configOption(MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID, 0.4, FileConfiguration::getDouble, value -> Math.min(Math.max(value, 0), 1));
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

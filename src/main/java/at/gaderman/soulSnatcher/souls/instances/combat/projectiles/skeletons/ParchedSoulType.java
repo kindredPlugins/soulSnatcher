@@ -66,8 +66,8 @@ public class ParchedSoulType extends ConfigHoldingSoulType {
                 Component.text("Any ")
                         .append(Component.text("projectile ", NamedTextColor.AQUA))
                         .append(Component.text("fired will inflict ")),
-                Component.text("Weakness ", NamedTextColor.GRAY)
-                        .append(Component.text("on a direct hit", NamedTextColor.WHITE))
+                Component.text("Weakness ", TextColor.color(0x373b37))
+                        .append(Component.text("on a direct hit.", NamedTextColor.WHITE))
         );
     }
 

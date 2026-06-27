@@ -63,8 +63,10 @@ public class SpiderSoulType extends ConfigHoldingSoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.keybind("key.sneak", NamedTextColor.GOLD)
                         .append(Component.text(" + Jump "))
-                        .append(Component.text(" to spider dash", NamedTextColor.WHITE)),
-                Component.text("Is a short-cooldown jump with large horizontal force")
+                        .append(Component.text("to spider dash.", NamedTextColor.WHITE)),
+                Component.text("Will leap you forward a large"),
+                Component.text("horizontal distance ", NamedTextColor.AQUA)
+                        .append(Component.text("on a short cooldown.", NamedTextColor.WHITE))
         );
     }
 

@@ -67,7 +67,7 @@ public class BoggedSoulType extends ConfigHoldingSoulType {
                         .append(Component.text("projectile ", NamedTextColor.AQUA))
                         .append(Component.text("fired will inflict ")),
                 Component.text("Poison ", TextColor.color(0x5e6d31))
-                                .append(Component.text("on a direct hit", NamedTextColor.WHITE))
+                                .append(Component.text("on a direct hit.", NamedTextColor.WHITE))
         );
     }
 

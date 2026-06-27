@@ -69,7 +69,7 @@ public class SquidSoulType extends ConfigHoldingSoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When damaged applies ")
-                        .append(Component.text("ink ", NamedTextColor.BLACK))
+                        .append(Component.text("ink ", TextColor.color(0x1E2324)))
                         .append(Component.text("onto nearby")),
                 Component.text("enemies causing blindness and follow range loss")
         );

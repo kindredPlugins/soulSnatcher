@@ -66,8 +66,8 @@ public class StraySoulType extends ConfigHoldingSoulType {
                 Component.text("Any ")
                         .append(Component.text("projectile ", NamedTextColor.AQUA))
                         .append(Component.text("fired will inflict ")),
-                Component.text("Slowness ", TextColor.color(0x576c6d))
-                        .append(Component.text("on a direct hit", NamedTextColor.WHITE))
+                Component.text("Slowness ", TextColor.color(0x6a86ab))
+                        .append(Component.text("on a direct hit.", NamedTextColor.WHITE))
         );
     }
 

@@ -17,10 +17,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-@AutoService(SoulType.class)
+//TODO: will be added later no clear niche yet, just fall damage reduction feels to simple and misses infusion behaviour
 public class CatSoulType extends SoulType {
     @Override
-    public @NotNull SoulInstance create(LivingEntity carrier) {
+    public @NotNull SoulInstance<CatSoulType> create(LivingEntity carrier) {
         return new CatSoulInstance(carrier, this);
     }
 
@@ -54,12 +54,10 @@ public class CatSoulType extends SoulType {
         return List.of();
     }
 
-    public static class CatSoulInstance extends SoulInstance implements OnDamageReceivedTrigger {
-        protected CatSoulInstance(LivingEntity carrier, SoulType soulType) {
+    public static class CatSoulInstance extends SoulInstance<CatSoulType> implements OnDamageReceivedTrigger {
+        protected CatSoulInstance(LivingEntity carrier, CatSoulType soulType) {
             super(carrier, soulType);
         }
-
-        //TODO: monsters do not take much profit from this need extra behaviour
 
         @Override
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {

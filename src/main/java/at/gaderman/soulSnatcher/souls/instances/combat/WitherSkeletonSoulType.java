@@ -9,6 +9,9 @@ import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.ShadowColor;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
@@ -58,7 +61,13 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-
+                Component.text("Any melee hit will inflict the"),
+                Component.text("Wither Effect ",
+                                Style.style(
+                                        TextColor.color(0x444444),
+                                        ShadowColor.shadowColor(0x80222222)
+                                ))
+                        .append(Component.text("on the target.", Style.style(NamedTextColor.WHITE, ShadowColor.none())))
         );
     }
 
@@ -87,7 +96,7 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
-            if(carrier instanceof Player && !(event.getDamager() instanceof Player)) return;
+            if (carrier instanceof Player && !(event.getDamager() instanceof Player)) return;
 
             target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, soulType().witherDuration.cached(), soulType().witherAmplifier.cached(), true, true, true));
         }

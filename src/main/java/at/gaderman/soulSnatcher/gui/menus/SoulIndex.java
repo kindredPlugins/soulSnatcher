@@ -4,11 +4,14 @@ import at.gaderman.soulSnatcher.gui.ActionInventory;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,7 +34,7 @@ public class SoulIndex extends ActionInventory {
                     .sorted(Comparator.comparing(category -> PlainTextComponentSerializer.plainText().serialize(category.icon().displayName())))
                     .toList();
 
-        return (Math.ceilDiv(categories.size(), 9) + 2) * 9;
+        return (Math.ceilDiv(categories.size(), 9) + 3) * 9;
     }
 
     @Override
@@ -40,10 +43,14 @@ public class SoulIndex extends ActionInventory {
 
         fillWithFillItem();
 
+        inventory.setItem(4, getGamePlayInfo());
+        defineInventoryAction(4, (event -> new GamePlayInfoGUI().openInventory(((Player) event.getWhoClicked()))),
+                Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 1f);
+
         int offsetPerCat = Math.max(Math.floorDiv(9, categories.size()) - 1, 0);
 
         for (int i = 0; i < categories.size(); i++) {
-            int index = i + 9 + offsetPerCat * (i + 1);
+            int index = i + 18 + offsetPerCat * (i + 1);
             SoulCategory category = categories.get(i);
 
             inventory.setItem(index, category.icon());
@@ -52,5 +59,17 @@ public class SoulIndex extends ActionInventory {
                     new CategorizedSoulIndex(category).openInventory(player);
             }, Sound.ENTITY_CHICKEN_EGG, 1f, 1f);
         }
+    }
+
+    private ItemStack getGamePlayInfo(){
+        ItemStack item = ItemStack.of(Material.KNOWLEDGE_BOOK);
+        item.editMeta(meta -> {
+            meta.itemName(Component.text("Gameplay Info", NamedTextColor.GOLD));
+            meta.lore(ItemUtils.applyDefaultLoreStyle(
+                    Component.text("View general information about how"),
+                    Component.text("this plugin operates.")
+            ));
+        });
+        return item;
     }
 }

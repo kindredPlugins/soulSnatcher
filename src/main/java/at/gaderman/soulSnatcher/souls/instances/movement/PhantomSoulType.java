@@ -66,8 +66,10 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("While falling downwards, hold ")
                         .append(Component.keybind("key.sneak", NamedTextColor.GOLD)),
-                Component.text("to begin gliding downwards, steadily"),
-                Component.text("reducing your downwards momentum")
+                Component.text("to begin ")
+                        .append(Component.text("gliding ", NamedTextColor.AQUA))
+                        .append(Component.text("downwards, steadily", NamedTextColor.WHITE)),
+                Component.text("reducing your downwards momentum.")
         );
     }
 

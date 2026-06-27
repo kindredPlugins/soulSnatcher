@@ -77,7 +77,7 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When being hit summons a ")
                         .append(Component.text("reinforcement zombie", NamedTextColor.AQUA)),
-                Component.text("nearby who will aid you in combat "),
+                Component.text("nearby who will aid you in combat."),
                 Component.text("(Max " + maxReinforcements.cached() + ")", NamedTextColor.GRAY)
         );
     }

@@ -6,8 +6,10 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -61,7 +63,12 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("Gain a ")
+                        .append(Component.text(extraLootChance.cached() * 100 + "% ", NamedTextColor.GREEN))
+                        .append(Component.text("chance for mobs to", NamedTextColor.WHITE)),
+                Component.text("drop an extra item.")
+        );
     }
 
     @Override

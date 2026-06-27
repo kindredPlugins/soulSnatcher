@@ -73,7 +73,7 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When hit by a projectile ")
                         .append(Component.text("teleport ", NamedTextColor.LIGHT_PURPLE)),
-                Component.text("a short distance away to evade")
+                Component.text("a short distance away to evade.")
         );
     }
 

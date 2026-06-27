@@ -37,11 +37,15 @@ public class SoulLanternManager implements Listener {
 
     private static final NamespacedKey LANTERN_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_lantern");
 
+    public static ItemStack getLanternAsCustomHead(){
+        return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
+                "20bd20128c71210505d8062a51ae2abe0cc3fca50107f89f12d3a8d6dcfdaea1");
+    }
+
     public static ItemStack getLantern(Player player){
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
 
-        ItemStack lantern = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
-                "20bd20128c71210505d8062a51ae2abe0cc3fca50107f89f12d3a8d6dcfdaea1");
+        ItemStack lantern = getLanternAsCustomHead();
         lantern.editMeta(meta -> {
             meta.displayName(Component.text("Soul Lantern", TextColor.color(0x10a1e1)).decoration(TextDecoration.ITALIC, false));
             var lore = ItemUtils.applyDefaultLoreStyle(

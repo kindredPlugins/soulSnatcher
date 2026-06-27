@@ -62,7 +62,7 @@ public class SkeletonSoulType extends SoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("Shoot ")
                         .append(Component.text("infinite ", NamedTextColor.GREEN))
-                        .append(Component.text(" arrows of any kind")),
+                        .append(Component.text("arrows of any kind")),
                 Component.text("while using no durability of bows.")
         );
     }

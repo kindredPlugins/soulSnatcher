@@ -63,7 +63,7 @@ public class SheepSoulType extends ConfigHoldingSoulType {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When being hit reduce damage by"),
                 Component.text((int) (absorptionAmount.defaultValue() * 100) + "% ", NamedTextColor.GOLD)
-                        .append(Component.text("every " + absorbCooldown.cached() / 1000.0 + "s", NamedTextColor.WHITE))
+                        .append(Component.text("every " + absorbCooldown.cached() / 1000.0 + "s.", NamedTextColor.WHITE))
         );
     }
 

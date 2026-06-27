@@ -7,8 +7,10 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
+import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -58,7 +60,12 @@ public class CowSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull List<Component> description() {
-        return List.of();
+        return ItemUtils.applyDefaultLoreStyle(
+                Component.text("When being affected by a ")
+                        .append(Component.text("negative ", NamedTextColor.RED))
+                        .append(Component.text("effect")),
+                Component.text("automatically cleanse them after a short delay.")
+        );
     }
 
     //region Config Values

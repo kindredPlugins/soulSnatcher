@@ -65,7 +65,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
                 Component.text("When engaging in combat ")
                         .append(Component.text("mark ", NamedTextColor.DARK_RED)),
                 Component.text("a target and gain ")
-                        .append(Component.text("+ " + engageBoost.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
+                        .append(Component.text("+" + engageBoost.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
                 Component.text("Mark automatically jumps to the next target on death", NamedTextColor.GRAY)
         );
     }
