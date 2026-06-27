@@ -5,7 +5,6 @@ import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
-import at.gaderman.soulSnatcher.souls.config.ExtraConfigHolder;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.OnEntityEquipmentTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;

@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
+import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.effects.SoulReward;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
@@ -93,7 +94,6 @@ public class SoulListener implements Listener {
         SoulReward.offerSoulReward(mob.getLocation(), mob.getKiller(), souls.getFirst().soulType());
     }
 
-    //TODO: this is not almighty, sometimes a player logs off before a mob despawns, making their soul unretrievable
     @EventHandler
     public void onInfuseNaturalDespawn(EntityRemoveEvent event) {
         if (event.getCause() != EntityRemoveEvent.Cause.DESPAWN)
@@ -104,11 +104,16 @@ public class SoulListener implements Listener {
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         if (!pdc.has(INFUSED_FROM)) return;
 
-        Player player = Bukkit.getPlayer(UUID.fromString(pdc.get(INFUSED_FROM, PersistentDataType.STRING)));
-        if (player == null) return;
-
         var souls = SoulType.getCarriedSouls(entity);
         if (souls.isEmpty()) return;
+
+        String uuid = pdc.getOrDefault(INFUSED_FROM, PersistentDataType.STRING, UUID.randomUUID().toString());
+        Player player = Bukkit.getPlayer(UUID.fromString(uuid));
+        if (player == null){
+            OfflineUnboundPoolConfig poolConfig = OfflineUnboundPoolConfig.getInstance();
+            souls.forEach(soul -> poolConfig.addToOfflinePoolPlayer(uuid, soul.soulType()));
+            return;
+        }
 
         souls.forEach(soul -> soul.soulType().releaseSoul(entity.getLocation(), player));
     }

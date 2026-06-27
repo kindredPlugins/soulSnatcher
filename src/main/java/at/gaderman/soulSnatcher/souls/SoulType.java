@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.targeting.MonsterGoal;
+import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
@@ -310,6 +310,10 @@ public abstract class SoulType {
         ArrayList<String> boundSouls = new ArrayList<>(pdc.getOrDefault(BOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
         ArrayList<String> unBoundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), Collections.emptyList()));
         SoulRegistry soulRegistry = SoulRegistry.getInstance();
+
+        OfflineUnboundPoolConfig poolConfig = OfflineUnboundPoolConfig.getInstance();
+        unBoundSouls.addAll(poolConfig.offlinePoolOfPlayer(player));
+        poolConfig.clearOfflinePoolPlayer(player);
 
         clearSouls(player);
 
