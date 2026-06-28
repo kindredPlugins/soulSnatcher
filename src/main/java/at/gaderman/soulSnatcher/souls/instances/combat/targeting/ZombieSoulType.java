@@ -18,14 +18,21 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.loot.LootContext;
+import org.bukkit.loot.LootTable;
+import org.bukkit.loot.LootTables;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -150,6 +157,7 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
             zombie.getAttribute(Attribute.SPAWN_REINFORCEMENTS).setBaseValue(-100);
             zombie.setCanPickupItems(false);
             zombie.setCanBreakDoors(false);
+            zombie.setLootTable(Bukkit.getLootTable(NamespacedKey.minecraft("empty")));
             Bukkit.getMobGoals().addGoal(zombie, 0, new ReinforcementZombieGoal(zombie, carrier));
 
             reinforcements.add(zombie);
@@ -247,5 +255,13 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
                 event.setCancelled(true);
         }
 
+        @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+        public void onReinforcementDeath(EntityDeathEvent event){
+            if(!(event.getEntity() instanceof Zombie zombie)) return;
+            if(!reinforcementTargetMap.containsKey(zombie)) return;
+
+            event.setDroppedExp(0);
+            event.getDrops().clear();
+        }
     }
 }

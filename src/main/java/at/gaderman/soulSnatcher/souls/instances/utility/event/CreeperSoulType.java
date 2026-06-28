@@ -73,6 +73,8 @@ public class CreeperSoulType extends SoulType {
             super(carrier, soulType);
         }
 
+        private boolean displayingLeaves;
+
         @Override
         public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
             var followRangeAttr = entity.getAttribute(Attribute.FOLLOW_RANGE);
@@ -83,10 +85,13 @@ public class CreeperSoulType extends SoulType {
 
             event.setCancelled(true);
 
-            if(carrier instanceof Player player) {
-                player.spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation().add(0, -0.2, 0), 5, 0.2, 0,
+            if(!displayingLeaves && carrier instanceof Player player) {
+                player.spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation().add(0, -0.2, 0), 2, 0.2, 0,
                         0.2, 0.2, Color.LIME);
                 player.playSound(player.getLocation(), Sound.BLOCK_AZALEA_LEAVES_BREAK, 0.5f, 0.5f);
+
+                displayingLeaves = true;
+                Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> displayingLeaves = false);
             }
         }
 

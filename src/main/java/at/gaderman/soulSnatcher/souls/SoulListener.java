@@ -208,8 +208,9 @@ public class SoulListener implements Listener {
      */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        SoulType.loadIntoCache(event.getPlayer());
-        loadSouls(event.getPlayer());
+        Player player = event.getPlayer();
+        SoulType.loadIntoCache(player);
+        loadSouls(player);
     }
 
     /**

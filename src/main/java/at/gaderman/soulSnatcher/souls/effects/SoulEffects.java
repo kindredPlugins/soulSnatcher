@@ -302,7 +302,18 @@ public class SoulEffects {
         if (state == null) return;
 
         playerViewingOrbits.remove(player.getUniqueId());
-        state.displays.stream().filter(player::canSee).forEach(display -> player.hideEntity(SoulSnatcher.getPlugin(), display));
+        state.displays.stream().filter(player::canSee).forEach(display -> {
+            new BukkitRunnable(){
+                @Override
+                public void run() {
+                    if(display.getTrackedBy().contains(player)) {
+                        player.hideEntity(SoulSnatcher.getPlugin(), display);
+                        cancel();
+                        return;
+                    }
+                }
+            }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 1L);
+        });
 
         player.playSound(player, Sound.ITEM_FIRECHARGE_USE, 1f, 0.5f);
     }
@@ -334,8 +345,17 @@ public class SoulEffects {
                     .scale(HEAD_SCALE)
                     .rotateY((float) Math.toRadians(180)));
 
-            if (target instanceof Player player)
-                player.hideEntity(SoulSnatcher.getPlugin(), d);
+            if (target instanceof Player player){
+                new BukkitRunnable(){
+                    @Override
+                    public void run() {
+                        if(d.getTrackedBy().contains(player)) {
+                            player.hideEntity(SoulSnatcher.getPlugin(), d);
+                            cancel();
+                        }
+                    }
+                }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 1L);
+            }
         });
     }
 

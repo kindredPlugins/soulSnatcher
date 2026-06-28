@@ -34,6 +34,7 @@ public class ReinforcementZombieGoal extends SoulAbilityGoal {
     }
 
     private static final double FOLLOW_RANGE = 50 ^ 2;
+    private static final double MAX_DISTANCE = 320 ^ 2;
 
     @Override
     public boolean shouldActivate() {
@@ -47,6 +48,11 @@ public class ReinforcementZombieGoal extends SoulAbilityGoal {
 
     @Override
     public void start() {
+        if(mob.getLocation().distanceSquared(owner.getLocation()) >= MAX_DISTANCE){
+            mob.damage(Integer.MAX_VALUE);
+            return;
+        }
+
         Location to = owner.getLocation().add(mob.getLocation().subtract(owner.getLocation()).toVector().normalize().multiply(1.5));
         mob.getPathfinder().moveTo(to);
     }
