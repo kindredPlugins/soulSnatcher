@@ -106,8 +106,9 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
             super.addCombatTarget(target);
 
             if (marked == null) {
-                if (carrier().getAttribute(Attribute.MOVEMENT_SPEED).getModifier(HUNT_BOOST) == null)
-                    carrier().getAttribute(Attribute.MOVEMENT_SPEED).addModifier(new AttributeModifier(HUNT_BOOST, soulType().engageBoost.cached(), AttributeModifier.Operation.ADD_SCALAR));
+                var movSpeed = carrier().getAttribute(Attribute.MOVEMENT_SPEED);
+                if (movSpeed != null && movSpeed.getModifier(HUNT_BOOST) == null)
+                    movSpeed.addModifier(new AttributeModifier(HUNT_BOOST, soulType().engageBoost.cached(), AttributeModifier.Operation.ADD_SCALAR));
 
                 selectNewMark(target);
 
@@ -200,9 +201,12 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
         private void resetMark() {
             marked = null;
             combatTargets.clear();
-            markDisplay.remove();
+            if(markDisplay != null)
+                markDisplay.remove();
             carrier().getWorld().playSound(carrier(), Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT, 0.8f, 0.5f);
-            carrier().getAttribute(Attribute.MOVEMENT_SPEED).removeModifier(HUNT_BOOST);
+            var movSpeed = carrier().getAttribute(Attribute.MOVEMENT_SPEED);
+            if(movSpeed != null)
+                movSpeed.removeModifier(HUNT_BOOST);
         }
 
         @Override

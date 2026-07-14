@@ -115,7 +115,7 @@ public class CreeperSoulType extends SoulType {
                             return;
                         }
 
-                        if (!target.isValid() || carrier.getLocation().distance(target.getLocation()) <= 10) {
+                        if (!target.isValid() || !carrier.getWorld().equals(target.getWorld()) || carrier.getLocation().distance(target.getLocation()) <= 10) {
                             carrier.removePotionEffect(PotionEffectType.INVISIBILITY);
                             carrier.getWorld().spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation(), 50, 0.2, 0.5, 0.2,
                                     1.5, Color.LIME);
