@@ -36,6 +36,7 @@ public class SoulListener implements Listener {
     public void onSoulRelease(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
         if (mob.getScoreboardTags().contains(SoulType.NO_SOUL_RELEASE_TAG)) return;
+        if(mob.getEntitySpawnReason() == CreatureSpawnEvent.SpawnReason.SLIME_SPLIT) return;
 
         var optSoul = SoulRegistry.getInstance().getSoul(mob.getType());
         if (optSoul.isEmpty()) return;

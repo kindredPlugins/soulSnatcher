@@ -64,9 +64,9 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-                Component.text(damagePreserveMultiplier.cached() + "% ", NamedTextColor.RED)
+                Component.text((damagePreserveMultiplier.cached() * 100) + "% ", NamedTextColor.RED)
                                 .append(Component.text("of damage taken from players/mobs is", NamedTextColor.WHITE)),
-                Component.text("split into", NamedTextColor.WHITE)
+                Component.text("split into ", NamedTextColor.WHITE)
                         .append(Component.text(bufferSplitAmount.cached(), NamedTextColor.GOLD))
                         .append(Component.text(" portions taken in short intervals.", NamedTextColor.WHITE))
         );

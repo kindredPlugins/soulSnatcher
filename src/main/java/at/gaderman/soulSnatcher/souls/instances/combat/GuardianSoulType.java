@@ -67,13 +67,12 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-                Component.text("Any melee hit will inflict the"),
-                Component.text("Wither Effect ",
-                                Style.style(
-                                        TextColor.color(0x444444),
-                                        ShadowColor.shadowColor(0x80222222)
-                                ))
-                        .append(Component.text("on the target.", Style.style(NamedTextColor.WHITE, ShadowColor.none())))
+                Component.text("When not attacking for ")
+                        .append(Component.text(chargeBuffer.cached() / 1000.0 + "s ", NamedTextColor.AQUA))
+                        .append(Component.text("slowly")),
+                Component.text("charge up the next melee attack to deal"),
+                Component.text("+" + (maxCharge.cached() * 100) + "% ", NamedTextColor.GOLD)
+                        .append(Component.text("more damage when fully charged.", NamedTextColor.WHITE))
         );
     }
 
