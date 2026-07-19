@@ -136,6 +136,7 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
                     .filter(drop -> drop.getMaxStackSize() != 1)
                     .toList();
 
+            if(drops.isEmpty()) return;
             if (Math.random() >= soulType().extraLootChance.cached()) return;
 
             event.getDrops().add(drops.get((int) (Math.random() * drops.size())).asOne());
