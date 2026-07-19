@@ -8,6 +8,7 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileExplosionTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.destroystokyo.paper.entity.RangedEntity;
@@ -19,10 +20,8 @@ import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Mob;
-import org.bukkit.entity.Projectile;
+import org.bukkit.entity.*;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.persistence.PersistentDataType;
@@ -103,7 +102,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
         );
     }
 
-    public static class GhastSoulInstance extends SoulInstance<GhastSoulType> implements OnEntityLaunchProjectileTrigger, OnProjectileHitTrigger {
+    public static class GhastSoulInstance extends SoulInstance<GhastSoulType> implements OnEntityLaunchProjectileTrigger, OnProjectileHitTrigger, OnProjectileExplosionTrigger {
         protected GhastSoulInstance(LivingEntity carrier, GhastSoulType soulType) {
             super(carrier, soulType);
 
@@ -169,6 +168,13 @@ public class GhastSoulType extends ConfigHoldingSoulType {
 
             location.getWorld().spawnParticle(Particle.EXPLOSION, location, 1);
             location.getWorld().playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 1f, 0.8f);
+        }
+
+        @Override
+        public void onProjectileExplosion(LivingEntity carrier, Projectile projectile, EntityExplodeEvent event) {
+            if(!(projectile instanceof LargeFireball)) return;
+
+            event.blockList().clear();
         }
     }
 }
