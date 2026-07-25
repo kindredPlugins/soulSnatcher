@@ -10,6 +10,7 @@ import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.entity.*;
@@ -36,7 +37,7 @@ public class SoulListener implements Listener {
     public void onSoulRelease(EntityDeathEvent event) {
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
         if (mob.getScoreboardTags().contains(SoulType.NO_SOUL_RELEASE_TAG)) return;
-        if(mob.getEntitySpawnReason() == CreatureSpawnEvent.SpawnReason.SLIME_SPLIT) return;
+        if (mob.getEntitySpawnReason() == CreatureSpawnEvent.SpawnReason.SLIME_SPLIT) return;
 
         var optSoul = SoulRegistry.getInstance().getSoul(mob.getType());
         if (optSoul.isEmpty()) return;
@@ -51,10 +52,14 @@ public class SoulListener implements Listener {
     @EventHandler
     public void onSoulInfuse(CreatureSpawnEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
-        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.SPAWNER_EGG)
+        if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.SPAWNER_EGG
+                && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.TRIAL_SPAWNER && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.RAID)
             return;
 
-        Collection<Player> nearbyPlayers = mob.getWorld().getNearbyPlayers(mob.getLocation(), 50, 30);
+        boolean isRaidSpawn = event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.RAID;
+        double xzRadius = isRaidSpawn ? 300 : 50;
+        double yRadius = isRaidSpawn ? 300 : 30;
+        Collection<Player> nearbyPlayers = mob.getWorld().getNearbyPlayers(mob.getLocation(), xzRadius, yRadius);
         if (nearbyPlayers.isEmpty()) return;
 
         Player closestPlayer = nearbyPlayers
@@ -87,12 +92,17 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onSoulFreed(EntityDeathEvent event) {
-        if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
+        LivingEntity livingEntity = event.getEntity();
+        if (livingEntity.getKiller() == null) return;
 
-        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(mob);
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(livingEntity);
         if (souls.isEmpty()) return;
 
-        SoulReward.offerSoulReward(mob.getLocation(), mob.getKiller(), souls.getFirst().soulType());
+        Location origin = livingEntity.getLocation();
+        for (int i = 0; i < souls.size(); i++) {
+            SoulInstance<?> soul = souls.get(i);
+            SoulReward.offerSoulReward(origin.add(0, i * 1.5, 0), livingEntity.getKiller(), soul.soulType());
+        }
     }
 
     @EventHandler
@@ -110,7 +120,7 @@ public class SoulListener implements Listener {
 
         String uuid = pdc.getOrDefault(INFUSED_FROM, PersistentDataType.STRING, UUID.randomUUID().toString());
         Player player = Bukkit.getPlayer(UUID.fromString(uuid));
-        if (player == null){
+        if (player == null) {
             OfflineUnboundPoolConfig poolConfig = OfflineUnboundPoolConfig.getInstance();
             souls.forEach(soul -> poolConfig.addToOfflinePoolPlayer(uuid, soul.soulType()));
             return;
@@ -224,7 +234,7 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onPlayerTeleportCrossWorlds(PlayerTeleportEvent event) {
-        if(event.getFrom().getWorld() == event.getTo().getWorld())
+        if (event.getFrom().getWorld() == event.getTo().getWorld())
             return;
 
         Player player = event.getPlayer();
@@ -235,7 +245,7 @@ public class SoulListener implements Listener {
             SoulEffects.stopAllSoulOrbits(player);
             soulTypes.forEach(soul -> SoulEffects.addSoulToOrbit(player, soul.soulType()));
 
-            if(SoulLanternManager.isLookingAtOrbits(player))
+            if (SoulLanternManager.isLookingAtOrbits(player))
                 SoulEffects.showSoulOrbits(player);
         }, 1L);
     }
@@ -250,10 +260,27 @@ public class SoulListener implements Listener {
                 .filter(display -> display.getPersistentDataContainer()
                         .getOrDefault(SoulReward.REWARD_OWNER, PersistentDataType.STRING, "").equals(player.getUniqueId().toString()))
                 .forEach(display -> {
-                    if(display.getPersistentDataContainer().has(SoulReward.HIDDEN_FOR))
+                    if (display.getPersistentDataContainer().has(SoulReward.HIDDEN_FOR))
                         player.hideEntity(SoulSnatcher.getPlugin(), display);
 
                     else player.showEntity(SoulSnatcher.getPlugin(), display);
                 });
+    }
+
+    @EventHandler
+    public void onExpiredSoulLoad(EntityAddToWorldEvent event) {
+        if(!(event.getEntity() instanceof Display display))
+            return;
+
+        PersistentDataContainer pdc = display.getPersistentDataContainer();
+        if(!pdc.has(SoulReward.SOUL_REWARD))
+            return;
+
+        long timeStamp = pdc.getOrDefault(SoulReward.TIMESTAMP, PersistentDataType.LONG, 0L);
+
+        if(timeStamp >= System.currentTimeMillis() - SoulReward.LIVING_TICKS * 50)
+            return;
+
+        display.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> display.remove(), null, 1L);
     }
 }

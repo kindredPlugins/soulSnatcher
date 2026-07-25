@@ -19,9 +19,11 @@ import java.util.stream.Stream;
 
 public class SoulReward {
 
+    public static final int LIVING_TICKS = 60 * 20;
     public static final NamespacedKey SOUL_REWARD = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward");
     public static final NamespacedKey REWARD_OWNER = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward_owner");
     public static final NamespacedKey HIDDEN_FOR = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward_hidden_for_owner");
+    public static final NamespacedKey TIMESTAMP = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward_timestamp");
 
     public static void offerSoulReward(Location location, Player owner, SoulType soulType){
         location.setPitch(0);
@@ -74,6 +76,7 @@ public class SoulReward {
 
             interaction.getPersistentDataContainer().set(REWARD_OWNER, PersistentDataType.STRING, owner.getUniqueId().toString());
             interaction.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulType.id());
+            interaction.getPersistentDataContainer().set(TIMESTAMP, PersistentDataType.LONG, System.currentTimeMillis());
         });
         List<Entity> displayEntities = List.of(skullDisplay, soulTitle, interactText, claimedByTitle);
         displayEntities.forEach(entity -> {
@@ -84,9 +87,10 @@ public class SoulReward {
 
             entity.getPersistentDataContainer().set(SOUL_REWARD, PersistentDataType.STRING, soulInteraction.getUniqueId().toString());
             entity.getPersistentDataContainer().set(REWARD_OWNER, PersistentDataType.STRING, owner.getUniqueId().toString());
+            entity.getPersistentDataContainer().set(TIMESTAMP, PersistentDataType.LONG, System.currentTimeMillis());
         });
 
-        long age = duplicateSoul ? 80L : 60 * 20L;
+        long age = duplicateSoul ? 80L : LIVING_TICKS;
 
         soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
         SoulSnatcher.getPlugin().registerDelayedTask(() -> {
