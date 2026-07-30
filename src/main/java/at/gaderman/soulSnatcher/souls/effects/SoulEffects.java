@@ -149,6 +149,7 @@ public class SoulEffects {
     public static void addSoulToOrbit(Entity target, SoulType soulType) {
         var plugin = SoulSnatcher.getPlugin();
 
+        double orbitRadius = target.getWidth() > ORBIT_RADIUS ? target.getWidth() * 1.1 : ORBIT_RADIUS;
         OrbitState state = activeOrbits.get(target.getUniqueId());
 
         if (state == null) {
@@ -193,9 +194,8 @@ public class SoulEffects {
                     if (hidden) {
                         current.displays.forEach(display -> {
                             display.setVisibleByDefault(true);
-                            Bukkit.getOnlinePlayers().stream()
-                                    .filter(player -> !player.equals(target))
-                                    .forEach(player -> player.showEntity(SoulSnatcher.getPlugin(), display));
+                            if(target instanceof Player player)
+                                player.hideEntity(SoulSnatcher.getPlugin(), display);
                         });
 
                         hidden = false;
@@ -216,13 +216,13 @@ public class SoulEffects {
                         // Each soul is evenly spaced: soul i sits at its own
                         // angular offset of (i / count) * 360° ahead of the base angle
                         double soulAngle = (angle[0] + (360.0 / count) * i) % 360.0;
-                        Location headPos = orbitPosition(center, soulAngle);
+                        Location headPos = orbitPosition(center, soulAngle, orbitRadius);
 
                         display.setInterpolationDelay(-1);
                         display.teleport(headPos);
 
                         if (particleTick)
-                            spawnTrailParticles(current, center, soulAngle, angleStep);
+                            spawnTrailParticles(current, center, soulAngle, angleStep, orbitRadius);
                     }
 
                     angle[0] = (angle[0] + angleStep) % 360.0;
@@ -342,7 +342,7 @@ public class SoulEffects {
             d.setInterpolationDelay(1);
             d.setViewRange(1.0f);
             d.setTransformationMatrix(new Matrix4f()
-                    .scale(HEAD_SCALE)
+                    .scale(target.getHeight() > 3 ? (float) target.getHeight() * 0.5f : HEAD_SCALE)
                     .rotateY((float) Math.toRadians(180)));
 
             if (target instanceof Player player){
@@ -360,15 +360,23 @@ public class SoulEffects {
     }
 
     private static Location orbitPosition(Location center, double angleDegrees) {
+        return orbitPosition(center, angleDegrees, ORBIT_RADIUS);
+    }
+
+    private static Location orbitPosition(Location center, double angleDegrees, double radius) {
         double radians = Math.toRadians(angleDegrees);
-        double x = center.getX() + ORBIT_RADIUS * Math.cos(radians);
-        double z = center.getZ() + ORBIT_RADIUS * Math.sin(radians);
+        double x = center.getX() + radius * Math.cos(radians);
+        double z = center.getZ() + radius * Math.sin(radians);
         return new Location(center.getWorld(), x, center.getY(), z);
     }
 
     private static void spawnTrailParticles(OrbitState state, Location center, double currentAngle, double angleStep) {
-        Location trailPos = orbitPosition(center, currentAngle - (angleStep * 2));
-        Location headPos = orbitPosition(center, currentAngle);
+        spawnTrailParticles(state, center, currentAngle, angleStep, ORBIT_RADIUS);
+    }
+
+    private static void spawnTrailParticles(OrbitState state, Location center, double currentAngle, double angleStep, double radius) {
+        Location trailPos = orbitPosition(center, currentAngle - (angleStep * 2), radius);
+        Location headPos = orbitPosition(center, currentAngle, radius);
 
         boolean isPlayer = Bukkit.getPlayer(state.owner) != null && !playerViewingOrbits.contains(state.owner);
 
@@ -380,11 +388,6 @@ public class SoulEffects {
             player.spawnParticle(Particle.SOUL_FIRE_FLAME, headPos,
                     1, 0.03, 0.03, 0.03, 0.005);
         });
-
-//        center.getWorld().spawnParticle(Particle.SOUL, trailPos,
-//                1, 0.05, 0.05, 0.05, 0.01);
-//        center.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, headPos,
-//                1, 0.03, 0.03, 0.03, 0.005);
     }
 
     //endregion

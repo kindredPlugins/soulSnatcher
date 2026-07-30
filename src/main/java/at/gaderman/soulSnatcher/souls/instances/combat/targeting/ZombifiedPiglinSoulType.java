@@ -75,7 +75,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     private static final String ENGAGE_TIMEOUT_CONFIG_ID = "engage_timeout";
     private static final String ENGAGE_BOOST_CONFIG_ID = "engage_boost";
 
-    private final ConfigOption<Integer> engageTimeout = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> engageTimeout = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 10000, FileConfiguration::getInt, value -> Math.max(value, 0));
     private final ConfigOption<Double> engageBoost = configOption(ENGAGE_BOOST_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> Math.max(value, 0));
 
     @Override
@@ -100,14 +100,17 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
 
         private static final NamespacedKey HUNT_BOOST = new NamespacedKey(SoulSnatcher.getPlugin(), "zombified_piglin_hunter");
 
-        //TODO: potential bottle neck has been established, combatTargets seem to not be cleared when entities are invalid, need some sort of garbage collection either timeout or on add/remove events
         @Override
         protected void addCombatTarget(LivingEntity target) {
             super.addCombatTarget(target);
 
+            if(target.equals(this.marked))
+                lastMarkEngage = System.currentTimeMillis();
+
             if (marked == null) {
-                if (carrier().getAttribute(Attribute.MOVEMENT_SPEED).getModifier(HUNT_BOOST) == null)
-                    carrier().getAttribute(Attribute.MOVEMENT_SPEED).addModifier(new AttributeModifier(HUNT_BOOST, soulType().engageBoost.cached(), AttributeModifier.Operation.ADD_SCALAR));
+                var movSpeed = carrier().getAttribute(Attribute.MOVEMENT_SPEED);
+                if (movSpeed != null && movSpeed.getModifier(HUNT_BOOST) == null)
+                    movSpeed.addModifier(new AttributeModifier(HUNT_BOOST, soulType().engageBoost.cached(), AttributeModifier.Operation.ADD_SCALAR));
 
                 selectNewMark(target);
 
@@ -131,6 +134,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
 
                     markDisplay.setInterpolationDelay(0);
                     markDisplay.setInterpolationDuration(2);
+                    markDisplay.setTeleportDuration(0);
                 });
 
                 new BukkitRunnable() {
@@ -200,9 +204,12 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
         private void resetMark() {
             marked = null;
             combatTargets.clear();
-            markDisplay.remove();
+            if(markDisplay != null)
+                markDisplay.remove();
             carrier().getWorld().playSound(carrier(), Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT, 0.8f, 0.5f);
-            carrier().getAttribute(Attribute.MOVEMENT_SPEED).removeModifier(HUNT_BOOST);
+            var movSpeed = carrier().getAttribute(Attribute.MOVEMENT_SPEED);
+            if(movSpeed != null)
+                movSpeed.removeModifier(HUNT_BOOST);
         }
 
         @Override

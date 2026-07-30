@@ -28,6 +28,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +37,7 @@ import java.util.UUID;
 public class SoulLanternManager implements Listener {
 
     private static final NamespacedKey LANTERN_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_lantern");
+    private static final NamespacedKey RECEIVED_TUTORIAL_MESSAGE  = new NamespacedKey(SoulSnatcher.getPlugin(), "received_tutorial_message");
 
     public static ItemStack getLanternAsCustomHead(){
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
@@ -95,6 +97,21 @@ public class SoulLanternManager implements Listener {
         if(!foundLantern) {
             player.give(getLantern(player));
             player.playSound(player, Sound.BLOCK_PUMPKIN_CARVE, 1f, 0.5f);
+
+            if(!player.getPersistentDataContainer().has(RECEIVED_TUTORIAL_MESSAGE)) {
+                player.sendMessage(Component.text("------------- ", NamedTextColor.DARK_GRAY)
+                        .append(Component.text("SoulSnatcher", NamedTextColor.DARK_AQUA).decorate(TextDecoration.BOLD))
+                        .append(Component.text(" -------------", NamedTextColor.DARK_GRAY)));
+                player.sendMessage(Component.text("You just received a ", NamedTextColor.WHITE)
+                        .append(getLantern(player).displayName())
+                        .append(Component.text(".", NamedTextColor.WHITE)));
+                player.sendMessage(Component.text("SoulSnatcher adds souls which add new mechanics, use this lantern to check yours out.", NamedTextColor.WHITE));
+                player.sendMessage(Component.text("Use ", NamedTextColor.WHITE)
+                        .append(Component.text("/soulindex ", NamedTextColor.AQUA))
+                        .append(Component.text("to check out all souls and general information.", NamedTextColor.WHITE)));
+
+                player.getPersistentDataContainer().set(RECEIVED_TUTORIAL_MESSAGE, PersistentDataType.STRING, LocalDateTime.now().toString());
+            }
         }
     }
 

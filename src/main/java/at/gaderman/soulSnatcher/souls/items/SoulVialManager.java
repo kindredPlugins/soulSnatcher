@@ -11,10 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,6 +21,8 @@ import org.bukkit.event.entity.PiglinBarterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
@@ -31,8 +30,22 @@ import java.util.List;
 public class SoulVialManager implements Listener {
 
     private static final NamespacedKey VIAL_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_vial");
-
     private static final String EMPTY_VIAL = "empty";
+
+    public SoulVialManager() {
+        ShapedRecipe soulVialRecipe = new ShapedRecipe(VIAL_KEY, getEmptyVial());
+        soulVialRecipe.shape("OTO", "GSG", " G ");
+
+        soulVialRecipe.setIngredient('O', Material.SOUL_TORCH);
+        soulVialRecipe.setIngredient('T', Material.GHAST_TEAR);
+        soulVialRecipe.setIngredient('G', Material.GLASS);
+        soulVialRecipe.setIngredient('S', Material.SOUL_SAND);
+
+        soulVialRecipe.setCategory(CraftingBookCategory.MISC);
+        soulVialRecipe.setGroup("SoulSnatcher");
+
+        Bukkit.addRecipe(soulVialRecipe, true);
+    }
 
     public static ItemStack getEmptyVial() {
         ItemStack vial = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +

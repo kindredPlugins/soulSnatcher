@@ -15,16 +15,14 @@ import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnStopUsingItemTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnHitByProjectileTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.projectiles.*;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -210,6 +208,20 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnProjectileHitTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onProjectileHit(entity, event.getEntity(), event);
+                });
+    }
+
+    @EventHandler
+    public void onProjectileExplosion(EntityExplodeEvent event){
+        if(!(event.getEntity() instanceof Projectile projectile)) return;
+        if (!(projectile.getShooter() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnProjectileExplosionTrigger)
+                .map(soul -> (OnProjectileExplosionTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onProjectileExplosion(entity, projectile, event);
                 });
     }
 
