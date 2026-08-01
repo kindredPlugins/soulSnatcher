@@ -182,7 +182,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
             mark.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 20, 0, false));
 
             LivingEntity carrier = carrier();
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_ZOMBIFIED_PIGLIN_ANGRY, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_ZOMBIFIED_PIGLIN_ANGRY, 1f, 1f);
 
             Location targetLoc = mark.getEyeLocation();
             Location origin = carrier.getEyeLocation();
@@ -206,7 +206,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
             combatTargets.clear();
             if(markDisplay != null)
                 markDisplay.remove();
-            carrier().getWorld().playSound(carrier(), Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT, 0.8f, 0.5f);
+            carrier().getWorld().playSound(carrier().getLocation(), Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT, 0.8f, 0.5f);
             var movSpeed = carrier().getAttribute(Attribute.MOVEMENT_SPEED);
             if(movSpeed != null)
                 movSpeed.removeModifier(HUNT_BOOST);

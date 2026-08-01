@@ -176,7 +176,7 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
                     combatTargets.clear();
                     carrier.getWorld().spawnParticle(Particle.SMOKE, carrier.getLocation().add(0, 1, 0),
                             30, 0.5, 0.5, 0.5, 0.1);
-                    carrier.getWorld().playSound(carrier, Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 0.2f);
+                    carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 0.2f);
 
                     auraTask = null;
                     cancel();

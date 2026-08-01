@@ -118,7 +118,7 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
             pdc.set(EVADED_PROJECTILE, PersistentDataType.LIST.strings(), evadedList);
 
             carrier.getWorld().spawnParticle(Particle.REVERSE_PORTAL, carrier.getEyeLocation(), 40, 0.1, 0.7, 0.1, 0.5);
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
 
             Location evadeLoc = BlockUtils.findSpreadLocation(carrier.getLocation(), 4, 2);
             if (evadeLoc != null) {

@@ -103,7 +103,7 @@ public class IronGolemSoulType extends ConfigHoldingSoulType {
                 double factor = knockbackResistance == null ? 1 : Math.max(1 - knockbackResistance.getValue(), 0);
 
                 target.setVelocity(target.getVelocity().add(new Vector(0, 0.4 * factor, 0)));
-                carrier.getWorld().playSound(carrier, Sound.ENTITY_IRON_GOLEM_ATTACK, 1f, 1f);
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_IRON_GOLEM_ATTACK, 1f, 1f);
             });
         }
     }

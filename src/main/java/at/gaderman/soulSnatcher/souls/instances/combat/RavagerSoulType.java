@@ -110,10 +110,10 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
                 return;
 
             lastSnout = System.currentTimeMillis();
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_RAVAGER_STUNNED, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_RAVAGER_STUNNED, 1f, 1f);
 
             carrier.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
-                carrier.getWorld().playSound(carrier, Sound.ENTITY_RAVAGER_ROAR, 1f, 1f);
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_RAVAGER_ROAR, 1f, 1f);
                 carrier.getWorld().spawnParticle(Particle.WHITE_SMOKE, carrier.getEyeLocation(), 100, 0.5, 0.5, 0.5, 0.05);
 
                 double radius = soulType().shoutRadius.cached();

@@ -75,7 +75,7 @@ public class SearchAndAddPassengerGoal extends SoulAbilityGoal {
         if(distanceSquared > Math.pow(mob.getWidth(), 2) * 1.5) return;
 
         mob.addPassenger(riderTarget);
-        mob.getWorld().playSound(mob, Sound.ENTITY_PIG_SADDLE, 1f, 0.5f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_PIG_SADDLE, 1f, 0.5f);
 
         riderTarget = null;
     }

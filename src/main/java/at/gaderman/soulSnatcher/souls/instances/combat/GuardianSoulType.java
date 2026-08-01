@@ -131,7 +131,7 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
                 event.setDamage(event.getDamage() * (1 + charge));
 
                 target.getWorld().spawnParticle(Particle.ENCHANTED_HIT, target.getEyeLocation(), 30, 0.35, 0.5, 0.35, 0.35);
-                target.getWorld().playSound(target, Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1f, 1.25f + (float) charge);
+                target.getWorld().playSound(target.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_IMPACT, 1f, 1.25f + (float) charge);
             } finally {
                 lastAttack = System.currentTimeMillis();
 
@@ -147,14 +147,14 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
 
                     carrier.getWorld().spawnParticle(Particle.DUST, carrier.getLocation().clone().add(0, 2, 0),
                             1, 0, 0, 0, 0, new Particle.DustOptions(Color.AQUA, 1));
-                    carrier.getWorld().playSound(carrier, Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1f);
+                    carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1f);
                 }, chargeBuffer / 50);
 
                 notifyFullCharge = Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
                     if (!carrier.isValid())
                         return;
 
-                    carrier.getWorld().playSound(carrier, Sound.ENTITY_GUARDIAN_AMBIENT, 1f, 1.8f);
+                    carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_GUARDIAN_AMBIENT, 1f, 1.8f);
                     carrier.getWorld().spawnParticle(Particle.ENCHANTED_HIT, carrier.getEyeLocation(), 30, 0.35, 0.5, 0.35, 0);
                 }, (chargeBuffer + chargeTime) / 50);
             }

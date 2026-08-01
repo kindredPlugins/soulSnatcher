@@ -107,7 +107,7 @@ public class HorseSoulType extends ConfigHoldingSoulType {
                 player.sendTitlePart(TitlePart.TITLE, Component.text(""));
                 player.sendTitlePart(TitlePart.SUBTITLE, subtitle);
 
-                player.playSound(player, Sound.ENTITY_HORSE_AMBIENT, 1f, (float) (movRatio * 2));
+                player.playSound(player.getLocation(), Sound.ENTITY_HORSE_AMBIENT, 1f, (float) (movRatio * 2));
             }
         }
 

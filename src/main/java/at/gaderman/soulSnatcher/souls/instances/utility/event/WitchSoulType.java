@@ -113,7 +113,7 @@ public class WitchSoulType extends ConfigHoldingSoulType {
             item.setData(DataComponentTypes.USE_COOLDOWN, useCooldown);
 
             carrier.getWorld().spawnParticle(Particle.WITCH, carrier.getEyeLocation(), 20);
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_WITCH_CELEBRATE, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1f, 1f);
         }
 
         private NamespacedKey createKeyForPotion(ItemStack potion) {

@@ -43,6 +43,6 @@ public class SpiderDashGoal extends SoulAbilityGoal{
         mob.setVelocity(mob.getVelocity().add(mob.getLocation().getDirection().multiply(0.95).setY(0.4)));
 
         mob.getWorld().spawnParticle(Particle.SWEEP_ATTACK, mob.getLocation().add(0, 0.2, 0), 1, 0, 0, 0, 0);
-        mob.getWorld().playSound(mob, Sound.ENTITY_SPIDER_AMBIENT, 1f, 1.3f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_SPIDER_AMBIENT, 1f, 1.3f);
     }
 }

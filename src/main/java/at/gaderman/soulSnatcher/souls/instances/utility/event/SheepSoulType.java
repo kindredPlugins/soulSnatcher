@@ -101,7 +101,7 @@ public class SheepSoulType extends ConfigHoldingSoulType {
 
             carrier.getWorld().spawnParticle(Particle.DUST, carrier.getLocation().add(0, 0.8, 0), 50, 0.3, 0.5, 0.3, 0.2,
                     new Particle.DustOptions(Color.WHITE, 2));
-            carrier.getWorld().playSound(carrier, Sound.BLOCK_WOOL_HIT, 3f, 0.5f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_WOOL_HIT, 3f, 0.5f);
 
             if(event.getDamageSource().getCausingEntity() instanceof LivingEntity livingEntity) {
                 Vector knockbackDirection = carrier.getLocation().subtract(livingEntity.getLocation()).toVector();

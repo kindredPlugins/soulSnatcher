@@ -50,7 +50,7 @@ public class PhantomAttackGoal extends SoulAbilityGoal{
         mob.setVelocity(new Vector(0, 1.5, 0));
 
         mob.getWorld().spawnParticle(Particle.CLOUD, mob.getLocation().add(0, 0.2, 0), 100, 0.1, 0, 0.1, 0.1);
-        mob.getWorld().playSound(mob, Sound.ENTITY_CAT_HISS, 2f, 1.5f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_CAT_HISS, 2f, 1.5f);
 
         Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), phantomSoul::activateGliding, 20L);
     }

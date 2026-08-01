@@ -133,7 +133,7 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
             if (atkSpeed != null)
                 atkSpeed.addModifier(new AttributeModifier(BOOST, soulType().atspBonus.cached(), AttributeModifier.Operation.MULTIPLY_SCALAR_1));
 
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_VINDICATOR_AMBIENT, 1f, 1.5f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_VINDICATOR_AMBIENT, 1f, 1.5f);
             carrier.getWorld().spawn(carrier.getLocation().clone().add(0, 2, 0).setDirection(carrier.getLocation().getDirection().setY(0)), ItemDisplay.class, display -> {
                display.setItemStack(ItemStack.of(Material.EMERALD));
                display.setBillboard(Display.Billboard.FIXED);
