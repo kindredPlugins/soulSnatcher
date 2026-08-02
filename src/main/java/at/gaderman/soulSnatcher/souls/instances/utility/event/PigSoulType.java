@@ -127,11 +127,14 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onSneakToggle(Player carrier, PlayerToggleSneakEvent event) {
-            if (event.isSneaking() && dropPassengerTask == null) {
+            if (event.isSneaking() && dropPassengerTask == null && !carrier.getPassengers().isEmpty()) {
                 dropPassengerTask = new BukkitRunnable() {
                     @Override
                     public void run() {
                         dropPassengerTask = null;
+
+                        if(carrier.getPassengers().isEmpty())
+                            return;
 
                         carrier.eject();
                         carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_SADDLE_UNEQUIP, 1f, 1f);

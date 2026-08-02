@@ -8,3 +8,6 @@ commands:
   soulIndex:
     description: Opens the index of all souls allowing players to view all info on them
     usage: /soulIndex
+  soulLantern:
+    description: Obtain or update the soul lantern in possession of the player
+    usage: /soulLantern
