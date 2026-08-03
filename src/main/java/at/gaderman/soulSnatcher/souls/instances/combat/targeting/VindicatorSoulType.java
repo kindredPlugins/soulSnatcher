@@ -75,6 +75,7 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
                         .append(Component.text("+" + moveBonus.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
                 Component.text("and ")
                         .append(Component.text("+" + atspBonus.cached() * 100 + "% Attack Speed", NamedTextColor.AQUA))
+                        .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
 

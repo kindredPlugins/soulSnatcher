@@ -63,9 +63,11 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When engaging in combat ")
-                        .append(Component.text("mark ", NamedTextColor.DARK_RED)),
-                Component.text("a target and gain ")
-                        .append(Component.text("+" + engageBoost.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
+                        .append(Component.text("mark ", NamedTextColor.DARK_RED))
+                        .append(Component.text("a target", NamedTextColor.WHITE)),
+                Component.text("and gain ")
+                        .append(Component.text("+" + engageBoost.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA))
+                        .append(Component.text(".", NamedTextColor.WHITE)),
                 Component.text("Mark automatically jumps to the next target on death", NamedTextColor.GRAY)
         );
     }
