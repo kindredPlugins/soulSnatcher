@@ -120,21 +120,24 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
             if (!player.addPassenger(entity)) return;
 
-            player.getWorld().playSound(player, Sound.ENTITY_PIG_SADDLE, 1f, 0.5f);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PIG_SADDLE, 1f, 0.5f);
             if (entity instanceof Mob mob && player.equals(mob.getTarget()))
                 mob.setTarget(null);
         }
 
         @Override
         public void onSneakToggle(Player carrier, PlayerToggleSneakEvent event) {
-            if (event.isSneaking() && dropPassengerTask == null) {
+            if (event.isSneaking() && dropPassengerTask == null && !carrier.getPassengers().isEmpty()) {
                 dropPassengerTask = new BukkitRunnable() {
                     @Override
                     public void run() {
                         dropPassengerTask = null;
 
+                        if(carrier.getPassengers().isEmpty())
+                            return;
+
                         carrier.eject();
-                        carrier.getWorld().playSound(carrier, Sound.ITEM_SADDLE_UNEQUIP, 1f, 1f);
+                        carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_SADDLE_UNEQUIP, 1f, 1f);
                     }
                 }.runTaskLater(SoulSnatcher.getPlugin(), soulType().dropPassengerDelay.cached());
             }

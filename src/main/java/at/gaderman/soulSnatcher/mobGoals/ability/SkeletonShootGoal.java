@@ -86,7 +86,7 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
         drawingTicks = 0;
         lastShot = System.currentTimeMillis();
 
-        mob.getWorld().playSound(mob, Sound.ENTITY_ARROW_SHOOT, 1f, 1f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1f, 1f);
         mob.launchProjectile(Arrow.class, mob.getLocation().getDirection().multiply(2));
     }
 }

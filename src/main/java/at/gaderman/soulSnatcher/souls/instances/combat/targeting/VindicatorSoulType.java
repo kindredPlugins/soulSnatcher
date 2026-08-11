@@ -13,19 +13,18 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.*;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -76,6 +75,7 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
                         .append(Component.text("+" + moveBonus.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
                 Component.text("and ")
                         .append(Component.text("+" + atspBonus.cached() * 100 + "% Attack Speed", NamedTextColor.AQUA))
+                        .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
 
@@ -133,7 +133,7 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
             if (atkSpeed != null)
                 atkSpeed.addModifier(new AttributeModifier(BOOST, soulType().atspBonus.cached(), AttributeModifier.Operation.MULTIPLY_SCALAR_1));
 
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_VINDICATOR_AMBIENT, 1f, 1.5f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_VINDICATOR_AMBIENT, 1f, 1.5f);
             carrier.getWorld().spawn(carrier.getLocation().clone().add(0, 2, 0).setDirection(carrier.getLocation().getDirection().setY(0)), ItemDisplay.class, display -> {
                display.setItemStack(ItemStack.of(Material.EMERALD));
                display.setBillboard(Display.Billboard.FIXED);

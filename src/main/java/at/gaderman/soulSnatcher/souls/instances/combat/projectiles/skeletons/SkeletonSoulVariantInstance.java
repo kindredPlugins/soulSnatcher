@@ -32,7 +32,7 @@ public class SkeletonSoulVariantInstance extends SoulInstance<SoulType> implemen
     @Override
     public void onEntityLaunchProjectile(LivingEntity carrier, Projectile projectile, ProjectileLaunchEvent event) {
         projectile.getPersistentDataContainer().set(shot_key, PersistentDataType.STRING, carrier.getUniqueId().toString());
-        carrier.getWorld().playSound(carrier, options.shotSound, 1f, 0.2f);
+        carrier.getWorld().playSound(carrier.getLocation(), options.shotSound, 1f, 0.2f);
 
         boolean isArrow = projectile instanceof AbstractArrow;
 

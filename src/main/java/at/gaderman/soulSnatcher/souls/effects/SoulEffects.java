@@ -124,13 +124,8 @@ public class SoulEffects {
 
                 display.remove();
 
-                display.getWorld().spawnParticle(
-                        Particle.WHITE_SMOKE, finalPos,
-                        15, 0.2, 0.2, 0.2, 0.02
-                );
-                display.getWorld().playSound(
-                        finalPos, Sound.ENTITY_CHICKEN_EGG,
-                        1f, 0.2f
+                display.getWorld().spawnParticle(Particle.WHITE_SMOKE, finalPos, 15, 0.2, 0.2, 0.2, 0.02);
+                display.getWorld().playSound(finalPos, Sound.ENTITY_CHICKEN_EGG, 1f, 0.2f
                 );
             }, RELEASED_LIFETIME_TICKS);
         });
@@ -439,11 +434,11 @@ public class SoulEffects {
 
             player.setVelocity(player.getVelocity().add(new Vector(0, 0.28, 0)));
 
-            world.playSound(player, Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 0.8f);
-            world.playSound(player, Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1f, 0.6f);
+            world.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 0.8f);
+            world.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1f, 0.6f);
 
             Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(),
-                    () -> world.playSound(player, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.6f),
+                    () -> world.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.6f),
                     10L);
 
             Location effectLoc = player.getLocation().add(0, 1, 0);

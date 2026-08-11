@@ -141,7 +141,7 @@ public class EvokerSoulType extends ConfigHoldingSoulType {
                 }
             }
 
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_EVOKER_CAST_SPELL, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_EVOKER_CAST_SPELL, 1f, 1f);
         }
 
         private boolean isValidFangLocation(Location loc) {

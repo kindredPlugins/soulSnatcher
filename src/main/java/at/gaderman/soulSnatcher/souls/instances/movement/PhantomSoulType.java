@@ -107,12 +107,12 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
 
         private boolean gliding;
 
-        public void activateGliding(){
+        public void activateGliding() {
             gliding = true;
             LivingEntity carrier = carrier();
 
             Vector velocity = carrier.getVelocity();
-            if(velocity.getY() < 0) carrier.setVelocity(velocity.setY(velocity.getY() * 0.95));
+            if (velocity.getY() < 0) carrier.setVelocity(velocity.setY(velocity.getY() * 0.95));
 
             final double initialDownwardSpeed = Math.max(0.0, -carrier.getVelocity().getY());
             if (initialDownwardSpeed > 0) {
@@ -127,7 +127,8 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
                 @Override
                 public void run() {
                     if (!gliding || !carrier.isValid() || carrier.isOnGround()) {
-                        if (carrier.isValid() && carrier instanceof Player player) player.stopSound(Sound.ITEM_ELYTRA_FLYING);
+                        carrier.getWorld().getNearbyPlayers(carrier.getLocation(), 25, 25, 25)
+                                .forEach(nearby -> nearby.stopSound(Sound.ITEM_ELYTRA_FLYING));
                         cancel();
                         return;
                     }
@@ -155,7 +156,7 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
 
                     if (ticks % 5 == 0) {
                         carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation(), 5, 0.1, 0, 0.1, 0.01);
-                        carrier.getWorld().playSound(carrier, Sound.ITEM_ELYTRA_FLYING, 0.25f, 0.75f);
+                        carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_ELYTRA_FLYING, 0.25f, 0.75f);
                     }
 
                 }
@@ -164,7 +165,7 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onSneakToggle(Player carrier, PlayerToggleSneakEvent event) {
-            if(!gliding){
+            if (!gliding) {
                 activateGliding();
             }
 

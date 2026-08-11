@@ -124,7 +124,7 @@ public class WitchDrinkGoal extends SoulAbilityGoal{
         lasDrink = System.currentTimeMillis();
 
 
-        mob.getWorld().playSound(mob, Sound.ENTITY_WITCH_CELEBRATE, 1f, 1f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1f, 1f);
         mob.getWorld().spawnParticle(Particle.ENTITY_EFFECT, mob.getEyeLocation(), 30, 0, 0.3, 0,
                 1, Color.GRAY);
 

@@ -160,7 +160,7 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
 
                         carrier.getWorld().spawnParticle(Particle.BLOCK_CRUMBLE, carrier.getEyeLocation(), 2,
                                 0.2, 0.2, 0.2, 0.1, Material.REDSTONE_BLOCK.createBlockData());
-                        carrier.getWorld().playSound(carrier, Sound.ENTITY_HOGLIN_HURT, 0.5f, 0.2f);
+                        carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_HOGLIN_HURT, 0.5f, 0.2f);
 
                         currentCycle++;
                     }

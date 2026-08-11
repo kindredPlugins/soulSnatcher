@@ -202,7 +202,7 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
             }
 
             if (previousGoldCount < goldAmount) {
-                carrier.getWorld().playSound(carrier, Sound.ENTITY_PIGLIN_ADMIRING_ITEM, 1f, 1f);
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_PIGLIN_ADMIRING_ITEM, 1f, 1f);
                 carrier.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, carrier.getEyeLocation(), 20, 0.2, 0.2, 0.2, 0.5);
 
                 if (goldSparkle == null) {

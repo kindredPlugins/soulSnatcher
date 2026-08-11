@@ -116,7 +116,7 @@ public class SpiderSoulType extends ConfigHoldingSoulType {
             carrier.setExhaustion(carrier.getExhaustion() + soulType().dashExhaustion.cached().floatValue());
 
             carrier.getWorld().spawnParticle(Particle.SWEEP_ATTACK, carrier.getLocation().add(0, 0.2, 0), 1, 0, 0, 0, 0);
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_SPIDER_AMBIENT, 1f, 1.5f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_SPIDER_AMBIENT, 1f, 1.5f);
 
         }
     }

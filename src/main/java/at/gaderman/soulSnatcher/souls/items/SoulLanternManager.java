@@ -8,19 +8,23 @@ import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
@@ -180,5 +184,24 @@ public class SoulLanternManager implements Listener {
                 lookingAtOrbits.add(player.getUniqueId());
             }
         }
+    }
+
+    @EventHandler
+    public void onDrop(PlayerDropItemEvent event){
+        Item drop = event.getItemDrop();
+        ItemStack item = drop.getItemStack();
+        if(!item.getPersistentDataContainer().has(LANTERN_KEY))
+            return;
+
+        drop.remove();
+        drop.getWorld().spawnParticle(Particle.WHITE_SMOKE, drop.getLocation(), 30, 0.5, 0.5, 0.5, 0.05);
+        drop.getWorld().playSound(drop.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1f, 0.25f);
+
+        Player player = event.getPlayer();
+        player.sendMessage(Component.text("You disposed your ", NamedTextColor.GRAY)
+                .append(item.effectiveName())
+                .append(Component.text("! Get a new one by running ", NamedTextColor.GRAY))
+                .append(Component.text("/soullantern", NamedTextColor.AQUA).clickEvent(ClickEvent.runCommand("soullantern")))
+        );
     }
 }

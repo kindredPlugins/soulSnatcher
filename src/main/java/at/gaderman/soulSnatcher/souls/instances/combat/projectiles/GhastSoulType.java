@@ -70,7 +70,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
 
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("Every ")
-                        .append(Component.text((isInt ? (int) (cooldown) : cooldown) + "s ", NamedTextColor.GOLD))
+                        .append(Component.text((isInt ? (int) (cooldown) : cooldown) + "s ", NamedTextColor.AQUA))
                         .append(Component.text("your next shot projectile")),
                 Component.text("will explode upon impact, dealing"),
                 Component.text("knockback and up to ")
@@ -121,7 +121,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
             lastGhastShot = System.currentTimeMillis();
 
             projectile.getPersistentDataContainer().set(GHAST_SHOT, PersistentDataType.STRING, carrier.getUniqueId().toString());
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_GHAST_SHOOT, 1f, 0.5f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_GHAST_SHOOT, 1f, 0.5f);
 
             projectile.setVelocity(projectile.getVelocity().multiply(soulType().projectileSpeedMultiplier.cached()));
 

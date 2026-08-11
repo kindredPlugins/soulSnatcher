@@ -115,8 +115,8 @@ public class SoulVialManager implements Listener {
             player.give(filledVial);
         }
 
-        player.getWorld().playSound(player, Sound.ENTITY_WITHER_AMBIENT, 2f, 0.5f);
-        player.getWorld().playSound(player, Sound.BLOCK_ENDER_CHEST_CLOSE, 2f, 0.5f);
+        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 2f, 0.5f);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_CLOSE, 2f, 0.5f);
 
         player.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, soulLocation,
                 200, 0.3, 0.3, 0.3, 0.1);
@@ -177,7 +177,7 @@ public class SoulVialManager implements Listener {
 
         player.getWorld().spawnParticle(Particle.SOUL, rewardLocation, 30, 0.4, 0.4, 0.4, 0.1);
         player.getWorld().spawnParticle(Particle.EXPLOSION, rewardLocation, 1);
-        player.getWorld().playSound(player, Sound.BLOCK_GLASS_BREAK, 3f, 0.5f);
+        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 3f, 0.5f);
     }
 
     @EventHandler(ignoreCancelled = true)

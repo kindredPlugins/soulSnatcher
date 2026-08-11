@@ -115,7 +115,7 @@ public class SquidSoulType extends ConfigHoldingSoulType {
                     0, 0, 0, 0.1);
             carrier.getWorld().spawnParticle(Particle.LARGE_SMOKE, carrier.getLocation().add(0, 1, 0), 10,
                     0, 0, 0, 0.1);
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_SQUID_HURT, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_SQUID_HURT, 1f, 1f);
 
             carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), 5).forEach(target -> {
                 if (!combatTargets.contains(target)) return;

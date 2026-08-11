@@ -16,7 +16,10 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
-import org.bukkit.event.entity.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -110,7 +113,7 @@ public class MagmaCubeSoulType extends ConfigHoldingSoulType {
 
             if (lastHeal < System.currentTimeMillis() - soulType().healingCooldown.cached()) {
                 carrier.getWorld().spawnParticle(Particle.FLAME, carrier.getLocation().add(0, 1, 0), 30, 0, 0.5, 0, 0.1);
-                carrier.getWorld().playSound(carrier, Sound.BLOCK_LAVA_AMBIENT, 1f, 2f);
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_LAVA_AMBIENT, 1f, 2f);
 
                 lastHeal = System.currentTimeMillis();
                 carrier.heal(soulType().healAmount.cached(), EntityRegainHealthEvent.RegainReason.REGEN);

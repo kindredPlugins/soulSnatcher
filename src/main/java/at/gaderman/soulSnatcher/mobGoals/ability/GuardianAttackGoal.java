@@ -60,7 +60,7 @@ public class GuardianAttackGoal extends SoulAbilityGoal {
     @Override
     public void start() {
         lastLaserInit = System.currentTimeMillis();
-        mob.getWorld().playSound(mob, Sound.ENTITY_GUARDIAN_AMBIENT, 1f, 1f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_GUARDIAN_AMBIENT, 1f, 1f);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class GuardianAttackGoal extends SoulAbilityGoal {
                 location.getWorld().spawnParticle(Particle.ENCHANTED_HIT, location, 1, 0, 0, 0, 0);
             }
 
-            mob.getWorld().playSound(mob, Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1f);
+            mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1f);
         }
 
         laserTicks++;

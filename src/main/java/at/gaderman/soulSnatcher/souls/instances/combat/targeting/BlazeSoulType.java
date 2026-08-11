@@ -22,6 +22,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -137,7 +138,12 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
                         for (LivingEntity target : carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached())) {
                             if (target.getNoDamageTicks() != 0 || !combatTargets.contains(target)) continue;
 
-                            if (carrier.getWorld().rayTraceBlocks(carrier.getEyeLocation(), target.getLocation().toVector().subtract(carrier.getLocation().toVector()),
+                            Vector direction = target.getLocation().toVector().subtract(carrier.getLocation().toVector());
+                            //raycast cannot handle length 0, this could happen when positions exactly overlap
+                            if(direction.length() <= 0)
+                                continue;
+
+                            if (carrier.getWorld().rayTraceBlocks(carrier.getEyeLocation(), direction,
                                     (Math.sqrt(2 * soulType().auraRange.cached()))) != null)
                                 return;
 
@@ -176,7 +182,7 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
                     combatTargets.clear();
                     carrier.getWorld().spawnParticle(Particle.SMOKE, carrier.getLocation().add(0, 1, 0),
                             30, 0.5, 0.5, 0.5, 0.1);
-                    carrier.getWorld().playSound(carrier, Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 0.2f);
+                    carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 0.2f);
 
                     auraTask = null;
                     cancel();
@@ -194,7 +200,7 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
         protected void addCombatTarget(LivingEntity target) {
             super.addCombatTarget(target);
 
-            if (this.auraTask == null)
+            if (!this.combatTargets.isEmpty() && this.auraTask == null)
                 auraTask = createAuraTask();
         }
     }

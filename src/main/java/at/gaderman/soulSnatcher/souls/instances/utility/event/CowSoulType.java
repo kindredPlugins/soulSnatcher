@@ -93,7 +93,7 @@ public class CowSoulType extends ConfigHoldingSoulType {
             if(milkInProcess || event.getNewEffect().getType().getEffectCategory() != PotionEffectType.Category.HARMFUL) return;
 
             milkInProcess = true;
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_WANDERING_TRADER_DRINK_MILK, 1f, 1f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WANDERING_TRADER_DRINK_MILK, 1f, 1f);
 
             SoulSnatcher.getPlugin().registerDelayedTask(() -> {
                 milkInProcess = false;
@@ -105,7 +105,7 @@ public class CowSoulType extends ConfigHoldingSoulType {
                         .forEach(effect -> carrier.removePotionEffect(effect.getType()));
 
                 carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation().add(0, 1, 0), 30, 0.2, 0.2, 0.2, 0.1);
-                carrier.getWorld().playSound(carrier, Sound.ENTITY_SPLASH_POTION_THROW, 1f, 2f);
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_SPLASH_POTION_THROW, 1f, 2f);
             }, soulType().milkDelayTicks.cached());
         }
     }

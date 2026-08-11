@@ -1,5 +1,5 @@
 name: soulSnatcher
-version: '1.1.0'
+version: '1.1.1'
 main: at.gaderman.soulSnatcher.SoulSnatcher
 author: gaderman244
 api-version: '1.21'
@@ -8,3 +8,6 @@ commands:
   soulIndex:
     description: Opens the index of all souls allowing players to view all info on them
     usage: /soulIndex
+  soulLantern:
+    description: Obtain or update the soul lantern in possession of the player
+    usage: /soulLantern

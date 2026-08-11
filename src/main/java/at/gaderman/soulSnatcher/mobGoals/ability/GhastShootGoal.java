@@ -97,7 +97,7 @@ public class GhastShootGoal extends SoulAbilityGoal {
         preparingTicks = 0;
         lastShot = System.currentTimeMillis();
 
-        mob.getWorld().playSound(mob, Sound.ENTITY_GHAST_SHOOT, 2f, 1f);
+        mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_GHAST_SHOOT, 2f, 1f);
         mob.launchProjectile(LargeFireball.class, mob.getLocation().getDirection().multiply(2));
     }
 

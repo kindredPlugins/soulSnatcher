@@ -104,7 +104,7 @@ public class DolphinSoulType extends ConfigHoldingSoulType {
 
             if(event.isSwimming()) {
                 carrier.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, PotionEffect.INFINITE_DURATION, 1));
-                carrier.getWorld().playSound(carrier, Sound.ENTITY_DOLPHIN_PLAY, 1f, 1.2f);
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_DOLPHIN_PLAY, 1f, 1.2f);
                 carrier.getWorld().spawnParticle(Particle.BUBBLE, carrier.getLocation(), 100);
             }else {
                 if(!carrier.isUnderWater()){

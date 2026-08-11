@@ -65,7 +65,7 @@ public class CatSoulType extends SoulType {
             event.setCancelled(true);
 
             carrier.getWorld().spawnParticle(Particle.CLOUD, carrier.getLocation(), 100, 0, 0, 0, 0.1);
-            carrier.getWorld().playSound(carrier, Sound.ENTITY_CAT_AMBIENT, 1f, 2f);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_CAT_AMBIENT, 1f, 2f);
         }
 
         @Override

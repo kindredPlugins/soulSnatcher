@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -36,6 +37,9 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
     private BukkitTask cancelCombat;
 
     protected void addCombatTarget(LivingEntity target) {
+        if(target.equals(carrier()))
+            return;
+
         combatTargets.add(target);
 
         combatTargets = combatTargets.stream()
@@ -61,6 +65,9 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
 
     @Override
     public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
+        if(event.getReason() == EntityTargetEvent.TargetReason.TEMPT)
+            return;
+
         Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
             if (event.isCancelled() || !carrier.isValid() || !entity.isValid()) return;
 
