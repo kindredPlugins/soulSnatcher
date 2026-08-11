@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
-@AutoService(SoulType.class)
 public class ShulkerSoulType extends ConfigHoldingSoulType {
 
     @Override
