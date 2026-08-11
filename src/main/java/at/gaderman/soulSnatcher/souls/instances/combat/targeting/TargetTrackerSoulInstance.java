@@ -37,6 +37,9 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
     private BukkitTask cancelCombat;
 
     protected void addCombatTarget(LivingEntity target) {
+        if(target.equals(carrier()))
+            return;
+
         combatTargets.add(target);
 
         combatTargets = combatTargets.stream()
