@@ -7,10 +7,7 @@ import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnSprintToggleTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnSwimToggleTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.*;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
@@ -278,6 +275,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnSwimToggleTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onSwimToggle(entity, event);
+                });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onToggleGlide(EntityToggleGlideEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity carrier)) return;
+
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(carrier);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityToggleGlideTrigger)
+                .map(soul -> (OnEntityToggleGlideTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onToggleGlide(carrier, event);
                 });
     }
 

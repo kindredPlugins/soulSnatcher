@@ -1,5 +1,5 @@
 name: soulSnatcher
-version: '1.1.1'
+version: '1.2.0'
 main: at.gaderman.soulSnatcher.SoulSnatcher
 author: gaderman244
 api-version: '1.21'

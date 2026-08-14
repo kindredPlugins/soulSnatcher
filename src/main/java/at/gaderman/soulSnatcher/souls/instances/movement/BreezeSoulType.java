@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
+@AutoService(SoulType.class)
 public class BreezeSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull SoulInstance<BreezeSoulType> create(LivingEntity carrier) {

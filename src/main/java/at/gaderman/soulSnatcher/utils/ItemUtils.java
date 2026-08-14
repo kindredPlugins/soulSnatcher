@@ -2,7 +2,9 @@ package at.gaderman.soulSnatcher.utils;
 
 import com.destroystokyo.paper.profile.PlayerProfile;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -112,5 +114,60 @@ public class ItemUtils {
 
         if (currentLength > 0) lines.add(currentLine);
         return lines;
+    }
+
+    /**
+     * Creates a static RGB gradient across the given text.
+     *
+     * @param text  The text to color
+     * @param start The color of the first character
+     * @param end   The color of the last character
+     * @return A Component containing the gradient text
+     */
+    public static Component gradient(
+            String text,
+            TextColor start,
+            TextColor end
+    ) {
+        if (text == null || text.isEmpty()) {
+            return Component.empty();
+        }
+
+        if (text.length() == 1) {
+            return Component.text(text, start);
+        }
+
+        TextComponent.Builder builder = Component.text();
+
+        int startRed = start.red();
+        int startGreen = start.green();
+        int startBlue = start.blue();
+
+        int endRed = end.red();
+        int endGreen = end.green();
+        int endBlue = end.blue();
+
+        for (int i = 0; i < text.length(); i++) {
+            double progress = (double) i / (text.length() - 1);
+
+            int red = lerp(startRed, endRed, progress);
+            int green = lerp(startGreen, endGreen, progress);
+            int blue = lerp(startBlue, endBlue, progress);
+
+            TextColor color = TextColor.color(red, green, blue);
+
+            builder.append(
+                    Component.text(String.valueOf(text.charAt(i)))
+                            .color(color)
+            );
+        }
+
+        return builder.build();
+    }
+
+    private static int lerp(int start, int end, double progress) {
+        return (int) Math.round(
+                start + (end - start) * progress
+        );
     }
 }
