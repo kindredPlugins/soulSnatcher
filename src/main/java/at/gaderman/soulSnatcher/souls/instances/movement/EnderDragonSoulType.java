@@ -4,8 +4,8 @@ import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
+import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnEntityToggleGlideTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
@@ -13,24 +13,18 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
-import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
-import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.PotionType;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.*;
 
 @AutoService(SoulType.class)
 public class EnderDragonSoulType extends ConfigHoldingSoulType {
@@ -67,37 +61,56 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
-
+                Component.text("When gaining enough ")
+                        .append(Component.text("elytra momentum ", NamedTextColor.AQUA)),
+                Component.text("enter ")
+                        .append(ItemUtils.gradient("Dragon Flight", NamedTextColor.DARK_AQUA, NamedTextColor.AQUA))
+                        .append(Component.text(" which boosts your", NamedTextColor.WHITE)),
+                Component.text("elytra fly speed and reduces friction."),
+                Component.text("Flying through mobs damages and"),
+                Component.text("knocks them away.")
         );
     }
 
     //region Config Values
 
-//    private static final String JUMP_COOLDOWN_CONFIG_ID = "jump_cooldown";
-//
-//    private final ConfigOption<Integer> jumpCooldown = configOption(JUMP_COOLDOWN_CONFIG_ID, 50, FileConfiguration::getInt, value -> Math.max(value, 0));
-//
-//    @Override
-//    public Map<String, String> extraConfigPathCommentMap() {
-//        return Map.of(
-//                JUMP_COOLDOWN_CONFIG_ID, "Cooldown for being able to do the wind charge jump after ground has been touched in ticks (20 ticks = 1 second)"
-//        );
-//    }
+    private static final String ENTER_DRAGON_FLIGHT_MAGNITUDE = "enter_dragon_flight_magnitude";
+    private static final String INITIAL_BOOST = "initial_boost_power";
+    private static final String CONTINUOUS_BOOST = "continuous_boost_power";
+    private static final String ATTACK_MIN_MAGNITUDE = "attack_min_magnitude";
+    private static final String FLY_THROUGH_DAMAGE = "fly_through_damage";
+    private static final String FLY_THROUGH_KNOCK_MULTIPLIER = "fly_through_knock_multiplier";
+
+    private final ConfigOption<Double> enterFlightMagnitude = configOption(ENTER_DRAGON_FLIGHT_MAGNITUDE, 1.1, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> initialBoost = configOption(INITIAL_BOOST, 1.5, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> continuousBoost = configOption(CONTINUOUS_BOOST, 1.005, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> attackMinMagnitude = configOption(ATTACK_MIN_MAGNITUDE, 1.3, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> flyThroughDamage = configOption(FLY_THROUGH_DAMAGE, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> flyThroughKnockMultiplier = configOption(FLY_THROUGH_KNOCK_MULTIPLIER, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                ENTER_DRAGON_FLIGHT_MAGNITUDE, "Amount of elytra velocity to enter dragon flight, measure in velocity vector magnitude squared (reference values at startup use: lunge III ~ 1.5 | firework rocket ~ 2.4 )",
+                INITIAL_BOOST, "Multiplicator applied to the current velocity when dragon flight is activated (1.5 -> 150%)",
+                CONTINUOUS_BOOST, "Continuous multiplier applied to elytra movement. CAREFUL !! changing this to a much higher value outgrows the elytra velocity falloff which can lead to infinite accelerating elytras",
+                ATTACK_MIN_MAGNITUDE, "The min magnitude when mobs near the flying player are damaged and knocked away (visible by denser particles), 1.3 can be considered \"flying\" as values beneath it are rather fine adjustments",
+                FLY_THROUGH_DAMAGE, "How much damage done to entities hit by the fly through",
+                FLY_THROUGH_KNOCK_MULTIPLIER, "When hit by the fly through applies the direction of the attackers velocity times this multiplier, Y value is set independently"
+        );
+    }
 
     //endregion
 
-    public static class EnderDragonSoulInstance extends SoulInstance<EnderDragonSoulType> implements OnEntityToggleGlideTrigger, OnDamageReceivedTrigger {
+    public static class EnderDragonSoulInstance extends SoulInstance<EnderDragonSoulType> implements OnEntityToggleGlideTrigger {
         protected EnderDragonSoulInstance(LivingEntity carrier, EnderDragonSoulType soulType) {
             super(carrier, soulType);
         }
 
-        private static NamespacedKey SOUL_BREATH = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_breath");
-
         private ScheduledTask flyingTask;
         private boolean dragonFlight;
 
-        private long lastLandExplosion;
-        private static final int LAND_EXPLOSION_COOLDOWN = 1000;
+        private final Set<UUID> hitInFlight = new LinkedHashSet<>();
 
         @Override
         public void onToggleGlide(LivingEntity carrier, @NotNull EntityToggleGlideEvent event) {
@@ -105,98 +118,94 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
                 return;
 
             flyingTask = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), (task) -> {
+                Location location = carrier.getLocation();
+
                 if (!carrier.isGliding()) {
                     dragonFlight = false;
                     flyingTask = null;
                     task.cancel();
+
+                    carrier.getWorld().playSound(location, Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 0.2f);
                     return;
                 }
 
-                if (!dragonFlight) {
-                    double magnitude = carrier.getVelocity().lengthSquared();
+                double magnitude = carrier.getVelocity().lengthSquared();
 
-                    if (magnitude < 1.1) {
-                        dragonFlight = false;
+                if (!dragonFlight) {
+                    if (magnitude < soulType().enterFlightMagnitude.cached()) {
                         return;
                     }
 
                     dragonFlight = true;
-                    carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
+                    carrier.getWorld().playSound(location, Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
 
-                    carrier.setVelocity(carrier.getVelocity().multiply(1.5));
+                    carrier.setVelocity(carrier.getVelocity().multiply(soulType().initialBoost.cached()));
                 } else {
-                    carrier.setVelocity(carrier.getVelocity().multiply(1.005));
+                    carrier.setVelocity(carrier.getVelocity().multiply(soulType().continuousBoost.cached()));
                 }
 
-                carrier.getWorld().spawnParticle(Particle.DRAGON_BREATH, carrier.getLocation(), 10, 2, 1, 2, 0.2, 1f);
+                boolean highMagnitude = magnitude > soulType().attackMinMagnitude.cached();
+                float offset = highMagnitude ? 2 : 0.8f;
+
+                carrier.getWorld().spawnParticle(Particle.DRAGON_BREATH, location, highMagnitude ? 15 : 3,
+                        offset, 1, offset, 0.2, 1f);
 
                 if (Bukkit.getCurrentTick() % 10 == 0)
-                    carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 1f);
+                    carrier.getWorld().playSound(location, Sound.ENTITY_ENDER_DRAGON_FLAP, 1f, 1f);
+
+                if (highMagnitude) {
+                    applyDragonFlyHit(carrier);
+                }
             }, () -> flyingTask = null, 1L, 1L);
         }
 
-        @Override
-        public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
-            if(!dragonFlight)
-                return;
+        private void applyDragonFlyHit(LivingEntity carrier) {
+            Vector knockDirection = carrier.getLocation().getDirection().normalize().multiply(soulType().flyThroughKnockMultiplier.cached()).setY(1.3);
 
-            if (event.getCause() != EntityDamageEvent.DamageCause.FLY_INTO_WALL
-                    && (event.getCause() != EntityDamageEvent.DamageCause.FALL || !carrier.isGliding()))
-                return;
+            Location loc = carrier.getLocation();
+            Vector dir = loc.getDirection().setY(0).normalize();
+            Vector normalVector = new Vector(-dir.getZ(), 0, dir.getX());
 
-            if(lastLandExplosion > System.currentTimeMillis() - LAND_EXPLOSION_COOLDOWN)
-                return;
+            double sideExtent = 3.0;
+            double frontExtent = 1.0;
+            double backExtent = 0.5;
+            double upExtent = 2.5;
+            double downExtent = 2.5;
 
-            lastLandExplosion = System.currentTimeMillis();
+            Vector base = loc.toVector();
+            double minX = Double.MAX_VALUE, maxX = -Double.MAX_VALUE;
+            double minZ = Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
 
-            double damage = event.getDamage();
-            event.setDamage(damage * 0.25);
+            for (double f : new double[]{-backExtent, frontExtent}) {
+                for (double s : new double[]{-sideExtent, sideExtent}) {
+                    Vector corner = base.clone().add(dir.clone().multiply(f)).add(normalVector.clone().multiply(s));
+                    minX = Math.min(minX, corner.getX());
+                    maxX = Math.max(maxX, corner.getX());
+                    minZ = Math.min(minZ, corner.getZ());
+                    maxZ = Math.max(maxZ, corner.getZ());
+                }
+            }
 
-            if (carrier instanceof Player player)
-                player.sendMessage(Component.text("You dealt")
-                        .append(Component.text(Math.min(damage, 20), NamedTextColor.GOLD))
-                );
+            BoundingBox flyingBox = new BoundingBox(minX, base.getY() - downExtent, minZ,
+                    maxX, base.getY() + upExtent, maxZ);
 
-            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 0.5f);
-            carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_DRAGON_FIREBALL_EXPLODE, 1f, 1f);
-            carrier.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, carrier.getLocation(), 1);
+            carrier.getWorld().getNearbyEntities(flyingBox, target -> target instanceof LivingEntity
+                    && !target.equals(carrier) && !hitInFlight.contains(target.getUniqueId())
+            ).forEach(entity -> {
+                LivingEntity target = (LivingEntity) entity;
+                hitInFlight.add(target.getUniqueId());
+                target.getScheduler().runDelayed(SoulSnatcher.getPlugin(),
+                        _ -> hitInFlight.remove(target.getUniqueId()),
+                        () -> hitInFlight.remove(target.getUniqueId()),
+                        10);
 
-            double explosionDamage = Math.min(damage, 20);
-            double radius = 4;
-            carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), radius).forEach(target -> {
-                if (target.equals(carrier))
-                    return;
-
-                double factor = 1 - target.getLocation().distanceSquared(carrier.getLocation()) / radius;
-                target.damage(explosionDamage * factor, DamageSource.builder(DamageType.EXPLOSION)
+                target.damage(soulType().flyThroughDamage.cached(), DamageSource.builder(DamageType.MOB_ATTACK)
                         .withDirectEntity(carrier)
                         .withCausingEntity(carrier)
                         .build());
+                target.setVelocity(knockDirection);
+                target.getWorld().playSound(target.getLocation(), Sound.ENTITY_ENDER_DRAGON_HURT, 1f, 1f);
             });
-
-            carrier.getWorld().spawn(carrier.getLocation(), AreaEffectCloud.class, breath -> {
-                breath.setParticle(Particle.DRAGON_BREATH, 1f);
-                breath.setBasePotionType(PotionType.HARMING);
-                breath.setOwnerUniqueId(carrier.getUniqueId());
-
-                breath.setDuration(100);
-                breath.setRadius(2);
-                breath.setRadiusPerTick(0.025f);
-
-                breath.getPersistentDataContainer().set(SOUL_BREATH, PersistentDataType.STRING, carrier.getUniqueId().toString());
-            });
-        }
-
-        @Override
-        public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
-            if (!(event.getDamager() instanceof AreaEffectCloud breath))
-                return;
-
-            String owner = breath.getPersistentDataContainer().getOrDefault(SOUL_BREATH, PersistentDataType.STRING, "");
-            if (!owner.equals(carrier.getUniqueId().toString()))
-                return;
-
-            event.setCancelled(true);
         }
     }
 }

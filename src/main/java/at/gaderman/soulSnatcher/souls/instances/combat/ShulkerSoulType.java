@@ -79,7 +79,7 @@ public class ShulkerSoulType extends ConfigHoldingSoulType {
     @Override
     public Map<String, String> extraConfigPathCommentMap() {
         return Map.of(
-                TRIGGER_COOLDOWN_CONFIG_ID, "Cooldown for healing when taking fire/lava damage (1000ms = 1s)"
+                TRIGGER_COOLDOWN_CONFIG_ID, "Cooldown for shooting a shulker bullet upon taking or dealing damage (1000ms = 1s)"
         );
     }
 
