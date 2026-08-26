@@ -44,6 +44,11 @@ public class SoulListener implements Listener {
         var souls = SoulType.getCarriedSouls(mob);
         if (!souls.isEmpty()) return;
 
+        if(mob instanceof Boss){
+            SoulReward.offerSoulReward(mob.getLocation(), mob.getKiller(), optSoul.get());
+            return;
+        }
+
         optSoul.get().releaseSoul(mob.getLocation(), mob.getKiller());
     }
 

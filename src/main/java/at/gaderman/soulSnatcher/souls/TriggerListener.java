@@ -1,9 +1,6 @@
 package at.gaderman.soulSnatcher.souls;
 
-import at.gaderman.soulSnatcher.souls.triggers.OnEntityEquipmentTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.*;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
@@ -340,6 +337,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnEntityEquipmentTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onEntityEquipmentChange(entity, event);
+                });
+    }
+
+    @EventHandler
+    public void onRegainHealth(EntityRegainHealthEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnRegainHealthTrigger)
+                .map(soul -> (OnRegainHealthTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onRegainHealth(entity, event);
                 });
     }
 
