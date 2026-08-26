@@ -1,4 +1,4 @@
-package at.gaderman.soulSnatcher.souls.triggers;
+package at.gaderman.soulSnatcher.souls.triggers.action;
 
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import org.bukkit.entity.LivingEntity;

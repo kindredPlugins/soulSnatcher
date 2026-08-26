@@ -1,6 +1,6 @@
 package at.gaderman.soulSnatcher.souls;
 
-import at.gaderman.soulSnatcher.souls.triggers.*;
+import at.gaderman.soulSnatcher.souls.triggers.action.*;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
@@ -290,11 +290,11 @@ public class TriggerListener implements Listener {
 
     //endregion
 
-    //region Others
+    //region Action
 
     @EventHandler(ignoreCancelled = true)
-    public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+    public void onEntityPotionEffect(EntityPotionEffectEvent event) {
+        LivingEntity entity = event.getEntity();
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
@@ -303,6 +303,19 @@ public class TriggerListener implements Listener {
                 .forEach(trigger -> {
                     trigger.onEntityPotionEffect(entity, event);
                 });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPotionSplash(PotionSplashEvent event) {
+        event.getAffectedEntities().forEach(entity -> {
+            List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+            souls.stream()
+                    .filter(soul -> soul instanceof OnPotionSplashTrigger)
+                    .map(soul -> (OnPotionSplashTrigger) soul)
+                    .forEach(trigger -> {
+                        trigger.onPotionSplash(entity, event.getEntity(), event);
+                    });
+        });
     }
 
     @EventHandler(ignoreCancelled = true)

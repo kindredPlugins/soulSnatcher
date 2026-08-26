@@ -5,7 +5,7 @@ import at.gaderman.soulSnatcher.mobGoals.ability.SkeletonShootGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.action.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnStopUsingItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
