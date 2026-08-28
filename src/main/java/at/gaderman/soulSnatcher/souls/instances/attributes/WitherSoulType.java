@@ -350,7 +350,7 @@ public class WitherSoulType extends ConfigHoldingSoulType {
         //endregion
 
         @Override
-        protected void reset() {
+        protected void extraCleanUp() {
             if(regenTask != null)
                 regenTask.cancel();
             regenTask = null;

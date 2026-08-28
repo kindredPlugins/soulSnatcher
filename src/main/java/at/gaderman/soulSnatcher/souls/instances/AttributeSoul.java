@@ -34,5 +34,11 @@ public abstract class AttributeSoul<T extends SoulType> extends SoulInstance<T> 
         attributeModifierMap().forEach(((attribute, modifier) -> {
             carrier().getAttribute(attribute).removeModifier(modifier.key());
         }));
+        extraCleanUp();
     }
+
+    /**
+     * Used for additional cleanUp, as the default one is overlapped with removing modifiers
+     */
+    protected void extraCleanUp(){}
 }
