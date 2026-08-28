@@ -97,6 +97,7 @@ public class WitchSoulType extends ConfigHoldingSoulType {
                 Bukkit.getMobGoals().addGoal(mob, 0, new WitchDrinkGoal(mob));
         }
 
+        //TODO: this actually modifies potion items themselves and the cooldown is not uniform introducing many issues around this ability
         @Override
         public void onConsumeItem(Player carrier, ItemStack item, PlayerItemConsumeEvent event) {
             if (item.getType() != Material.POTION) return;
@@ -104,7 +105,7 @@ public class WitchSoulType extends ConfigHoldingSoulType {
             event.setReplacement(item);
 
             float cooldown = getMaxDuration(item);
-            UseCooldown useCooldown = UseCooldown.useCooldown(cooldown)
+            UseCooldown useCooldown = UseCooldown.useCooldown(cooldown  )
                     .cooldownGroup(createKeyForPotion(item))
                     .build();
 
@@ -118,7 +119,7 @@ public class WitchSoulType extends ConfigHoldingSoulType {
 
         private NamespacedKey createKeyForPotion(ItemStack potion) {
             PotionMeta meta = (PotionMeta) potion.getItemMeta();
-            String value = String.join(";", meta.getAllEffects().stream()
+            String value = String.join("/", meta.getAllEffects().stream()
                     .map(effect -> effect.getType().key().value()).toList());
             return new NamespacedKey(SoulSnatcher.getPlugin(), value);
         }

@@ -7,6 +7,7 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
+import at.gaderman.soulSnatcher.souls.triggers.action.OnEffectCloudApplyTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnEntityPotionEffectTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnPotionSplashTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnRegainHealthTrigger;
@@ -19,6 +20,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -29,6 +31,7 @@ import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -115,32 +118,45 @@ public class WitherSoulType extends ConfigHoldingSoulType {
 
     //endregion
 
-    public static class WitherSoulInstance extends AttributeSoul<WitherSoulType> implements OnEntityPotionEffectTrigger, OnPotionSplashTrigger, OnConsumeItemTrigger, OnDamageReceivedTrigger, OnRegainHealthTrigger {
+    public static class WitherSoulInstance extends AttributeSoul<WitherSoulType> implements
+            OnEntityPotionEffectTrigger, OnPotionSplashTrigger, OnEffectCloudApplyTrigger,
+            OnConsumeItemTrigger, OnDamageReceivedTrigger, OnRegainHealthTrigger {
+
+        private static final List<PotionEffectType> IMMUNE_EFFECTS = List.of(
+                PotionEffectType.POISON,
+                PotionEffectType.REGENERATION,
+                PotionEffectType.WITHER
+        );
+
+        private static final double INSTANT_HEALTH_AMOUNT = 4.0;
+        private static final double INSTANT_DAMAGE_AMOUNT = 6.0;
+        private static final double INSTANT_DAMAGE_MULT_CLOUD = 3.0;
 
         private ScheduledTask regenTask;
 
+        private boolean skipHarming;
+        private boolean skipMagicHeal;
+
         protected WitherSoulInstance(LivingEntity carrier, WitherSoulType soulType) {
             super(carrier, soulType);
+            IMMUNE_EFFECTS.forEach(carrier::removePotionEffect);
+            startPassiveRegen(carrier, soulType);
+        }
 
-            immuneEffects.forEach(carrier::removePotionEffect);
-
+        private void startPassiveRegen(LivingEntity carrier, WitherSoulType soulType) {
             int healTicks = soulType.passiveHealthTick.cached();
             double healAmount = soulType.passiveHealthAmount.cached();
-
             AtomicLong tick = new AtomicLong();
-            regenTask = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), _ -> {
-                double health = carrier.getHealth();
 
+            regenTask = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), _ -> {
                 var maxHealth = carrier.getAttribute(Attribute.MAX_HEALTH);
-                if (maxHealth != null && maxHealth.getValue() > health) {
+                if (maxHealth != null && maxHealth.getValue() > carrier.getHealth()) {
                     if (tick.get() % 100 == 0) {
-                        spawnWitherParticles();
+                        carrier.getWorld().spawnParticle(Particle.LARGE_SMOKE, carrier.getEyeLocation(), 5, 0.5, 0.5, 0.5, 0);
                         carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 1f, 1f);
                     }
-
                     tick.getAndIncrement();
                 }
-
                 carrier.heal(healAmount, EntityRegainHealthEvent.RegainReason.MAGIC_REGEN);
             }, null, healTicks, healTicks);
         }
@@ -153,50 +169,77 @@ public class WitherSoulType extends ConfigHoldingSoulType {
             );
         }
 
-        private final List<PotionEffectType> immuneEffects = List.of(
-                PotionEffectType.POISON,
-                PotionEffectType.REGENERATION,
-                PotionEffectType.WITHER
-        );
+        //region Helper Methods
 
-        private void spawnWitherParticles() {
-            carrier().getWorld().spawnParticle(Particle.LARGE_SMOKE, carrier().getEyeLocation(), 5, 0.5, 0.5, 0.5, 0);
+        private double amount(PotionEffect effect, double multiplier) {
+            return (effect.getAmplifier() + 1) * multiplier;
         }
 
-        //TODO: unorganized code, "just so it works", properly organize in defined methods or else will kill you later
-        private boolean skipHarming;
-        private boolean skipMagicHeal;
+        private void resetNextTick(LivingEntity carrier, Runnable resetFlag) {
+            carrier.getScheduler().run(SoulSnatcher.getPlugin(), _ -> resetFlag.run(), null);
+        }
+
+        private void invertHealDeferred(LivingEntity carrier, PotionEffect effect, double intensity, DamageSource source) {
+            skipMagicHeal = true;
+            resetNextTick(carrier, () -> skipMagicHeal = false);
+            carrier.damage(amount(effect, WitherSoulInstance.INSTANT_HEALTH_AMOUNT) * intensity, source);
+        }
+
+        private void invertDamageDeferred(LivingEntity carrier, PotionEffect effect) {
+            skipHarming = true;
+            resetNextTick(carrier, () -> skipHarming = false);
+            carrier.heal(amount(effect, WitherSoulInstance.INSTANT_DAMAGE_AMOUNT), EntityRegainHealthEvent.RegainReason.MAGIC);
+        }
+
+        private void invertDamageDirect(Cancellable event, LivingEntity carrier, PotionEffect effect, double multiplier) {
+            event.setCancelled(true);
+            carrier.heal(amount(effect, multiplier), EntityRegainHealthEvent.RegainReason.MAGIC);
+        }
+
+        private DamageSource magicSource(DamageType type, Entity direct, Entity causing, Location location) {
+            DamageSource.Builder builder = DamageSource.builder(type);
+            if (direct != null) builder.withDirectEntity(direct);
+            if (causing != null) builder.withCausingEntity(causing);
+            if (location != null) builder.withDamageLocation(location);
+            return builder.build();
+        }
+
+        private List<PotionEffect> cloudEffects(AreaEffectCloud cloud) {
+            List<PotionEffect> effects = new ArrayList<>();
+            if (cloud.getBasePotionType() != null)
+                effects.addAll(cloud.getBasePotionType().getPotionEffects());
+            effects.addAll(cloud.getCustomEffects());
+            return effects;
+        }
+
+        //endregion
+
+        //region Event Handling
 
         @Override
         public void onEntityPotionEffect(LivingEntity carrier, EntityPotionEffectEvent event) {
             PotionEffect newEffect = event.getNewEffect();
             if (newEffect == null) return;
 
-            if (immuneEffects.contains(newEffect.getType())) {
+            if (IMMUNE_EFFECTS.contains(newEffect.getType())) {
                 event.setCancelled(true);
                 return;
             }
 
             if (newEffect.getType() == PotionEffectType.INSTANT_HEALTH) {
                 event.setCancelled(true);
-
-                DamageSource.Builder sourceBuilder = DamageSource.builder(DamageType.MAGIC);
-
-                if (event.getSource() != null)
-                    sourceBuilder.withDirectEntity(event.getSource());
+                DamageSource source = magicSource(DamageType.MAGIC, event.getSource(), null, null);
 
                 int noDamageTicks = carrier.getNoDamageTicks();
                 carrier.setNoDamageTicks(0);
-                carrier.damage((newEffect.getAmplifier() + 1) * 4, sourceBuilder.build());
+                carrier.damage(amount(newEffect, INSTANT_HEALTH_AMOUNT), source);
                 carrier.setNoDamageTicks(noDamageTicks);
                 return;
             }
 
             if (newEffect.getType() == PotionEffectType.INSTANT_DAMAGE) {
                 event.setCancelled(true);
-
-                carrier.heal((newEffect.getAmplifier() + 1) * 6, EntityRegainHealthEvent.RegainReason.MAGIC);
-                return;
+                carrier.heal(amount(newEffect, INSTANT_DAMAGE_AMOUNT), EntityRegainHealthEvent.RegainReason.MAGIC);
             }
         }
 
@@ -205,52 +248,53 @@ public class WitherSoulType extends ConfigHoldingSoulType {
             double intensity = event.getIntensity(carrier);
 
             potion.getEffects().stream()
-                    .filter(effect -> effect.getType().isInstant())
+                    .filter(effect -> effect.getType() == PotionEffectType.INSTANT_HEALTH)
                     .forEach(effect -> {
-                        if (effect.getType() == PotionEffectType.INSTANT_HEALTH) {
-                            DamageSource.Builder sourceBuilder = DamageSource.builder(DamageType.INDIRECT_MAGIC);
-                            sourceBuilder.withDamageLocation(potion.getLocation());
-                            sourceBuilder.withDirectEntity(potion);
-
-                            if(potion.getShooter() instanceof Entity shooter)
-                                sourceBuilder.withCausingEntity(shooter);
-
-                            carrier.damage((effect.getAmplifier() + 1) * 4 * intensity, sourceBuilder.build());
-                            skipMagicHeal = true;
-                            carrier.getScheduler().run(SoulSnatcher.getPlugin(), _ -> skipMagicHeal = false, null);
-                        }
+                        Entity shooter = potion.getShooter() instanceof Entity e ? e : null;
+                        DamageSource source = magicSource(DamageType.INDIRECT_MAGIC, potion, shooter, potion.getLocation());
+                        invertHealDeferred(carrier, effect, intensity, source);
                     });
         }
 
         @Override
-        public void onConsumeItem(Player carrier, ItemStack item, PlayerItemConsumeEvent event) {
-            if(item.getType() != Material.POTION)
-                return;
+        public void onEffectCloudApply(LivingEntity carrier, AreaEffectCloudApplyEvent event) {
+            AreaEffectCloud cloud = event.getEntity();
 
-            PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
-            List<PotionEffect> effects = potionMeta.getAllEffects();
+            List<PotionEffect> effects = new ArrayList<>();
+            if(cloud.getBasePotionType() != null)
+                effects.addAll(cloud.getBasePotionType().getPotionEffects());
+
+            effects.addAll(cloud.getCustomEffects());
 
             effects.forEach(effect -> {
-               if(effect.getType() == PotionEffectType.INSTANT_HEALTH) {
-                   skipMagicHeal = true;
-                   carrier.damage((effect.getAmplifier() + 1) * 4, DamageSource.builder(DamageType.INDIRECT_MAGIC)
-                                   .withDirectEntity(carrier)
-                           .build());
-                   carrier.getScheduler().run(SoulSnatcher.getPlugin(), _ -> skipMagicHeal = false, null);
-                   return;
-               }
+                if(effect.getType() == PotionEffectType.INSTANT_HEALTH) {
+                    skipMagicHeal = true;
+                    resetNextTick(carrier, () -> skipMagicHeal = false);
 
-               if(effect.getType() == PotionEffectType.INSTANT_DAMAGE) {
-                   skipHarming = true;
-                   carrier.heal((effect.getAmplifier() + 1) * 6,  EntityRegainHealthEvent.RegainReason.MAGIC);
-                   carrier.getScheduler().run(SoulSnatcher.getPlugin(), _ -> skipHarming = false, null);
-               }
+                    DamageSource source = magicSource(DamageType.INDIRECT_MAGIC, cloud, null, cloud.getLocation());
+                    invertHealDeferred(carrier, effect, 0.5, source);
+                }
             });
         }
 
         @Override
+        public void onConsumeItem(Player carrier, ItemStack item, PlayerItemConsumeEvent event) {
+            if (item.getType() != Material.POTION) return;
+
+            PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
+            for (PotionEffect effect : potionMeta.getAllEffects()) {
+                if (effect.getType() == PotionEffectType.INSTANT_HEALTH) {
+                    DamageSource source = magicSource(DamageType.INDIRECT_MAGIC, carrier, null, null);
+                    invertHealDeferred(carrier, effect, 1.0, source);
+                } else if (effect.getType() == PotionEffectType.INSTANT_DAMAGE) {
+                    invertDamageDeferred(carrier, effect);
+                }
+            }
+        }
+
+        @Override
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
-            if(skipHarming && event.getDamageSource().getDamageType() == DamageType.INDIRECT_MAGIC){
+            if (skipHarming && event.getDamageSource().getDamageType() == DamageType.INDIRECT_MAGIC) {
                 event.setCancelled(true);
                 skipHarming = false;
             }
@@ -262,41 +306,30 @@ public class WitherSoulType extends ConfigHoldingSoulType {
                 if (event.getDamager() instanceof ThrownPotion potion) {
                     potion.getEffects().stream()
                             .filter(effect -> effect.getType() == PotionEffectType.INSTANT_DAMAGE)
-                            .forEach(effect -> {
-                                event.setCancelled(true);
-                                carrier.heal((effect.getAmplifier() + 1) * 6, EntityRegainHealthEvent.RegainReason.MAGIC);
-                            });
+                            .forEach(effect -> invertDamageDirect(event, carrier, effect, INSTANT_DAMAGE_AMOUNT));
                 } else if (event.getDamager() instanceof AreaEffectCloud cloud) {
-                    List<PotionEffect> effects = new ArrayList<>();
-                    if (cloud.getBasePotionType() != null)
-                        effects.addAll(cloud.getBasePotionType().getPotionEffects());
-                    effects.addAll(cloud.getCustomEffects());
-
-                    effects.stream()
+                    cloudEffects(cloud).stream()
                             .filter(effect -> effect.getType() == PotionEffectType.INSTANT_DAMAGE)
-                            .forEach(effect -> {
-                                event.setCancelled(true);
-                                carrier.heal((effect.getAmplifier() + 1) * 3, EntityRegainHealthEvent.RegainReason.MAGIC);
-                            });
+                            .forEach(effect -> invertDamageDirect(event, carrier, effect, INSTANT_DAMAGE_MULT_CLOUD));
                 }
                 return;
             }
 
             EntityEquipment equipment = damager.getEquipment();
-            if (equipment == null)
-                return;
+            if (equipment == null) return;
 
             int smiteLevel = equipment.getItemInMainHand().getEnchantmentLevel(Enchantment.SMITE);
-            if (smiteLevel == 0)
-                return;
+            if (smiteLevel == 0) return;
 
             carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WITHER_HURT, 1f, 1f);
             event.setDamage(event.getDamage() + (2.5 * smiteLevel));
         }
 
+        //TODO: healing are effect cloud
+
         @Override
         public void onRegainHealth(LivingEntity carrier, EntityRegainHealthEvent event) {
-            if(event.getRegainReason() == EntityRegainHealthEvent.RegainReason.MAGIC && skipMagicHeal){
+            if (event.getRegainReason() == EntityRegainHealthEvent.RegainReason.MAGIC && skipMagicHeal) {
                 event.setCancelled(true);
                 skipMagicHeal = false;
                 return;
@@ -305,17 +338,21 @@ public class WitherSoulType extends ConfigHoldingSoulType {
             if (event.isFastRegen() || event.getRegainReason() == EntityRegainHealthEvent.RegainReason.SATIATED
                     || event.getRegainReason() == EntityRegainHealthEvent.RegainReason.REGEN
                     || event.getRegainReason() == EntityRegainHealthEvent.RegainReason.EATING) {
+
                 if (carrier instanceof Player player)
-                    player.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
-                        player.setExhaustion(Math.max(0, player.getExhaustion() - 6));
-                    }, null);
+                    player.getScheduler().run(SoulSnatcher.getPlugin(), _ ->
+                            player.setExhaustion(Math.max(0, player.getExhaustion() - 6)), null);
 
                 event.setCancelled(true);
             }
         }
 
-        protected void cleanup() {
-            regenTask.cancel();
+        //endregion
+
+        @Override
+        protected void reset() {
+            if(regenTask != null)
+                regenTask.cancel();
             regenTask = null;
         }
     }

@@ -319,6 +319,19 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onEffectCloudApply(AreaEffectCloudApplyEvent event) {
+        event.getAffectedEntities().forEach(entity -> {
+            List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+            souls.stream()
+                    .filter(soul -> soul instanceof OnEffectCloudApplyTrigger)
+                    .map(soul -> (OnEffectCloudApplyTrigger) soul)
+                    .forEach(trigger -> {
+                        trigger.onEffectCloudApply(entity, event);
+                    });
+        });
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onTarget(EntityTargetLivingEntityEvent event) {
         if (event.getTarget() == null || !(event.getEntity() instanceof LivingEntity provoker)) return;
 
