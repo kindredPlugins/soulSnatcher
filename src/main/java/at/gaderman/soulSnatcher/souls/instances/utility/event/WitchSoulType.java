@@ -13,6 +13,7 @@ import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.UseCooldown;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -30,8 +31,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @AutoService(SoulType.class)
 public class WitchSoulType extends ConfigHoldingSoulType {
@@ -90,14 +90,28 @@ public class WitchSoulType extends ConfigHoldingSoulType {
     //endregion
 
     public static class WitchSoulInstance extends SoulInstance<WitchSoulType> implements OnConsumeItemTrigger, OnDamageReceivedTrigger {
+
+        private static final Map<UUID, Map<Key, Integer>> remaining_cooldowns = new HashMap<>();
+
+        private final Set<Key> activeCooldownKeys = new LinkedHashSet<>();
+
         protected WitchSoulInstance(LivingEntity carrier, WitchSoulType soulType) {
             super(carrier, soulType);
 
             if (carrier instanceof Mob mob)
                 Bukkit.getMobGoals().addGoal(mob, 0, new WitchDrinkGoal(mob));
+
+            if(carrier instanceof Player player){
+                if(remaining_cooldowns.containsKey(player.getUniqueId())){
+                    remaining_cooldowns.get(player.getUniqueId()).forEach((key, cooldown) -> {
+                        player.setCooldown(key, cooldown);
+                        activeCooldownKeys.add(key);
+                    });
+                    remaining_cooldowns.remove(player.getUniqueId());
+                }
+            }
         }
 
-        //TODO: this actually modifies potion items themselves and the cooldown is not uniform introducing many issues around this ability
         @Override
         public void onConsumeItem(Player carrier, ItemStack item, PlayerItemConsumeEvent event) {
             if (item.getType() != Material.POTION) return;
@@ -105,23 +119,27 @@ public class WitchSoulType extends ConfigHoldingSoulType {
             event.setReplacement(item);
 
             float cooldown = getMaxDuration(item);
-            UseCooldown useCooldown = UseCooldown.useCooldown(cooldown  )
+            UseCooldown useCooldown = UseCooldown.useCooldown(0.0001f)
                     .cooldownGroup(createKeyForPotion(item))
                     .build();
 
-            carrier.setCooldown(useCooldown.cooldownGroup().key(), (int) (cooldown * 20));
-
             item.setData(DataComponentTypes.USE_COOLDOWN, useCooldown);
+
+            activeCooldownKeys.add(useCooldown.cooldownGroup().key());
+
+            carrier.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
+                carrier.setCooldown(useCooldown.cooldownGroup().key(), (int) (cooldown * 20));
+            }, null);
+            carrier.setCooldown(useCooldown.cooldownGroup().key(), (int) (cooldown * 20));
 
             carrier.getWorld().spawnParticle(Particle.WITCH, carrier.getEyeLocation(), 20);
             carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 1f, 1f);
         }
 
-        private NamespacedKey createKeyForPotion(ItemStack potion) {
-            PotionMeta meta = (PotionMeta) potion.getItemMeta();
-            String value = String.join("/", meta.getAllEffects().stream()
-                    .map(effect -> effect.getType().key().value()).toList());
-            return new NamespacedKey(SoulSnatcher.getPlugin(), value);
+        // only creative clone can mess this up now, otherwise it's just a component for managing cooldown with no visible cooldown
+        private Key createKeyForPotion(ItemStack potion) {
+            UseCooldown useCooldown = potion.getData(DataComponentTypes.USE_COOLDOWN);
+            return useCooldown != null ? useCooldown.cooldownGroup().key() : new NamespacedKey(SoulSnatcher.getPlugin(), UUID.randomUUID().toString());
         }
 
         private float getMaxDuration(ItemStack potion) {
@@ -140,6 +158,33 @@ public class WitchSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
+        }
+
+        @Override
+        protected void cleanUp() {
+            if(carrier() instanceof Player player) {
+                Map<Key, Integer> remainingCooldowns = remaining_cooldowns.getOrDefault(player.getUniqueId(), new HashMap<>());
+
+                activeCooldownKeys.forEach(key -> {
+                    int cooldown = player.getCooldown(key);
+                    if(cooldown > 0)
+                        remainingCooldowns.put(key, cooldown);
+                });
+
+                remaining_cooldowns.put(player.getUniqueId(), remainingCooldowns);
+            }
+
+            super.cleanUp();
+        }
+
+        @Override
+        protected void reset() {
+            super.reset();
+
+            if (carrier() instanceof Player player) {
+                remaining_cooldowns.remove(player.getUniqueId());
+                activeCooldownKeys.forEach(key -> player.setCooldown(key, 0));
+            }
         }
     }
 }
