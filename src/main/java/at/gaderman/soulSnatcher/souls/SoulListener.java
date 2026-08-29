@@ -235,6 +235,7 @@ public class SoulListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerQuit(PlayerQuitEvent event) {
         SoulType.removeFromCache(event.getPlayer());
+        event.getPlayer().saveData();
     }
 
     @EventHandler
