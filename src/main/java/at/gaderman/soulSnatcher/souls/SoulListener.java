@@ -295,6 +295,9 @@ public class SoulListener implements Listener {
         if (!(event.getEntity() instanceof Mob mob))
             return;
 
+        if(event.getEntity() instanceof Raider && event.getTarget() instanceof Raider)
+            return;
+
         if (event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_ENTITY && event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_PLAYER
                 && event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_ENTITY && event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_OWNER
                 && event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY)
