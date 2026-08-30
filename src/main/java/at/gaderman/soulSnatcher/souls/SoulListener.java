@@ -45,7 +45,7 @@ public class SoulListener implements Listener {
         if (!souls.isEmpty()) return;
 
         if(mob instanceof Boss){
-            SoulReward.offerSoulReward(mob.getLocation(), mob.getKiller(), optSoul.get());
+            SoulEffects.playBossRewardAnimation(mob.getKiller(), optSoul.get(), mob.getLocation());
             return;
         }
 
@@ -185,7 +185,6 @@ public class SoulListener implements Listener {
 
         PersistentDataContainer pdc = mob.getPersistentDataContainer();
         if (!pdc.has(SoulType.BOUND_SOULS, PersistentDataType.LIST.strings())) return;
-        var x = SoulType.getCarriedSouls(mob);
         if (SoulType.getCarriedSouls(mob).isEmpty()) return;
 
         SoulType.getCarriedSouls(mob).forEach(soul -> soul.soulType().infuseSoul(transformed));

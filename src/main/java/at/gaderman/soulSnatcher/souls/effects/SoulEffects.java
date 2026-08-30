@@ -2,19 +2,25 @@ package at.gaderman.soulSnatcher.souls.effects;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.*;
+import org.bukkit.boss.DragonBattle;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import javax.security.auth.callback.Callback;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class SoulEffects {
     private SoulEffects() {
@@ -189,7 +195,7 @@ public class SoulEffects {
                     if (hidden) {
                         current.displays.forEach(display -> {
                             display.setVisibleByDefault(true);
-                            if(target instanceof Player player)
+                            if (target instanceof Player player)
                                 player.hideEntity(SoulSnatcher.getPlugin(), display);
                         });
 
@@ -298,10 +304,10 @@ public class SoulEffects {
 
         playerViewingOrbits.remove(player.getUniqueId());
         state.displays.stream().filter(player::canSee).forEach(display -> {
-            new BukkitRunnable(){
+            new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if(display.getTrackedBy().contains(player)) {
+                    if (display.getTrackedBy().contains(player)) {
                         player.hideEntity(SoulSnatcher.getPlugin(), display);
                         cancel();
                         return;
@@ -340,11 +346,11 @@ public class SoulEffects {
                     .scale(target.getHeight() > 3 ? (float) target.getHeight() * 0.5f : HEAD_SCALE)
                     .rotateY((float) Math.toRadians(180)));
 
-            if (target instanceof Player player){
-                new BukkitRunnable(){
+            if (target instanceof Player player) {
+                new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if(d.getTrackedBy().contains(player)) {
+                        if (d.getTrackedBy().contains(player)) {
                             player.hideEntity(SoulSnatcher.getPlugin(), d);
                             cancel();
                         }
@@ -455,6 +461,60 @@ public class SoulEffects {
         effectLoc.getWorld().playSound(effectLoc, Sound.ENTITY_CHICKEN_EGG, 1f, 0.1f);
         effectLoc.getWorld().playSound(effectLoc, Sound.BLOCK_LAVA_EXTINGUISH, 1f, 0.1f);
         effectLoc.getWorld().spawnParticle(Particle.SOUL, effectLoc, 50, 0.3, 0, 0.3, 0.1);
+    }
+
+    public static void playBossRewardAnimation(Player owner, SoulType soulType, Location rewardLoc) {
+        if (soulType.entityType() == EntityType.ENDER_DRAGON) {
+            DragonBattle dragonBattle = rewardLoc.getWorld().getEnderDragonBattle();
+
+            if (dragonBattle != null && dragonBattle.getEndPortalLocation() != null && dragonBattle.getEnderDragon() != null){
+                rewardLoc = dragonBattle.getEndPortalLocation().clone().toCenterLocation().add(0, 4.5, 0);
+
+                Location finalRewardLoc1 = rewardLoc;
+                dragonBattle.getEnderDragon().getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(),
+                        _ -> {
+                        }, () -> {
+                            consumeBossRewardAnimation(owner, soulType, finalRewardLoc1);
+                        }, 1, 1);
+                return;
+            }
+        }
+
+        Location finalRewardLoc = rewardLoc;
+        Bukkit.getServer().getGlobalRegionScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+            consumeBossRewardAnimation(owner, soulType, finalRewardLoc);
+        }, 10);
+    }
+
+    private static void consumeBossRewardAnimation(Player owner, SoulType soulType, Location rewardLoc) {
+        Location location = rewardLoc.clone().add(0, 1, 0);
+
+        owner.getWorld().playSound(location, Sound.ENTITY_WITHER_AMBIENT, 1f, 0.2f);
+
+        for (int i = 0; i < 250; i++) {
+            double x = Math.random() * 4 - 2;
+            double y = Math.random() * 2 - 1;
+            double z = Math.random() * 4 - 2;
+
+            Particle.PORTAL.builder()
+                    .location(location)
+                    .offset(x, y, z)
+                    .count(0)
+                    .receivers(32, true)
+                    .spawn();
+        }
+
+        Bukkit.getServer().getGlobalRegionScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+            Particle.REVERSE_PORTAL.builder()
+                    .location(location)
+                    .offset(0.7, 0.7, 0.7)
+                    .count(250)
+                    .receivers(32, true)
+                    .spawn();
+            location.getWorld().playSound(location, Sound.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 1f, 1.85f);
+
+            SoulReward.offerSoulReward(rewardLoc, owner, soulType);
+        }, 50);
     }
 
     //endregion
