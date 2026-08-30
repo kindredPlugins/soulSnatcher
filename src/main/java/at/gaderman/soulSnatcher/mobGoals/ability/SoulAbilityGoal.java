@@ -1,19 +1,41 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
-import com.destroystokyo.paper.entity.ai.Goal;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
+import com.destroystokyo.paper.entity.ai.GoalType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * Represents a mob goal which introduced a new ability, this essentially just means that the goal needs a reference
- * to the mob it belongs to
- */
-public abstract class SoulAbilityGoal implements Goal<@NotNull Mob> {
+import java.util.EnumSet;
 
-    protected final Mob mob;
-
-    public SoulAbilityGoal(Mob mob){
-        this.mob = mob;
+public abstract class SoulAbilityGoal extends SoulOwnerGoal {
+    public SoulAbilityGoal(Mob mob) {
+        super(mob);
     }
 
+    private LivingEntity target;
+    private long lastActivation;
+
+    @Override
+    public boolean shouldActivate() {
+        return target != null && mob.getTarget() != null && lastActivation < System.currentTimeMillis() - activationCooldown();
+    }
+
+    @Override
+    public void start() {
+        super.start();
+        lastActivation = System.currentTimeMillis();
+    }
+
+    @Override
+    public @NotNull EnumSet<GoalType> getTypes() {
+        return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
+    }
+
+    protected abstract int activationCooldown();
+
+    public final void setTarget(@Nullable LivingEntity target) {
+        this.target = target;
+    }
 }

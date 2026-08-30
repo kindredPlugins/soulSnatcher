@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.NamespacedKey;
@@ -11,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class SpiderDashGoal extends SoulAbilityGoal{
+public class SpiderDashGoal extends SoulAbilityGoal {
     public SpiderDashGoal(Mob mob) {
         super(mob);
     }
@@ -25,21 +26,13 @@ public class SpiderDashGoal extends SoulAbilityGoal{
     }
 
     @Override
-    public @NotNull EnumSet<GoalType> getTypes() {
-        return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
-    }
-
-    private long lastJump;
-    private static final long JUMP_COOLDOWN = 5000;
-
-    @Override
-    public boolean shouldActivate() {
-        return mob.getTarget() != null && lastJump < System.currentTimeMillis() - JUMP_COOLDOWN;
+    protected int activationCooldown() {
+        return 5000;
     }
 
     @Override
     public void start() {
-        lastJump = System.currentTimeMillis();
+        super.start();
         mob.setVelocity(mob.getVelocity().add(mob.getLocation().getDirection().multiply(0.95).setY(0.4)));
 
         mob.getWorld().spawnParticle(Particle.SWEEP_ATTACK, mob.getLocation().add(0, 0.2, 0), 1, 0, 0, 0, 0);

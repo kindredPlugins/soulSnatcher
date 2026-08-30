@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
+import at.gaderman.soulSnatcher.mobGoals.ability.SoulAbilityGoal;
 import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.effects.SoulReward;
@@ -17,10 +18,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityRemoveEvent;
-import org.bukkit.event.entity.EntityTransformEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -44,7 +42,7 @@ public class SoulListener implements Listener {
         var souls = SoulType.getCarriedSouls(mob);
         if (!souls.isEmpty()) return;
 
-        if(mob instanceof Boss){
+        if (mob instanceof Boss) {
             SoulEffects.playBossRewardAnimation(mob.getKiller(), optSoul.get(), mob.getLocation());
             return;
         }
@@ -274,18 +272,36 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onExpiredSoulLoad(EntityAddToWorldEvent event) {
-        if(!(event.getEntity() instanceof Display display))
+        if (!(event.getEntity() instanceof Display display))
             return;
 
         PersistentDataContainer pdc = display.getPersistentDataContainer();
-        if(!pdc.has(SoulReward.SOUL_REWARD))
+        if (!pdc.has(SoulReward.SOUL_REWARD))
             return;
 
         long timeStamp = pdc.getOrDefault(SoulReward.TIMESTAMP, PersistentDataType.LONG, 0L);
 
-        if(timeStamp >= System.currentTimeMillis() - SoulReward.LIVING_TICKS * 50)
+        if (timeStamp >= System.currentTimeMillis() - SoulReward.LIVING_TICKS * 50)
             return;
 
         display.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> display.remove(), null, 1L);
+    }
+
+    @EventHandler
+    public void onSoulAbilityTarget(EntityTargetLivingEntityEvent event) {
+        if (event.getTarget() == null)
+            return;
+
+        if (!(event.getEntity() instanceof Mob mob))
+            return;
+
+        if (event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_ENTITY && event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_PLAYER
+                && event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_ENTITY && event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_OWNER
+                && event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_NEARBY_ENTITY)
+            return;
+
+        Bukkit.getMobGoals().getAllGoals(mob).stream()
+                .filter(goal -> goal instanceof SoulAbilityGoal)
+                .forEach(goal -> ((SoulAbilityGoal) goal).setTarget(event.getTarget()));
     }
 }

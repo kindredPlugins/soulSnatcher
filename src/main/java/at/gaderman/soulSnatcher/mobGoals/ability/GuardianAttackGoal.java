@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.Location;
@@ -30,20 +31,14 @@ public class GuardianAttackGoal extends SoulAbilityGoal {
         return GOAL_KEY;
     }
 
-    @Override
-    public @NotNull EnumSet<GoalType> getTypes() {
-        return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
-    }
-
-    private long lastLaserInit;
-    private static final int LASER_COOLDOWN = 3000;
-
     private int laserTicks;
     private boolean finishedAttacking;
 
+    private static final int LASER_CHARGE_TICKS = 50;
+
     @Override
     public boolean shouldActivate() {
-        return lastLaserInit < System.currentTimeMillis() - LASER_COOLDOWN && hasValidTarget();
+        return super.shouldActivate() && hasValidTarget();
     }
 
     @Override
@@ -58,8 +53,13 @@ public class GuardianAttackGoal extends SoulAbilityGoal {
     }
 
     @Override
+    protected int activationCooldown() {
+        return 3000 + LASER_CHARGE_TICKS;
+    }
+
+    @Override
     public void start() {
-        lastLaserInit = System.currentTimeMillis();
+        super.start();
         mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_GUARDIAN_AMBIENT, 1f, 1f);
     }
 
@@ -68,7 +68,7 @@ public class GuardianAttackGoal extends SoulAbilityGoal {
         LivingEntity target = mob.getTarget();
         assert target != null;
 
-        if (laserTicks >= 50) {
+        if (laserTicks >= LASER_CHARGE_TICKS) {
             double damage = (target instanceof Player player && player.isBlocking()) ? 3 : 6;
 
             target.damage(damage, DamageSource.builder(DamageType.MAGIC)
@@ -101,8 +101,6 @@ public class GuardianAttackGoal extends SoulAbilityGoal {
 
     @Override
     public void stop() {
-        if(finishedAttacking)
-            lastLaserInit = System.currentTimeMillis();
         laserTicks = 0;
         finishedAttacking = false;
     }

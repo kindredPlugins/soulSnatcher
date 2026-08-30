@@ -1,6 +1,7 @@
-package at.gaderman.soulSnatcher.mobGoals.ability;
+package at.gaderman.soulSnatcher.mobGoals.custom;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
@@ -20,7 +21,11 @@ import org.joml.Vector3f;
 
 import java.util.EnumSet;
 
-public class WitchDrinkGoal extends SoulAbilityGoal{
+/**
+ * Soul goal for mobs to drink potions of either healing or to corresponding situation
+ * Custom implementation as the trigger for potions is not just tied to targeting
+ */
+public class WitchDrinkGoal extends SoulOwnerGoal {
     private long lasDrink;
 
     public WitchDrinkGoal(Mob mob){

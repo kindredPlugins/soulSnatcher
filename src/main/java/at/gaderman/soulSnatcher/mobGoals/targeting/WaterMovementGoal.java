@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.ability.SoulAbilityGoal;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import at.gaderman.soulSnatcher.souls.instances.movement.DolphinSoulType;
 import at.gaderman.soulSnatcher.utils.BlockUtils;
 import com.destroystokyo.paper.entity.ai.GoalKey;
@@ -20,7 +20,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Optional;
 
-public class WaterMovementGoal extends SoulAbilityGoal {
+public class WaterMovementGoal extends SoulOwnerGoal {
 
     public WaterMovementGoal(Mob mob) {
         super(mob);

@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
@@ -29,28 +30,20 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
         this.shotCooldown = shotCooldown;
     }
 
-    public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(),
-            "infused_skeleton_shoot"));
+    public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(), "infused_skeleton_shoot"));
 
     @Override
     public @NotNull GoalKey<@NotNull Mob> getKey() {
         return GOAL_KEY;
     }
 
-    @Override
-    public @NotNull EnumSet<GoalType> getTypes() {
-        return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
-    }
-
-    private long lastShot;
-
-    @Override
-    public boolean shouldActivate() {
-        return mob.getTarget() != null && lastShot < System.currentTimeMillis() - shotCooldown;
-    }
-
     private long drawingTicks;
-    private static final long DRAW_TILL_SHOOT = 20L;
+    private static final int DRAW_TILL_SHOOT = 20;
+
+    @Override
+    protected int activationCooldown() {
+        return shotCooldown + DRAW_TILL_SHOOT;
+    }
 
     @Override
     public boolean shouldStayActive() {
@@ -61,6 +54,7 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
 
     @Override
     public void start() {
+        super.start();
         Location bowSource = mob.getLocation().add(0, mob.getEyeHeight(true) + 0.5, 0);
         bowSource.getWorld().spawnParticle(Particle.WHITE_SMOKE, bowSource, 5);
         bowSource.getWorld().playSound(bowSource, Sound.ENTITY_ARROW_SHOOT, 3f, 0.25f);
@@ -84,7 +78,6 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
     @Override
     public void stop() {
         drawingTicks = 0;
-        lastShot = System.currentTimeMillis();
 
         mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ARROW_SHOOT, 1f, 1f);
         mob.launchProjectile(Arrow.class, mob.getLocation().getDirection().multiply(2));
