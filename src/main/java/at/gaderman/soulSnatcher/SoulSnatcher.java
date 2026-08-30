@@ -2,9 +2,7 @@ package at.gaderman.soulSnatcher;
 
 import at.gaderman.soulSnatcher.commands.SoulIndexCommand;
 import at.gaderman.soulSnatcher.commands.SoulLanternCommand;
-import at.gaderman.soulSnatcher.souls.SoulListener;
-import at.gaderman.soulSnatcher.souls.SoulRegistry;
-import at.gaderman.soulSnatcher.souls.TriggerListener;
+import at.gaderman.soulSnatcher.souls.*;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.UpdateChecker;
@@ -43,6 +41,13 @@ public final class SoulSnatcher extends JavaPlugin {
     public void onDisable() {
         // Plugin shutdown logic
         this.disabling = true;
+
+        getLogger().info("Cleaning up soul instances of leftover players");
+        Bukkit.getOnlinePlayers().forEach(player -> {
+           SoulType.removeFromCache(player);
+           player.saveData();
+        });
+        getLogger().info("Completed leftover players soul clean up");
 
         int taskSize = runningTasks.size();
         getLogger().info("Running down " + taskSize + " cleanup tasks");

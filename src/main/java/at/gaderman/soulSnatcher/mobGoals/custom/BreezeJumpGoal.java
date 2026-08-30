@@ -1,6 +1,7 @@
-package at.gaderman.soulSnatcher.mobGoals.ability;
+package at.gaderman.soulSnatcher.mobGoals.custom;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import at.gaderman.soulSnatcher.souls.instances.movement.BreezeSoulType;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
@@ -10,7 +11,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class BreezeJumpGoal extends SoulAbilityGoal{
+/**
+ * Soul goal for making the mob do the breeze jump, utilizes BreezeSo
+ */
+public class BreezeJumpGoal extends SoulOwnerGoal {
 
     private final BreezeSoulType.BreezeSoulInstance soulInstance;
 

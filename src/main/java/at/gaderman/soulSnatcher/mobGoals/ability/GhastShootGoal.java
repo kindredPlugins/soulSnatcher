@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
@@ -17,18 +18,14 @@ import org.joml.Vector3f;
 import java.util.EnumSet;
 
 /**
- * A custom behaviour mob goal that adds an ability to mobs. While pursuing a target wil spawn in a bow
- * who will after some loading time make the mob shoot an arrow at facing direction. This ability has a small
+ * A custom behavior mob goal that adds an ability to mobs. While pursuing a target wil spawn in a bow
+ * who will after some loading time make the mob shoot a fireball at facing direction. This ability has a small
  * cooldown which will be periodically activated as long as the mob has a valid target.
  */
 public class GhastShootGoal extends SoulAbilityGoal {
 
-    private final int shotCooldown;
-
-    public GhastShootGoal(Mob mob, int shotCooldown){
+    public GhastShootGoal(Mob mob){
         super(mob);
-
-        this.shotCooldown = shotCooldown;
     }
 
     public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(),
@@ -40,19 +37,12 @@ public class GhastShootGoal extends SoulAbilityGoal {
     }
 
     @Override
-    public @NotNull EnumSet<GoalType> getTypes() {
-        return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
-    }
-
-    private long lastShot;
-
-    @Override
-    public boolean shouldActivate() {
-        return mob.getTarget() != null && lastShot < System.currentTimeMillis() - shotCooldown;
+    protected int activationCooldown() {
+        return 5000 + PREPARE_TILL_SHOOT;
     }
 
     private long preparingTicks;
-    private static final long PREPARE_TILL_SHOOT = 20L;
+    private static final int PREPARE_TILL_SHOOT = 20;
 
     @Override
     public boolean shouldStayActive() {
@@ -63,6 +53,7 @@ public class GhastShootGoal extends SoulAbilityGoal {
 
     @Override
     public void start() {
+        super.start();
         Location fireballSource = mob.getLocation().add(0, mob.getEyeHeight(true) + 0.5, 0);
         fireballSource.getWorld().spawnParticle(Particle.WHITE_SMOKE, fireballSource, 5, 0, 0, 0, 0.1);
         fireballSource.getWorld().playSound(fireballSource, Sound.ENTITY_GHAST_SCREAM, 2f, 0.2f);
@@ -95,7 +86,6 @@ public class GhastShootGoal extends SoulAbilityGoal {
     @Override
     public void stop() {
         preparingTicks = 0;
-        lastShot = System.currentTimeMillis();
 
         mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_GHAST_SHOOT, 2f, 1f);
         mob.launchProjectile(LargeFireball.class, mob.getLocation().getDirection().multiply(2));

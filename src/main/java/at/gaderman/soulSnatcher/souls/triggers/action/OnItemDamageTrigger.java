@@ -1,4 +1,4 @@
-package at.gaderman.soulSnatcher.souls.triggers;
+package at.gaderman.soulSnatcher.souls.triggers.action;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;

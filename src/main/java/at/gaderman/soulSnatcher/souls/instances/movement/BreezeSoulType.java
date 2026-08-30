@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.ability.BreezeJumpGoal;
+import at.gaderman.soulSnatcher.mobGoals.custom.BreezeJumpGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Map;
 
+@AutoService(SoulType.class)
 public class BreezeSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull SoulInstance<BreezeSoulType> create(LivingEntity carrier) {

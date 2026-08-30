@@ -1,7 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.ability.SoulAbilityGoal;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.Location;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class ReinforcementZombieGoal extends SoulAbilityGoal {
+public class ReinforcementZombieGoal extends SoulOwnerGoal {
     private final LivingEntity owner;
 
     public ReinforcementZombieGoal(Mob mob, LivingEntity owner) {

@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import at.gaderman.soulSnatcher.souls.instances.movement.PhantomSoulType;
 import com.destroystokyo.paper.entity.ai.GoalKey;
 import com.destroystokyo.paper.entity.ai.GoalType;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 
-public class PhantomAttackGoal extends SoulAbilityGoal{
+public class PhantomAttackGoal extends SoulAbilityGoal {
     private final PhantomSoulType.PhantomSoulInstance phantomSoul;
 
     public PhantomAttackGoal(Mob mob, PhantomSoulType.PhantomSoulInstance phantomSoul) {
@@ -23,8 +24,7 @@ public class PhantomAttackGoal extends SoulAbilityGoal{
         this.phantomSoul = phantomSoul;
     }
 
-    public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(),
-            "infused_phantom_attack"));
+    public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(), "infused_phantom_attack"));
 
     @Override
     public @NotNull GoalKey<@NotNull Mob> getKey() {
@@ -32,21 +32,13 @@ public class PhantomAttackGoal extends SoulAbilityGoal{
     }
 
     @Override
-    public @NotNull EnumSet<GoalType> getTypes() {
-        return EnumSet.of(GoalType.UNKNOWN_BEHAVIOR);
-    }
-
-    private long lastFlight;
-    private static final long FLYOFF_COOLDOWN = 5000;
-
-    @Override
-    public boolean shouldActivate() {
-        return mob.getTarget() != null && lastFlight < System.currentTimeMillis() - FLYOFF_COOLDOWN && mob.isOnGround();
+    protected int activationCooldown() {
+        return 5000;
     }
 
     @Override
     public void start() {
-        lastFlight = System.currentTimeMillis();
+        super.start();
         mob.setVelocity(new Vector(0, 1.5, 0));
 
         mob.getWorld().spawnParticle(Particle.CLOUD, mob.getLocation().add(0, 0.2, 0), 100, 0.1, 0, 0.1, 0.1);

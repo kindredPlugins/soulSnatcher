@@ -107,7 +107,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
             super(carrier, soulType);
 
             if (isInfused() && !(carrier instanceof RangedEntity))
-                Bukkit.getMobGoals().addGoal((Mob) carrier, 0, new GhastShootGoal((Mob) carrier, 5000));
+                Bukkit.getMobGoals().addGoal((Mob) carrier, 0, new GhastShootGoal((Mob) carrier));
         }
 
         private long lastGhastShot;

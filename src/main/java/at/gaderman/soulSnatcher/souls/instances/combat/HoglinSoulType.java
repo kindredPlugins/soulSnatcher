@@ -6,6 +6,7 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
+import at.gaderman.soulSnatcher.souls.triggers.action.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
@@ -20,8 +21,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
@@ -65,7 +68,7 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
     public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text((damagePreserveMultiplier.cached() * 100) + "% ", NamedTextColor.RED)
-                                .append(Component.text("of damage taken from players/mobs is", NamedTextColor.WHITE)),
+                        .append(Component.text("of damage taken from players/mobs is", NamedTextColor.WHITE)),
                 Component.text("split into ", NamedTextColor.WHITE)
                         .append(Component.text(bufferSplitAmount.cached(), NamedTextColor.GOLD))
                         .append(Component.text(" portions taken in short intervals.", NamedTextColor.WHITE))
@@ -93,7 +96,7 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
 
     //endregion
 
-    public static class HoglinSoulInstance extends SoulInstance<HoglinSoulType> implements OnDamageReceivedTrigger {
+    public static class HoglinSoulInstance extends SoulInstance<HoglinSoulType> implements OnDamageReceivedTrigger, OnItemDamageTrigger {
         protected HoglinSoulInstance(LivingEntity carrier, HoglinSoulType soulType) {
             super(carrier, soulType);
         }
@@ -107,11 +110,17 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
-            if(isDealingPreserveDamage)
+            if (isDealingPreserveDamage || event.getFinalDamage() == 0 /* || event.getDamage() * (1 - soulType().damagePreserveMultiplier.cached()) < 1*/) {
                 return;
+            }
 
             double toPreserve = event.getDamage() * soulType().damagePreserveMultiplier.cached();
-            event.setDamage(event.getDamage() - toPreserve);
+            double damageTaken = event.getDamage() - toPreserve;
+
+            if (carrier.getNoDamageTicks() > 0 && carrier.getLastDamage() >= damageTaken)
+                return;
+
+            event.setDamage(damageTaken);
 
             int splitAmount = soulType().bufferSplitAmount.cached();
             for (int i = 0; i < splitAmount; i++) {
@@ -123,11 +132,11 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
                 this.damageBuffer.put(index, bufferedDamageList);
             }
 
-            if(preserveApplicationTask == null)
+            if (preserveApplicationTask == null)
                 preserveApplicationTask = new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if(!carrier.isValid() || damageBuffer.isEmpty()){
+                        if (!carrier.isValid() || damageBuffer.isEmpty()) {
                             cancel();
                             preserveApplicationTask = null;
                             return;
@@ -136,32 +145,7 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
                         List<BufferedDamage> bufferedDamageList = damageBuffer.getOrDefault(currentCycle, Collections.emptyList());
                         damageBuffer.remove(currentCycle);
 
-                        var knockbackRes = carrier.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
-                        double initialKnBkRes = knockbackRes == null ? 0 : knockbackRes.getBaseValue();
-                        try {
-                            if(knockbackRes != null)
-                                knockbackRes.setBaseValue(1.0);
-
-                            bufferedDamageList.forEach(bufferedDamage -> {
-                                isDealingPreserveDamage = true;
-
-                                int noDamageTicks = carrier.getNoDamageTicks();
-                                carrier.setNoDamageTicks(0);
-                                carrier.damage(bufferedDamage.damage, bufferedDamage.source);
-                                carrier.setNoDamageTicks(noDamageTicks);
-
-                                isDealingPreserveDamage = false;
-                            });
-
-                        }finally {
-                            if(knockbackRes != null)
-                                knockbackRes.setBaseValue(initialKnBkRes);
-                        }
-
-                        carrier.getWorld().spawnParticle(Particle.BLOCK_CRUMBLE, carrier.getEyeLocation(), 2,
-                                0.2, 0.2, 0.2, 0.1, Material.REDSTONE_BLOCK.createBlockData());
-                        carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_HOGLIN_HURT, 0.5f, 0.2f);
-
+                        applyBufferedDamage(carrier, bufferedDamageList);
                         currentCycle++;
                     }
                 }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, soulType().bufferInterval.cached());
@@ -171,13 +155,45 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
         }
 
+        //TODO: known issue, noDamage ticks for deferred damage allow certain damage sources like magma blocks to instantly apply damage again, causing huge durability damage
+        @Override
+        public void onItemDamage(Player player, PlayerItemDamageEvent event) {
+            if (isDealingPreserveDamage)
+                event.setCancelled(true);
+        }
+
+        private void applyBufferedDamage(LivingEntity carrier, List<BufferedDamage> bufferedDamageList) {
+            var knockbackRes = carrier.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
+            double initialKnBkRes = knockbackRes == null ? 0 : knockbackRes.getBaseValue();
+            int noDamageTicks = carrier.getNoDamageTicks();
+
+            try {
+                if (knockbackRes != null) knockbackRes.setBaseValue(1.0);
+                carrier.setNoDamageTicks(0);
+                isDealingPreserveDamage = true;
+
+                bufferedDamageList.forEach(bufferedDamage -> carrier.damage(bufferedDamage.damage(), bufferedDamage.source()));
+
+            } finally {
+                isDealingPreserveDamage = false;
+                carrier.setNoDamageTicks(noDamageTicks);
+                if (knockbackRes != null) knockbackRes.setBaseValue(initialKnBkRes);
+            }
+
+            carrier.getWorld().spawnParticle(Particle.BLOCK_CRUMBLE, carrier.getEyeLocation(), 2,
+                    0.2, 0.2, 0.2, 0.1, Material.REDSTONE_BLOCK.createBlockData());
+        }
+
         private record BufferedDamage(DamageSource source, double damage) {}
 
         @Override
         protected void cleanUp() {
             LivingEntity carrier = carrier();
 
-            if(carrier.isValid()) {
+            if (preserveApplicationTask != null)
+                preserveApplicationTask.cancel();
+
+            if (carrier.isValid()) {
                 if (!damageBuffer.isEmpty()) {
                     isDealingPreserveDamage = true;
                     damageBuffer.values().stream().flatMap(List::stream).forEach(bufferedDamage -> {

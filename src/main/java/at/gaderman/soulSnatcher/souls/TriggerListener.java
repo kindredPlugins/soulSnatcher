@@ -1,16 +1,10 @@
 package at.gaderman.soulSnatcher.souls;
 
-import at.gaderman.soulSnatcher.souls.triggers.OnEntityEquipmentTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnEntityPotionEffectTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnItemDamageTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.OnTargetTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.action.*;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnSprintToggleTrigger;
-import at.gaderman.soulSnatcher.souls.triggers.input.OnSwimToggleTrigger;
+import at.gaderman.soulSnatcher.souls.triggers.input.*;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractTrigger;
@@ -281,13 +275,26 @@ public class TriggerListener implements Listener {
                 });
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onToggleGlide(EntityToggleGlideEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity carrier)) return;
+
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(carrier);
+        souls.stream()
+                .filter(soul -> soul instanceof OnEntityToggleGlideTrigger)
+                .map(soul -> (OnEntityToggleGlideTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onToggleGlide(carrier, event);
+                });
+    }
+
     //endregion
 
-    //region Others
+    //region Action
 
     @EventHandler(ignoreCancelled = true)
-    public void onEntityPotionEffectTrigger(EntityPotionEffectEvent event) {
-        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+    public void onEntityPotionEffect(EntityPotionEffectEvent event) {
+        LivingEntity entity = event.getEntity();
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
         souls.stream()
@@ -296,6 +303,32 @@ public class TriggerListener implements Listener {
                 .forEach(trigger -> {
                     trigger.onEntityPotionEffect(entity, event);
                 });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPotionSplash(PotionSplashEvent event) {
+        event.getAffectedEntities().forEach(entity -> {
+            List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+            souls.stream()
+                    .filter(soul -> soul instanceof OnPotionSplashTrigger)
+                    .map(soul -> (OnPotionSplashTrigger) soul)
+                    .forEach(trigger -> {
+                        trigger.onPotionSplash(entity, event.getEntity(), event);
+                    });
+        });
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onEffectCloudApply(AreaEffectCloudApplyEvent event) {
+        event.getAffectedEntities().forEach(entity -> {
+            List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+            souls.stream()
+                    .filter(soul -> soul instanceof OnEffectCloudApplyTrigger)
+                    .map(soul -> (OnEffectCloudApplyTrigger) soul)
+                    .forEach(trigger -> {
+                        trigger.onEffectCloudApply(entity, event);
+                    });
+        });
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -330,6 +363,19 @@ public class TriggerListener implements Listener {
                 .map(soul -> (OnEntityEquipmentTrigger) soul)
                 .forEach(trigger -> {
                     trigger.onEntityEquipmentChange(entity, event);
+                });
+    }
+
+    @EventHandler
+    public void onRegainHealth(EntityRegainHealthEvent event) {
+        if (!(event.getEntity() instanceof LivingEntity entity)) return;
+
+        List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
+        souls.stream()
+                .filter(soul -> soul instanceof OnRegainHealthTrigger)
+                .map(soul -> (OnRegainHealthTrigger) soul)
+                .forEach(trigger -> {
+                    trigger.onRegainHealth(entity, event);
                 });
     }
 
