@@ -30,6 +30,10 @@ public class WitchDrinkGoal extends SoulOwnerGoal {
 
     public WitchDrinkGoal(Mob mob){
         super(mob);
+
+        var movSpeed = mob.getAttribute(Attribute.MOVEMENT_SPEED);
+        if(movSpeed != null)
+            movSpeed.removeModifier(DRINKIN_MOD);
     }
 
     public static final GoalKey<@NotNull Mob> GOAL_KEY = GoalKey.of(Mob.class, new NamespacedKey(SoulSnatcher.getPlugin(),
@@ -96,7 +100,9 @@ public class WitchDrinkGoal extends SoulOwnerGoal {
             display.setTransformation(transformation);
         });
 
-        mob.getAttribute(Attribute.MOVEMENT_SPEED).addModifier(new AttributeModifier(DRINKIN_MOD, -0.2, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
+        var movSpeed = mob.getAttribute(Attribute.MOVEMENT_SPEED);
+        if(movSpeed != null)
+            movSpeed.addTransientModifier(new AttributeModifier(DRINKIN_MOD, -0.2, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
         SoulSnatcher.getPlugin().registerDelayedTask(potion::remove, 2 * DRINK_DURATION + 1);
     }
 
@@ -136,7 +142,9 @@ public class WitchDrinkGoal extends SoulOwnerGoal {
         if(effectType != null)
             effectType.getPotionEffects().forEach(mob::addPotionEffect);
 
-        mob.getAttribute(Attribute.MOVEMENT_SPEED).removeModifier(DRINKIN_MOD);
+        var movSpeed = mob.getAttribute(Attribute.MOVEMENT_SPEED);
+        if(movSpeed != null)
+            movSpeed.removeModifier(DRINKIN_MOD);
 
         if(mob.getTarget() != null)
             mob.setAggressive(true);
