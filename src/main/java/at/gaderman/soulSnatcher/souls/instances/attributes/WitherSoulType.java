@@ -128,9 +128,9 @@ public class WitherSoulType extends ConfigHoldingSoulType {
                 PotionEffectType.WITHER
         );
 
-        private static final double INSTANT_HEALTH_AMOUNT = 4.0;
-        private static final double INSTANT_DAMAGE_AMOUNT = 6.0;
-        private static final double INSTANT_DAMAGE_MULT_CLOUD = 3.0;
+        private static final double INSTANT_HEALTH_AMOUNT = 6.0;
+        private static final double INSTANT_DAMAGE_AMOUNT = 4.0;
+        private static final double INSTANT_DAMAGE_MULT_CLOUD = 2.0;
 
         private ScheduledTask regenTask;
 
@@ -324,8 +324,6 @@ public class WitherSoulType extends ConfigHoldingSoulType {
             carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WITHER_HURT, 1f, 1f);
             event.setDamage(event.getDamage() + (2.5 * smiteLevel));
         }
-
-        //TODO: healing are effect cloud
 
         @Override
         public void onRegainHealth(LivingEntity carrier, EntityRegainHealthEvent event) {
