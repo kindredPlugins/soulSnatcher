@@ -126,7 +126,7 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    if (!gliding || !carrier.isValid() || carrier.isOnGround()) {
+                    if (!gliding || !carrier.isValid() || carrier.isGliding() || carrier.isOnGround()) {
                         carrier.getWorld().getNearbyPlayers(carrier.getLocation(), 25, 25, 25)
                                 .forEach(nearby -> nearby.stopSound(Sound.ITEM_ELYTRA_FLYING));
                         cancel();
@@ -165,11 +165,13 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onSneakToggle(Player carrier, PlayerToggleSneakEvent event) {
-            if (!gliding) {
-                activateGliding();
-            }
+            if (carrier.isFlying() || carrier.isGliding())
+                return;
 
             gliding = event.isSneaking();
+
+            if (gliding)
+                activateGliding();
         }
 
         @Override

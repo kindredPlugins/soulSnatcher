@@ -83,7 +83,7 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
     public Map<String, String> extraConfigPathCommentMap() {
         return Map.of(
                 WITHER_DURATION_CONFIG_ID, "Wither duration from melee hits in ticks (20 ticks = 1 second)",
-                WITHER_AMPLIFIER_CONFIG_ID, "Wither level as (level - 1) starting from 0 (Poison I)"
+                WITHER_AMPLIFIER_CONFIG_ID, "Wither level as (level - 1) starting from 0 (Wither I)"
         );
     }
 
