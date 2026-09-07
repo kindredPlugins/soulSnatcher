@@ -9,7 +9,6 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnHitByProjectileTrigger;
 import at.gaderman.soulSnatcher.utils.BlockUtils;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -69,8 +68,8 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When hit by a projectile ")
                         .append(Component.text("teleport ", NamedTextColor.LIGHT_PURPLE)),
                 Component.text("a short distance away to evade.")
@@ -81,7 +80,7 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
 
     private static final String EVADE_COOLDOWN_CONFIG_ID = "evade_cooldown";
 
-    private final ConfigOption<Integer> evadeCooldown = configOption(EVADE_COOLDOWN_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> evadeCooldown = configOption(EVADE_COOLDOWN_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

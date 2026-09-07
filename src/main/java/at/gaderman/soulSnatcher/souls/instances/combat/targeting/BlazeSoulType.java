@@ -6,7 +6,6 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -63,8 +62,8 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When engaging in combat activate ")
                         .append(Component.text("Aura", NamedTextColor.GOLD))
                         .append(Component.text(".", NamedTextColor.WHITE)),
@@ -81,11 +80,11 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
     private static final String AURA_HIT_COOLDOWN_CONFIG_ID = "aura_hit_cooldown";
     private static final String AURA_WINDUP_CONFIG_ID = "aura_windup";
 
-    private final ConfigOption<Integer> auraTimeout = configOption(AURA_TIMEOUT_CONFIG_ID, 30000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> auraTimeout = configOption(AURA_TIMEOUT_CONFIG_ID, 30000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Double> auraRange = configOption(AURA_RANGE_CONFIG_ID, 2.4, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> auraDamage = configOption(AURA_DAMAGE_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
-    private final ConfigOption<Integer> auraHitCooldown = configOption(AURA_HIT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
-    private final ConfigOption<Integer> auraWindUp = configOption(AURA_WINDUP_CONFIG_ID, 4, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> auraHitCooldown = configOption(AURA_HIT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
+    private final ConfigOption<Integer> auraWindUp = configOption(AURA_WINDUP_CONFIG_ID, 4, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

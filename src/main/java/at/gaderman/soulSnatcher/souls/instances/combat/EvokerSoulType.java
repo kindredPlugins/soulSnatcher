@@ -7,7 +7,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.instances.combat.targeting.TargetTrackerSoulInstance;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -60,12 +59,12 @@ public class EvokerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When dealing damage will summon a line of"),
                 Component.text("evoker fangs ", NamedTextColor.GREEN)
                         .append(Component.text("every ", NamedTextColor.WHITE))
-                        .append(Component.text(fangsCooldown.cached() / 1000.0 + "s", NamedTextColor.AQUA))
+                        .append(Component.text(wrapPlaceholder(SUMMON_COOLDOWN_CONFIG_ID) + "s", NamedTextColor.AQUA))
                         .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
@@ -75,7 +74,7 @@ public class EvokerSoulType extends ConfigHoldingSoulType {
     private static final String SUMMON_COOLDOWN_CONFIG_ID = "fangs_cooldown";
     private static final String FANGS_RANGE_MULTIPLIER_CONFIG_ID = "fangs_range_multiplier";
 
-    private final ConfigOption<Integer> fangsCooldown = configOption(SUMMON_COOLDOWN_CONFIG_ID, 2500, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> fangsCooldown = configOption(SUMMON_COOLDOWN_CONFIG_ID, 2500, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Double> fangsRangeMultiplier = configOption(FANGS_RANGE_MULTIPLIER_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
 
     @Override

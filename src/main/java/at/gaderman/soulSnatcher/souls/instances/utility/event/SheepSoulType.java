@@ -6,7 +6,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -59,11 +58,11 @@ public class SheepSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When being hit reduce damage by"),
-                Component.text((int) (absorptionAmount.defaultValue() * 100) + "% ", NamedTextColor.GOLD)
-                        .append(Component.text("every " + absorbCooldown.cached() / 1000.0 + "s.", NamedTextColor.WHITE))
+                Component.text(wrapPlaceholder(ABSORPTION_AMOUNT_CONFIG_ID) + "% ", NamedTextColor.GOLD)
+                        .append(Component.text("every " + wrapPlaceholder(ABSORB_COOLDOWN_CONFIG_ID) + "s.", NamedTextColor.WHITE))
         );
     }
 
@@ -72,8 +71,8 @@ public class SheepSoulType extends ConfigHoldingSoulType {
     private static final String ABSORPTION_AMOUNT_CONFIG_ID = "absorption_amount";
     private static final String ABSORB_COOLDOWN_CONFIG_ID = "absorb_cooldown";
 
-    private final ConfigOption<Double> absorptionAmount = configOption(ABSORPTION_AMOUNT_CONFIG_ID, 0.5, FileConfiguration::getDouble);
-    private final ConfigOption<Integer> absorbCooldown = configOption(ABSORB_COOLDOWN_CONFIG_ID, 15 * 1000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Double> absorptionAmount = configOption(ABSORPTION_AMOUNT_CONFIG_ID, 0.5, FileConfiguration::getDouble, value -> Math.max(value, 0), this::toPercentageString);
+    private final ConfigOption<Integer> absorbCooldown = configOption(ABSORB_COOLDOWN_CONFIG_ID, 15 * 1000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

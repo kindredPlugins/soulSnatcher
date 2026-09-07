@@ -80,17 +80,17 @@ public class WitherSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
+    public @NotNull List<Component> defaultDescription() {
         Component menuArrow = Component.text("➤ ", NamedTextColor.GRAY);
 
-        return ItemUtils.applyDefaultLoreStyle(
+        return List.of(
                 Component.text("Become undead:", NamedTextColor.DARK_GRAY).decorate(TextDecoration.BOLD),
                 menuArrow.append(Component.text("Reversed instant health & damage", NamedTextColor.GRAY)),
                 menuArrow.append(Component.text("Immunity to: Regeneration, Poison, Wither", NamedTextColor.GRAY)),
                 menuArrow.append(Component.text("Susceptible to Smite", NamedTextColor.GRAY)),
                 menuArrow.append(Component.text("Passive Regen unrelated to hunger", NamedTextColor.GRAY)),
-                menuArrow.append(Component.text("+" + attackDamageBonus.cached() + " Attack Damage", NamedTextColor.BLUE)),
-                menuArrow.append(Component.text("+" + armorToughnessBonus.cached() + " Armor Toughness", NamedTextColor.BLUE))
+                menuArrow.append(Component.text("+" + wrapPlaceholder(ATTACK_DAMAGE_BONUS) + " Attack Damage", NamedTextColor.BLUE)),
+                menuArrow.append(Component.text("+" + wrapPlaceholder(ARMOR_THOUGHNESS_BONUS) + " Armor Toughness", NamedTextColor.BLUE))
         );
     }
 

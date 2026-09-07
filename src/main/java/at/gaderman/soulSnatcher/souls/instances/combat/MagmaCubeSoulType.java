@@ -7,7 +7,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -59,12 +58,12 @@ public class MagmaCubeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When damaged by fire or lava ")
                         .append(Component.text("resist ", NamedTextColor.GOLD)),
                 Component.text("and heal by ")
-                        .append(Component.text(healAmount.cached(), NamedTextColor.GREEN))
+                        .append(Component.text(wrapPlaceholder(HEAL_AMOUNT_CONFIG_ID), NamedTextColor.GREEN))
                         .append(Component.text("❤", NamedTextColor.RED))
                         .append(Component.text(".", NamedTextColor.WHITE))
         );
@@ -75,7 +74,7 @@ public class MagmaCubeSoulType extends ConfigHoldingSoulType {
     private static final String HEALING_COOLDOWN_CONFIG_ID = "healing_cooldown";
     private static final String HEAL_AMOUNT_CONFIG_ID = "healing_amount";
 
-    private final ConfigOption<Integer> healingCooldown = configOption(HEALING_COOLDOWN_CONFIG_ID, 1000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> healingCooldown = configOption(HEALING_COOLDOWN_CONFIG_ID, 1000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Double> healAmount = configOption(HEAL_AMOUNT_CONFIG_ID, 0.5, FileConfiguration::getDouble, value -> Math.max(value, 0));
 
     @Override

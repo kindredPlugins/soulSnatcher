@@ -13,6 +13,8 @@ public final class ConfigOption<T> {
     private final T defaultValue;
     private volatile T cached;
     private final ConfigReader<T> reader;
+    private final Function<T, T> valueFunction;
+    private final Function<T, String> displayFunction;
 
     @FunctionalInterface
     public interface ConfigReader<T> {
@@ -24,16 +26,22 @@ public final class ConfigOption<T> {
     }
 
     public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction){
+        this(id, soulType, defaultValue, reader, valueFunction, Object::toString);
+    }
+
+    public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction, Function<T, String> displayFunction){
         this.id = id;
         this.soulType = soulType;
         this.defaultValue = defaultValue;
         this.reader = reader;
+        this.valueFunction = valueFunction;
+        this.displayFunction = displayFunction;
 
         reloadFromConfig();
     }
 
     public void reloadFromConfig(){
-        cached = reader.read(SoulSnatcher.getSoulsConfig(), SoulRegistry.soulConfigPath(soulType) + "." + id, defaultValue);
+        cached = valueFunction.apply(reader.read(SoulSnatcher.getSoulsConfig(), SoulRegistry.soulConfigPath(soulType) + "." + id, defaultValue));
     }
 
     public String id(){
@@ -46,5 +54,9 @@ public final class ConfigOption<T> {
 
     public T defaultValue(){
         return defaultValue;
+    }
+
+    public String displayValue() {
+        return displayFunction.apply(cached);
     }
 }

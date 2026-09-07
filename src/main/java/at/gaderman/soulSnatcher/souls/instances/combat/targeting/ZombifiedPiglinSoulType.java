@@ -6,7 +6,6 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -60,13 +59,13 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When engaging in combat ")
                         .append(Component.text("mark ", NamedTextColor.DARK_RED))
                         .append(Component.text("a target", NamedTextColor.WHITE)),
                 Component.text("and gain ")
-                        .append(Component.text("+" + engageBoost.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA))
+                        .append(Component.text("+" + wrapPlaceholder(ENGAGE_BOOST_CONFIG_ID) + "% Movement Speed", NamedTextColor.AQUA))
                         .append(Component.text(".", NamedTextColor.WHITE)),
                 Component.text("Mark automatically jumps to the next target on death", NamedTextColor.GRAY)
         );
@@ -77,8 +76,8 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     private static final String ENGAGE_TIMEOUT_CONFIG_ID = "engage_timeout";
     private static final String ENGAGE_BOOST_CONFIG_ID = "engage_boost";
 
-    private final ConfigOption<Integer> engageTimeout = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 10000, FileConfiguration::getInt, value -> Math.max(value, 0));
-    private final ConfigOption<Double> engageBoost = configOption(ENGAGE_BOOST_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> engageTimeout = configOption(ENGAGE_TIMEOUT_CONFIG_ID, 10000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
+    private final ConfigOption<Double> engageBoost = configOption(ENGAGE_BOOST_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> Math.max(value, 0), this::toPercentageString);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

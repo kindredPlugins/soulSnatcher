@@ -8,7 +8,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -63,13 +62,13 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When not attacking for ")
-                        .append(Component.text(chargeBuffer.cached() / 1000.0 + "s ", NamedTextColor.AQUA))
+                        .append(Component.text(wrapPlaceholder(CHARGE_BUFFER_CONFIG_ID) + "s ", NamedTextColor.AQUA))
                         .append(Component.text("slowly")),
                 Component.text("charge up the next melee attack to deal"),
-                Component.text("+" + (maxCharge.cached() * 100) + "% ", NamedTextColor.GOLD)
+                Component.text("+" + wrapPlaceholder(MAX_CHARGE_CONFIG_ID) + "% ", NamedTextColor.GOLD)
                         .append(Component.text("more damage when fully charged.", NamedTextColor.WHITE))
         );
     }
@@ -80,9 +79,9 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
     private static final String MAX_CHARGE_CONFIG_ID = "max_charge";
     private static final String CHARGE_TIME_CONFIG_ID = "charge_time";
 
-    private final ConfigOption<Integer> chargeBuffer = configOption(CHARGE_BUFFER_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0));
-    private final ConfigOption<Double> maxCharge = configOption(MAX_CHARGE_CONFIG_ID, 0.5, FileConfiguration::getDouble, value -> Math.max(value, 0));
-    private final ConfigOption<Integer> chargeTime = configOption(CHARGE_TIME_CONFIG_ID, 5000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> chargeBuffer = configOption(CHARGE_BUFFER_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
+    private final ConfigOption<Double> maxCharge = configOption(MAX_CHARGE_CONFIG_ID, 0.5, FileConfiguration::getDouble, value -> Math.max(value, 0), this::toPercentageString);
+    private final ConfigOption<Integer> chargeTime = configOption(CHARGE_TIME_CONFIG_ID, 5000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

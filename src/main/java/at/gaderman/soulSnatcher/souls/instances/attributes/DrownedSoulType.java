@@ -8,7 +8,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
@@ -63,13 +62,13 @@ public class DrownedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Boosts water movement and oxygen by default."),
                 Component.text("When entering water, enter a ")
                         .append(Component.text("Water State", TextColor.color(0x5e6e92))),
                 Component.text("which grants additional movement speed and adds "),
-                Component.text("+" + waterDamageBonus.cached(), NamedTextColor.GOLD)
+                Component.text("+" + wrapPlaceholder(WATER_DAMAGE_BONUS_CONFIG_ID), NamedTextColor.GOLD)
                         .append(Component.text(" to melee and trident attacks.", NamedTextColor.WHITE))
         );
     }

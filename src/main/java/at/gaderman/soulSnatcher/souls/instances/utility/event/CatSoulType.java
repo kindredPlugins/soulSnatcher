@@ -49,7 +49,7 @@ public class CatSoulType extends SoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
+    public @NotNull List<Component> defaultDescription() {
         return List.of();
     }
 

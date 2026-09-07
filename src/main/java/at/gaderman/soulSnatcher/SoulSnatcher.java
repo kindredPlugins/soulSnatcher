@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher;
 
 import at.gaderman.soulSnatcher.commands.SoulIndexCommand;
 import at.gaderman.soulSnatcher.commands.SoulLanternCommand;
+import at.gaderman.soulSnatcher.config.lang.LanguageManager;
 import at.gaderman.soulSnatcher.souls.*;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
@@ -34,6 +35,7 @@ public final class SoulSnatcher extends JavaPlugin {
 
         SoulRegistry.getInstance();
 
+        LanguageManager.getInstance();
         new UpdateChecker(this).check();
     }
 

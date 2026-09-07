@@ -7,7 +7,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -59,13 +58,13 @@ public class ShulkerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
             Component.text("When attacking or being attacked"),
                 Component.text("launch a ")
                         .append(Component.text("shulker bullet ", NamedTextColor.DARK_PURPLE))
                         .append(Component.text("every ", NamedTextColor.WHITE))
-                        .append(Component.text(triggerCooldown.cached() / 1000.0 + "s", NamedTextColor.AQUA))
+                        .append(Component.text(wrapPlaceholder(TRIGGER_COOLDOWN_CONFIG_ID) + "s", NamedTextColor.AQUA))
                         .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
@@ -74,7 +73,7 @@ public class ShulkerSoulType extends ConfigHoldingSoulType {
 
     private static final String TRIGGER_COOLDOWN_CONFIG_ID = "trigger_cooldown";
 
-    private final ConfigOption<Integer> triggerCooldown = configOption(TRIGGER_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> triggerCooldown = configOption(TRIGGER_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

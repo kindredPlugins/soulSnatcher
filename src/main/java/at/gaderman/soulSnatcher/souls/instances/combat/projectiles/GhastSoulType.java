@@ -10,7 +10,6 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityLaunchProjectileTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileExplosionTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnProjectileHitTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.destroystokyo.paper.entity.RangedEntity;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -64,17 +63,14 @@ public class GhastSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        double cooldown = Math.round(ghastShotCooldown.cached() / 10.0) / 100.0;
-        boolean isInt = Math.ceil(cooldown) == cooldown;
-
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Every ")
-                        .append(Component.text((isInt ? (int) (cooldown) : cooldown) + "s ", NamedTextColor.AQUA))
+                        .append(Component.text(wrapPlaceholder(GHAST_SHOT_COOLDOWN_CONFIG_ID) + "s ", NamedTextColor.AQUA))
                         .append(Component.text("your next shot projectile")),
                 Component.text("will explode upon impact, dealing"),
                 Component.text("knockback and up to ")
-                        .append(Component.text(maxAoeDamage.cached() + " ", NamedTextColor.RED))
+                        .append(Component.text(wrapPlaceholder(MAX_DAMAGE_CONFIG_ID) + " ", NamedTextColor.RED))
                         .append(Component.text("AOE damage."))
         );
     }
@@ -85,7 +81,8 @@ public class GhastSoulType extends ConfigHoldingSoulType {
     private static final String MIN_DAMAGE_CONFIG_ID = "min_AoE_damage";
     private static final String PROJECTILE_SPEED_MULTIPLIER_CONFIG_ID = "projectile_speed_multiplier";
 
-    private final ConfigOption<Integer> ghastShotCooldown = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> ghastShotCooldown = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
+            //value -> String.valueOf((value == Math.ceil(Math.round(value / 10.0) / 100.0)) ? (double) (int) value / 1000 : value / 1000.0));
     private final ConfigOption<Double> aoeRadius = configOption(AOE_RADIUS_CONFIG_ID, 3.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> maxAoeDamage = configOption(MAX_DAMAGE_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> minAoeDamage = configOption(MIN_DAMAGE_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
@@ -172,7 +169,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onProjectileExplosion(LivingEntity carrier, Projectile projectile, EntityExplodeEvent event) {
-            if(!(projectile instanceof LargeFireball)) return;
+            if (!(projectile instanceof LargeFireball)) return;
 
             event.blockList().clear();
         }

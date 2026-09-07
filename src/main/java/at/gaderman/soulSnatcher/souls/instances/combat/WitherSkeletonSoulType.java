@@ -6,7 +6,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -59,8 +58,8 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Any melee hit will inflict the"),
                 Component.text("Wither Effect ",
                                 Style.style(
@@ -76,7 +75,7 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
     private static final String WITHER_DURATION_CONFIG_ID = "wither_duration";
     private static final String WITHER_AMPLIFIER_CONFIG_ID = "wither_amplifier";
 
-    private final ConfigOption<Integer> witherDuration = configOption(WITHER_DURATION_CONFIG_ID, 200, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> witherDuration = configOption(WITHER_DURATION_CONFIG_ID, 200, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
     private final ConfigOption<Integer> witherAmplifier = configOption(WITHER_AMPLIFIER_CONFIG_ID, 0, FileConfiguration::getInt, value -> Math.min(Math.max(value, 0), 255));
 
     @Override

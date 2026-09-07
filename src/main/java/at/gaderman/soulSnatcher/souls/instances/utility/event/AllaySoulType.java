@@ -57,7 +57,7 @@ public class AllaySoulType extends SoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
+    public @NotNull List<Component> defaultDescription() {
         return ItemUtils.applyDefaultLoreStyle(
                 Component.text("When holding an item, all nearby items "),
                 Component.text("of the same sort will be ")

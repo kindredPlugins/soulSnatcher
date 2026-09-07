@@ -8,14 +8,12 @@ import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
@@ -65,12 +63,12 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
-                Component.text((damagePreserveMultiplier.cached() * 100) + "% ", NamedTextColor.RED)
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
+                Component.text(wrapPlaceholder(DAMAGE_PRESERVE_CONFIG_ID) + "% ", NamedTextColor.RED)
                         .append(Component.text("of damage taken from players/mobs is", NamedTextColor.WHITE)),
                 Component.text("split into ", NamedTextColor.WHITE)
-                        .append(Component.text(bufferSplitAmount.cached(), NamedTextColor.GOLD))
+                        .append(Component.text(wrapPlaceholder(BUFFER_SPLIT_CONFIG_ID), NamedTextColor.GOLD))
                         .append(Component.text(" portions taken in short intervals.", NamedTextColor.WHITE))
         );
     }
@@ -81,9 +79,9 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
     private static final String BUFFER_SPLIT_CONFIG_ID = "buffer_split_amount";
     private static final String BUFFER_INTERVAL_CONFIG_ID = "buffer_interval";
 
-    private final ConfigOption<Double> damagePreserveMultiplier = configOption(DAMAGE_PRESERVE_CONFIG_ID, 0.4, FileConfiguration::getDouble, value -> Math.clamp(value, 0, 1));
+    private final ConfigOption<Double> damagePreserveMultiplier = configOption(DAMAGE_PRESERVE_CONFIG_ID, 0.4, FileConfiguration::getDouble, value -> Math.clamp(value, 0, 1), this::toPercentageString);
     private final ConfigOption<Integer> bufferSplitAmount = configOption(BUFFER_SPLIT_CONFIG_ID, 3, FileConfiguration::getInt, value -> Math.max(value, 0));
-    private final ConfigOption<Integer> bufferInterval = configOption(BUFFER_INTERVAL_CONFIG_ID, 15, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> bufferInterval = configOption(BUFFER_INTERVAL_CONFIG_ID, 15, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

@@ -7,7 +7,6 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -59,8 +58,8 @@ public class SpiderSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.keybind("key.sneak", NamedTextColor.GOLD)
                         .append(Component.text(" + Jump "))
                         .append(Component.text("to spider dash.", NamedTextColor.WHITE)),
@@ -77,7 +76,7 @@ public class SpiderSoulType extends ConfigHoldingSoulType {
     private static final String DASH_VERTICAL_CONFIG_ID = "dash_vertical";
     private static final String DASH_EXHAUSTION_CONFIG_ID = "dash_exhaustion";
 
-    private final ConfigOption<Integer> jumpCooldown = configOption(JUMP_COOLDOWN_CONFIG_ID, 1000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> jumpCooldown = configOption(JUMP_COOLDOWN_CONFIG_ID, 1000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Double> dashPower = configOption(DASH_POWER_CONFIG_ID, 0.75, FileConfiguration::getDouble);
     private final ConfigOption<Double> dashVertical = configOption(DASH_VERTICAL_CONFIG_ID, 0.2, FileConfiguration::getDouble);
     private final ConfigOption<Double> dashExhaustion = configOption(DASH_EXHAUSTION_CONFIG_ID, 2.75, FileConfiguration::getDouble, value -> Math.max(value, 0));

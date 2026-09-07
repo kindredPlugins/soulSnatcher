@@ -1,6 +1,8 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.lang.LanguageKeyHolder;
+import at.gaderman.soulSnatcher.config.lang.LanguageManager;
 import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
@@ -24,7 +26,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public abstract class SoulType {
+public abstract class SoulType implements LanguageKeyHolder {
 
     public SoulType() {
     }
@@ -42,7 +44,7 @@ public abstract class SoulType {
 
     public abstract @NotNull Component displayName();
 
-    public abstract @NotNull List<Component> description();
+    public abstract @NotNull List<Component> defaultDescription();
 
     public final @NotNull ItemStack getRepresentativeSkull() {
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" + skullTexture());
@@ -58,6 +60,17 @@ public abstract class SoulType {
         return item;
     }
 
+    private static final String DESCRIPTION_LANG_PREFIX = "soul_descriptions.";
+
+    public @NotNull List<Component> description(){
+        return ItemUtils.applyDefaultLoreStyle(LanguageManager.getInstance().resolveComponent(DESCRIPTION_LANG_PREFIX + id()));
+    }
+
+    @Override
+    public Map<String, List<Component>> languageKeyDefaultMap() {
+        return Map.of(DESCRIPTION_LANG_PREFIX + id(), defaultDescription());
+    }
+
     public boolean isInvalidInfusionTarget(LivingEntity entity) {
         return entity instanceof Boss || entity instanceof Fish || entity instanceof Bat;
     }
@@ -67,7 +80,7 @@ public abstract class SoulType {
      * make use of random variables or just to reset soul state, default should be false except
      * if specifically needed
      *
-     * @return If this soul can be placed
+     * @return If this soul can be obtained again while carrying allowing it to overwrite itself
      * @see at.gaderman.soulSnatcher.souls.instances.attributes.HorseSoulType
      */
     public boolean canOverwriteItself() {
@@ -334,7 +347,7 @@ public abstract class SoulType {
             legacySouls.forEach(soulType -> {
                 ItemStack filledVial = SoulVialManager.getFilledVial(soulType);
 
-                if(player.getInventory().firstEmpty() == -1){
+                if (player.getInventory().firstEmpty() == -1) {
                     player.getWorld().dropItem(player.getLocation(), filledVial, drop -> {
                         drop.setOwner(player.getUniqueId());
                         drop.setGlowing(true);
@@ -342,7 +355,7 @@ public abstract class SoulType {
                         drop.setVelocity(drop.getVelocity().multiply(0));
                     });
                     hadDrops.set(true);
-                }else {
+                } else {
                     player.give(filledVial);
                 }
 
@@ -366,7 +379,7 @@ public abstract class SoulType {
                     player.sendMessage(Component.empty());
                     player.sendMessage(Component.text("You have received them as ")
                             .append(Component.text("Soul Vial", SoulVialManager.getEmptyVial().displayName().color())));
-                    if(hadDrops.get()) {
+                    if (hadDrops.get()) {
                         player.sendMessage(Component.text("Some vials have been dropped due to full inventory!", NamedTextColor.RED));
                     }
                     player.sendMessage(Component.empty());
