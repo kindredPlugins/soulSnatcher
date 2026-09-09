@@ -51,11 +51,8 @@ public class SoulVialManager implements Listener {
         ItemStack vial = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
                 "75d3a90f471c95fcc9702f6fe573cc113cdf6d8c539b261ee3c30771b18e2ac");
         vial.editMeta(meta -> {
-            meta.customName(Component.text("Empty Soul Vial", TextColor.color(0x0092ff)).decoration(TextDecoration.ITALIC, false));
-            var lore = ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Interact with an released soul to capture it.", NamedTextColor.GRAY),
-                    Component.text("Can later be released again.", NamedTextColor.GRAY)
-            );
+            meta.customName(SoulItemsLanguageDefinitions.EMPTY_VIAL_TITLE.getSingle().decoration(TextDecoration.ITALIC, false));
+            var lore = ItemUtils.applyDefaultLoreStyle(SoulItemsLanguageDefinitions.EMPTY_VIAL_DESCRIPTION.getLines());
             meta.lore(lore);
             meta.setMaxStackSize(16);
 
@@ -67,13 +64,12 @@ public class SoulVialManager implements Listener {
     public static ItemStack getFilledVial(SoulType soulType) {
         ItemStack vial = soulType.getRepresentativeSkull();
         vial.editMeta(meta -> {
-            meta.customName(Component.text("Soul Vial ", TextColor.color(0x0092ff))
-                    .append(Component.text("✦ ", NamedTextColor.GRAY))
+            meta.customName(SoulItemsLanguageDefinitions.FILLED_VIAL_PREFIX.getSingle()
                     .append(soulType.displayName())
                     .decoration(TextDecoration.ITALIC, false));
 
             var lore = ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Interact to release the stored soul"),
+                    SoulItemsLanguageDefinitions.FILLED_VIAL_DESCRIPTION_HEADER.getSingle(),
                     Component.empty(),
                     soulType.displayName()
             );
@@ -108,9 +104,9 @@ public class SoulVialManager implements Listener {
                 drop.setHealth(100);
                 drop.setVelocity(drop.getVelocity().multiply(0));
             });
-            player.sendMessage(Component.text("Your captured ", NamedTextColor.RED)
+            player.sendMessage(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED.getSingle()
                     .append(soulType.displayName())
-                    .append(Component.text(" has been dropped!", NamedTextColor.RED)));
+                    .append(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED_SUFFIX.getSingle()));
         }else{
             player.give(filledVial);
         }
@@ -153,7 +149,7 @@ public class SoulVialManager implements Listener {
                 return;
 
             event.setCancelled(true);
-            player.sendActionBar(Component.text("This soul has been disabled by an admin", NamedTextColor.RED));
+            player.sendActionBar(SoulItemsLanguageDefinitions.VIAL_DISABLED.getSingle());
             player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 1f);
             return;
         }
@@ -165,7 +161,7 @@ public class SoulVialManager implements Listener {
         if(SoulType.getCarriedSouls(player).stream()
                 .anyMatch(carried -> !carried.soulType().canOverwriteItself() && carried.soulType().equals(soul))){
             player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.2f);
-            player.sendActionBar(Component.text("You already have bound this soul", NamedTextColor.RED));
+            player.sendActionBar(SoulItemsLanguageDefinitions.VIAL_ALREADY_HAVE.getSingle());
             return;
         }
 

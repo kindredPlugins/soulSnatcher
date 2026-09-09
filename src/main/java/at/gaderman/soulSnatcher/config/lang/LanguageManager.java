@@ -25,12 +25,19 @@ public class LanguageManager {
     }
 
     private final Map<String, List<Component>> translationKeyMap = new HashMap<>();
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
+    private final MiniMessage miniMessage = MiniMessage.miniMessage(MiniMessage.Preset.NON_INTERACTABLE);
+
+    private static boolean registered;
+
+    public static boolean isRegistered() {
+        return registered;
+    }
 
     private void setUp() {
         //TODO: resolve current language/cache it from config.yaml
         loadLanguage("en");
 
+        registered = true;
         SoulSnatcher.getPlugin().getLogger().info("Loaded all language keys");
     }
 
@@ -43,18 +50,27 @@ public class LanguageManager {
 
         YamlConfiguration config = create ? new YamlConfiguration() : YamlConfiguration.loadConfiguration(langFile);
 
+        List<LanguageKeyHolder> keyHolders = new ArrayList<>();
+
         ServiceLoader<SoulType> loader = ServiceLoader.load(SoulType.class, getClass().getClassLoader());
         StreamSupport.stream(loader.spliterator(), false)
                 .sorted(Comparator.comparing(SoulType::id))
-                .forEach(keyHolder -> keyHolder.languageKeyDefaultMap().forEach((key, value) -> {
-                    if (!config.contains(key))
-                        config.set(key, value.stream().map(miniMessage::serialize).toList());
+                .forEach(keyHolders::add);
 
-                    List<String> rawComponents = config.getStringList(key);
-                    List<Component> components = resolveComponents(rawComponents, keyHolder);
+        ServiceLoader<LanguageGroupDefinition> groupDefinitionLoader = ServiceLoader.load(LanguageGroupDefinition.class, getClass().getClassLoader());
+        StreamSupport.stream(groupDefinitionLoader.spliterator(), false)
+                .forEach(keyHolders::add);
 
-                    translationKeyMap.put(key, components);
-                }));
+        //TODO: sort keys in alphabetical order
+        keyHolders.forEach(keyHolder -> keyHolder.languageKeyDefaultMap().forEach((key, value) -> {
+            if (!config.contains(key))
+                config.set(key, value.stream().map(miniMessage::serialize).toList());
+
+            List<String> rawComponents = config.getStringList(key);
+            List<Component> components = resolveComponents(rawComponents, keyHolder);
+
+            translationKeyMap.put(key, components);
+        }));
 
         try {
             config.save(langFile);

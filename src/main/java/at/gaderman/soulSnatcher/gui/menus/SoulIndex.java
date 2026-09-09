@@ -20,7 +20,7 @@ import java.util.List;
 public class SoulIndex extends ActionInventory {
 
     public SoulIndex() {
-        super(Component.text("SoulIndex", NamedTextColor.BLUE));
+        super(MenuLanguageDefinition.SOUL_INDEX_TITLE.getSingle());
     }
 
     private static List<SoulCategory> categories = new ArrayList<>();
@@ -61,14 +61,11 @@ public class SoulIndex extends ActionInventory {
         }
     }
 
-    private ItemStack getGamePlayInfo(){
+    private ItemStack getGamePlayInfo() {
         ItemStack item = ItemStack.of(Material.KNOWLEDGE_BOOK);
         item.editMeta(meta -> {
-            meta.itemName(Component.text("Gameplay Info", NamedTextColor.GOLD));
-            meta.lore(ItemUtils.applyDefaultLoreStyle(
-                    Component.text("View general information about how"),
-                    Component.text("this plugin operates.")
-            ));
+            meta.itemName(MenuLanguageDefinition.GAMEPLAY_INFO_TITLE.getSingle());
+            meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.GAMEPLAY_INFO_DESCRIPTION.getLines()));
         });
         return item;
     }

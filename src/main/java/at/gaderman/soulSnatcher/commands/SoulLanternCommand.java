@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.commands;
 
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.items.SoulItemsLanguageDefinitions;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -24,13 +25,13 @@ public class SoulLanternCommand implements CommandExecutor, TabExecutor {
         }
 
         if(SoulType.getCarriedSouls(player).isEmpty()){
-            player.sendMessage(Component.text("You do not own any souls, so no soul lantern was added", NamedTextColor.GRAY));
+            player.sendMessage(SoulItemsLanguageDefinitions.EMPTY_UPDATE.getSingle());
             player.playSound(player, Sound.ENTITY_ARROW_SHOOT, 1f, 2f);
             SoulLanternManager.updateActiveLanterns(player);
             return true;
         }
 
-        player.sendMessage(Component.text("SoulLantern has been updated!", NamedTextColor.GRAY));
+        player.sendMessage(SoulItemsLanguageDefinitions.LANTERN_UPDATE.getSingle());
         player.playSound(player, Sound.BLOCK_PUMPKIN_CARVE, 1f, 1f);
         SoulLanternManager.updateActiveLanterns(player);
         return true;

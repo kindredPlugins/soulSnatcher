@@ -24,6 +24,8 @@ public final class SoulSnatcher extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+        SoulRegistry.getInstance();
+        LanguageManager.getInstance();
 
         Bukkit.getPluginManager().registerEvents(new SoulListener(), this);
         Bukkit.getPluginManager().registerEvents(new TriggerListener(), this);
@@ -33,9 +35,6 @@ public final class SoulSnatcher extends JavaPlugin {
         getCommand("soulIndex").setExecutor(new SoulIndexCommand());
         getCommand("soulLantern").setExecutor(new SoulLanternCommand());
 
-        SoulRegistry.getInstance();
-
-        LanguageManager.getInstance();
         new UpdateChecker(this).check();
     }
 
