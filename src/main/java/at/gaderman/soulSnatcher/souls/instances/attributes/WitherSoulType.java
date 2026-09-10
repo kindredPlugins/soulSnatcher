@@ -20,6 +20,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -76,7 +77,12 @@ public class WitherSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull Component defaultDisplayName() {
-        return ItemUtils.gradient("Wither", TextColor.color(0xb4b4b4), TextColor.color(0x414141));
+        return MiniMessage.miniMessage().deserialize("<gradient:#b4b4b4:414141>Wither");
+    }
+
+    @Override
+    protected TextColor displayFallbackColor() {
+        return TextColor.color(0x414141);
     }
 
     @Override

@@ -12,7 +12,9 @@ import com.google.auto.service.AutoService;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -58,7 +60,12 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull Component defaultDisplayName() {
-        return ItemUtils.gradient("Ender Dragon", TextColor.color(0x6c76ab), NamedTextColor.DARK_PURPLE);
+        return MiniMessage.miniMessage().deserialize("<gradient:#6c76ab:dark_purple>Ender Dragon");
+    }
+
+    @Override
+    protected TextColor displayFallbackColor() {
+        return NamedTextColor.DARK_PURPLE;
     }
 
     @Override

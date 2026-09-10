@@ -12,6 +12,7 @@ import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -67,11 +68,17 @@ public abstract class SoulType implements LanguageKeyHolder {
     public @NotNull Component displayName() {
         Component displayName = LanguageManager.getInstance().resolveComponent(NAMES_LANG_PREFIX + id()).getFirst();
 
-        return SoulLanguageDefinitions.SOUL_NAME.getSingle().replaceText(TextReplacementConfig.builder()
+        return SoulLanguageDefinitions.SOUL_NAME.getSingle()
+                .style(displayName.style())
+                .colorIfAbsent(displayFallbackColor())
+                .replaceText(TextReplacementConfig.builder()
                         .matchLiteral(SoulLanguageDefinitions.SOUL_PLACEHOLDER)
                         .replacement(displayName)
-                        .build())
-                .style(displayName.style());
+                        .build());
+    }
+
+    protected TextColor displayFallbackColor(){
+        return NamedTextColor.GRAY;
     }
 
     public @NotNull List<Component> description() {
