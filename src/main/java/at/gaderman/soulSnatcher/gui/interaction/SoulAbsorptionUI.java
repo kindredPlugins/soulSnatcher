@@ -84,10 +84,11 @@ public class SoulAbsorptionUI extends ActionInventory {
     private ItemStack getDiscardItem() {
         ItemStack item = ItemStack.of(Material.BARRIER);
         item.editMeta(meta -> {
-                    meta.itemName(MenuLanguageDefinition.DISCARD_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
-                            .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
-                            .replacement(rewardSoul.displayName())
-                            .build()));
+                    meta.itemName(MenuLanguageDefinition.DISCARD_SOUL.getSingle().color(NamedTextColor.RED)
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                                    .replacement(rewardSoul.displayName())
+                                    .build()));
                 }
         );
         return item;
@@ -96,10 +97,10 @@ public class SoulAbsorptionUI extends ActionInventory {
     private ItemStack getOfferItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.ORANGE_DYE);
         item.editMeta(meta -> {
-            meta.itemName(MenuLanguageDefinition.REPLACE_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
-                    .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
-                    .replacement(rewardSoul.displayName())
-                    .build()));
+                    meta.itemName(MenuLanguageDefinition.REPLACE_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
+                            .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                            .replacement(rewardSoul.displayName())
+                            .build()));
                 }
         );
         return item;

@@ -105,7 +105,7 @@ public class LanguageManager {
 
         if (!langFile.exists()) {
             SoulSnatcher.getPlugin().getLogger().warning("Language file " + language + " not found!");
-            return List.of();
+            return List.of(Component.empty());
         }
 
         YamlConfiguration langConfig = YamlConfiguration.loadConfiguration(langFile);
@@ -114,27 +114,10 @@ public class LanguageManager {
 
         if (component == null) {
             SoulSnatcher.getPlugin().getLogger().warning("No translation key for \"" + key + "\" found!");
-            return List.of();
+            return List.of(Component.empty());
         }
 
         translationKeyMap.put(key, List.of(component));
         return List.of(component);
     }
-
-//    public Component loadSoulDescription(SoulType soulType) {
-//        String id = soulType.id();
-//
-//        Component component = translations.getOrDefault(id, null);
-//
-//        if (component != null)
-//            return component;
-//
-//        //TODO: pull line from lang.yml file or default to soulType itself
-//        List<String> rawLines = new ArrayList<>();
-//        String rawDesc = String.join("<newline>", rawLines);
-//        component = miniMessage.deserialize(rawDesc);
-//        translations.put(id, component);
-//
-//        return component;
-//    }
 }

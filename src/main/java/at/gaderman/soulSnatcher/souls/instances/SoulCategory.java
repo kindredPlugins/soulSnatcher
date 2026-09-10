@@ -14,11 +14,11 @@ public enum SoulCategory {
 
     public ItemStack icon() {
         return switch (this) {
-            case COMBAT -> ItemUtils.createBasicUIItem(Material.IRON_SWORD, SoulCategoryLanguageDefinitions.COMBAT_TITLE.getSingle(),
+            case COMBAT -> ItemUtils.createBasicUIItem(Material.IRON_SWORD, SoulCategoryLanguageDefinitions.COMBAT_TITLE.getSingle().color(NamedTextColor.AQUA),
                     ItemUtils.applyDefaultLoreStyle(SoulCategoryLanguageDefinitions.COMBAT_DESCRIPTION.getLines()));
-            case UTILITY -> ItemUtils.createBasicUIItem(Material.CHEST, SoulCategoryLanguageDefinitions.UTILITY_TITLE.getSingle(),
+            case UTILITY -> ItemUtils.createBasicUIItem(Material.CHEST, SoulCategoryLanguageDefinitions.UTILITY_TITLE.getSingle().color(NamedTextColor.YELLOW),
                     ItemUtils.applyDefaultLoreStyle(SoulCategoryLanguageDefinitions.UTILITY_DESCRIPTION.getLines()));
-            case MOVEMENT -> ItemUtils.createBasicUIItem(Material.FEATHER, SoulCategoryLanguageDefinitions.MOVEMENT_TITLE.getSingle(),
+            case MOVEMENT -> ItemUtils.createBasicUIItem(Material.FEATHER, SoulCategoryLanguageDefinitions.MOVEMENT_TITLE.getSingle().color(NamedTextColor.GREEN),
                     ItemUtils.applyDefaultLoreStyle(SoulCategoryLanguageDefinitions.MOVEMENT_DESCRIPTION.getLines()));
             case ATTRIBUTES -> ItemUtils.createBasicUIItem(Material.ANVIL, SoulCategoryLanguageDefinitions.ATTRIBUTES_TITLE.getSingle(),
                     ItemUtils.applyDefaultLoreStyle(SoulCategoryLanguageDefinitions.ATTRIBUTES_DESCRIPTION.getLines()));

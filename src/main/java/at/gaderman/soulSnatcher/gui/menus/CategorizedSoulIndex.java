@@ -23,7 +23,7 @@ public class CategorizedSoulIndex extends ActionInventory {
     private final SoulCategory category;
 
     public CategorizedSoulIndex(SoulCategory category) {
-        super(Component.text("SoulIndex", NamedTextColor.BLUE));
+        super(MenuLanguageDefinition.SOUL_INDEX_TITLE.getSingle().color(NamedTextColor.BLUE));
 
         this.category = category;
     }

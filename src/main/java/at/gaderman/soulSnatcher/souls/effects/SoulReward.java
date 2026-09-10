@@ -52,7 +52,8 @@ public class SoulReward {
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay claimedByTitle = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, 0.15, 0), TextDisplay.class, display -> {
-            display.text(SoulLanguageDefinitions.SOUL_OFFERED_FOR.getSingle().replaceText(TextReplacementConfig.builder()
+            display.text(SoulLanguageDefinitions.SOUL_OFFERED_FOR.getSingle().color(NamedTextColor.RED)
+                    .replaceText(TextReplacementConfig.builder()
                     .matchLiteral(SoulLanguageDefinitions.OWNER_PLACEHOLDER)
                     .replacement(owner.name().color(NamedTextColor.DARK_RED))
                     .build())
@@ -65,7 +66,7 @@ public class SoulReward {
         });
         TextDisplay interactText = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, -1, 0), TextDisplay.class, display -> {
             display.text(duplicateSoul ?
-                    SoulLanguageDefinitions.ALREADY_BOUND.getSingle() :
+                    SoulLanguageDefinitions.ALREADY_BOUND.getSingle().color(NamedTextColor.RED) :
                     SoulLanguageDefinitions.BIND_TEXT.getSingle());
 
             display.setAlignment(TextDisplay.TextAlignment.CENTER);

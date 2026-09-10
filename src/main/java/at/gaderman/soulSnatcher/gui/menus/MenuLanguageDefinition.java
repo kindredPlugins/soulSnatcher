@@ -14,7 +14,7 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     public static final String SOUL_PLACEHOLDER = "{soul}";
 
     public static final LanguageKey GAMEPLAY_INFO_TITLE = registerKey(SOUL_INDEX_PREFIX + "gameplay_info.title",
-            Component.text("Gameplay Info", NamedTextColor.GOLD));
+            "Gameplay Info");
 
     public static final LanguageKey GAMEPLAY_INFO_DESCRIPTION = registerKey(SOUL_INDEX_PREFIX + "gameplay_info.description",
             Component.text("View general information about how"),
@@ -25,14 +25,14 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     public static final String GAMEPLAY_INFO_PREFIX = SOUL_INDEX_PREFIX + "submenus.gameplay_info.";
 
     public static final LanguageKey RELEASING_SOULS = registerKey(GAMEPLAY_INFO_PREFIX + "releasing_souls",
-            Component.text("Releasing Souls", NamedTextColor.YELLOW));
+            "Releasing Souls");
     public static final LanguageKey RELEASING_SOULS_DESCRIPTION = registerKey(GAMEPLAY_INFO_PREFIX + "releasing_souls_description",
             Component.text("After slaying a mob a ")
                     .append(Component.text("soul ", NamedTextColor.BLUE)),
             Component.text("is released and added to your pool."));
 
     public static final LanguageKey INFUSION = registerKey(GAMEPLAY_INFO_PREFIX + "infusion",
-            Component.text("Infusion", NamedTextColor.YELLOW));
+            "Infusion");
     public static final LanguageKey INFUSION_DESCRIPTION = registerKey(GAMEPLAY_INFO_PREFIX + "infusion_description",
             Component.text("Nearby spawned mobs take a ")
                     .append(Component.text("soul ", NamedTextColor.BLUE)),
@@ -46,7 +46,7 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     );
 
     public static final LanguageKey BINDING = registerKey(GAMEPLAY_INFO_PREFIX + "binding",
-            Component.text("Binding", NamedTextColor.YELLOW));
+            "Binding");
     public static final LanguageKey BINDING_DESCRIPTION = registerKey(GAMEPLAY_INFO_PREFIX + "binding_description",
             Component.text("After killing an ")
                     .append(Component.text("infused ", NamedTextColor.YELLOW)),
@@ -60,7 +60,7 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     );
 
     public static final LanguageKey VIAL = registerKey(GAMEPLAY_INFO_PREFIX + "vial",
-            Component.text("Soul Vial", NamedTextColor.YELLOW));
+            "Soul Vial");
     public static final LanguageKey VIAL_DESCRIPTION = registerKey(GAMEPLAY_INFO_PREFIX + "vial_description",
             Component.empty(),
             Component.text("Can be obtained through ")
@@ -71,10 +71,10 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     public static final String SOUL_LANTERN_PREFIX = SOUL_INDEX_PREFIX + "submenus.soul_lantern.";
 
     public static final LanguageKey SOUL_LANTERN_TITLE = registerKey(SOUL_LANTERN_PREFIX + "title",
-            Component.text("Soul Lantern", NamedTextColor.BLUE));
+            "Soul Lantern");
 
     public static final LanguageKey REMOVE_SOUL = registerKey(SOUL_LANTERN_PREFIX + "remove",
-            Component.text("Remove " + SOUL_PLACEHOLDER, NamedTextColor.DARK_RED));
+            "Remove " + SOUL_PLACEHOLDER);
     public static final LanguageKey REMOVE_SOUL_DESC = registerKey(SOUL_LANTERN_PREFIX + "remove_soul",
             Component.text("Completely ")
                     .append(Component.text("removes ", NamedTextColor.RED))
@@ -82,7 +82,7 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     );
 
     public static final LanguageKey NO_SOUL_SLOT = registerKey(SOUL_LANTERN_PREFIX + "no_soul_slot",
-            Component.text("Soul Slot empty", NamedTextColor.GRAY));
+            "Soul Slot empty");
     public static final LanguageKey NO_SOUL_SLOT_DESCRIPTION = registerKey(SOUL_LANTERN_PREFIX + "no_soul_slot_description",
             Component.text("Bind a soul by killing an infused mob")
     );
@@ -90,18 +90,18 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
     public static final String SOUL_INDEX_PREFIX_MAIN = SOUL_INDEX_PREFIX + "main.";
 
     public static final LanguageKey SOUL_INDEX_TITLE = registerKey(SOUL_INDEX_PREFIX_MAIN + "title",
-            Component.text("Soul Index", NamedTextColor.BLUE));
+            "Soul Index");
 
     public static final LanguageKey BACK_BUTTON = registerKey(SOUL_INDEX_PREFIX_MAIN + "back_button",
-            Component.text("Back", NamedTextColor.RED));
+            "Back");
 
-    public static final String SOUL_ABSORPTION_PREFIX = SOUL_INDEX_PREFIX + "submneus.absorption.";
+    public static final String SOUL_ABSORPTION_PREFIX = SOUL_INDEX_PREFIX + "submenus.absorption.";
 
     public static final LanguageKey CHOOSE_SOUL = registerKey(SOUL_ABSORPTION_PREFIX + "title",
-            Component.text("Choose a soul"));
+            "Choose a soul");
     public static final LanguageKey DISCARD_SOUL = registerKey(SOUL_ABSORPTION_PREFIX + "discard_soul",
-            Component.text("Discard " + SOUL_PLACEHOLDER, NamedTextColor.RED));
+            "Discard " + SOUL_PLACEHOLDER);
     public static final LanguageKey REPLACE_SOUL = registerKey(SOUL_ABSORPTION_PREFIX + "replace_soul",
-            Component.text("Replace " + SOUL_PLACEHOLDER, TextColor.color(0xd38531)));
+            "Replace " + SOUL_PLACEHOLDER);
 
 }

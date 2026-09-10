@@ -390,7 +390,12 @@ public abstract class SoulType implements LanguageKeyHolder {
                             .toList()
                             .forEach(player::sendMessage);
                     player.sendMessage(Component.empty());
-                    SoulLanguageDefinitions.RECEIVED_AS_SOUL_VIAL.getLines().forEach(player::sendMessage);
+                    SoulLanguageDefinitions.RECEIVED_AS_SOUL_VIAL.getLines()
+                            .stream().map(line -> line.replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(SoulLanguageDefinitions.VIAL_PLACEHOLDER)
+                                    .replacement(SoulVialManager.getEmptyVial().displayName())
+                                    .build()))
+                            .forEach(player::sendMessage);
                     if (hadDrops.get()) {
                         SoulLanguageDefinitions.VIAL_DROP_FULL_INV.getLines().forEach(player::sendMessage);
                     }

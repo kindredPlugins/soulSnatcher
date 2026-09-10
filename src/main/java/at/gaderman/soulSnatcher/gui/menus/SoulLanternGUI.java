@@ -7,6 +7,7 @@ import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,7 +20,7 @@ public class SoulLanternGUI extends ActionInventory {
     private final List<SoulInstance<?>> carriedSouls;
 
     public SoulLanternGUI(Player player) {
-        super(MenuLanguageDefinition.SOUL_LANTERN_TITLE.getSingle());
+        super(MenuLanguageDefinition.SOUL_LANTERN_TITLE.getSingle().color(NamedTextColor.BLUE));
 
         this.player = player;
         this.carriedSouls = SoulType.getCarriedSouls(player);
@@ -65,10 +66,11 @@ public class SoulLanternGUI extends ActionInventory {
     private ItemStack getRemoveItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.BARRIER);
         item.editMeta(meta -> {
-                    meta.itemName(MenuLanguageDefinition.REMOVE_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
-                            .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
-                            .replacement(soul.soulType().displayName())
-                            .build()));
+                    meta.itemName(MenuLanguageDefinition.REMOVE_SOUL.getSingle().color(NamedTextColor.DARK_RED)
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                                    .replacement(soul.soulType().displayName())
+                                    .build()));
                     meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.REMOVE_SOUL_DESC.getLines()));
                 }
         );
@@ -78,7 +80,7 @@ public class SoulLanternGUI extends ActionInventory {
     private ItemStack getNoSoulItem() {
         ItemStack item = ItemStack.of(Material.GRAY_DYE);
         item.editMeta(meta -> {
-            meta.itemName(MenuLanguageDefinition.NO_SOUL_SLOT.getSingle());
+            meta.itemName(MenuLanguageDefinition.NO_SOUL_SLOT.getSingle().color(NamedTextColor.GRAY));
             meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.NO_SOUL_SLOT_DESCRIPTION.getLines()));
         });
         return item;

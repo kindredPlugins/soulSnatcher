@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -53,8 +54,8 @@ public class SoulLanternManager implements Listener {
 
         ItemStack lantern = getLanternAsCustomHead();
         lantern.editMeta(meta -> {
-            meta.displayName(SoulItemsLanguageDefinitions.LANTERN_TITLE.getSingle().decoration(TextDecoration.ITALIC, false));
-            var lore = ItemUtils.applyDefaultLoreStyle(SoulItemsLanguageDefinitions.LANTERN_DESCRIPTION.getLines());
+            meta.displayName(SoulItemsLanguageDefinitions.LANTERN_TITLE.getSingle().color(TextColor.color(0x10a1e1)).decoration(TextDecoration.ITALIC, false));
+            var lore = ItemUtils.applyDefaultLoreStyle(SoulItemsLanguageDefinitions.LANTERN_DESCRIPTION.getLines().stream().map(c -> c.color(NamedTextColor.GRAY)).toList());
             lore.addAll(souls.stream()
                     .map(soul -> Component.text("➤ ", NamedTextColor.DARK_GRAY)
                             .append(soul.soulType().displayName().decoration(TextDecoration.ITALIC, false)))

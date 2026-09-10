@@ -8,6 +8,8 @@ import at.gaderman.soulSnatcher.utils.ItemUtils;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.UseCooldown;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -49,7 +51,7 @@ public class SoulVialManager implements Listener {
         ItemStack vial = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
                 "75d3a90f471c95fcc9702f6fe573cc113cdf6d8c539b261ee3c30771b18e2ac");
         vial.editMeta(meta -> {
-            meta.customName(SoulItemsLanguageDefinitions.EMPTY_VIAL_TITLE.getSingle().decoration(TextDecoration.ITALIC, false));
+            meta.customName(SoulItemsLanguageDefinitions.EMPTY_VIAL_TITLE.getSingle().color(TextColor.color(0x0092ff)).decoration(TextDecoration.ITALIC, false));
             var lore = ItemUtils.applyDefaultLoreStyle(SoulItemsLanguageDefinitions.EMPTY_VIAL_DESCRIPTION.getLines());
             meta.lore(lore);
             meta.setMaxStackSize(16);
@@ -62,7 +64,7 @@ public class SoulVialManager implements Listener {
     public static ItemStack getFilledVial(SoulType soulType) {
         ItemStack vial = soulType.getRepresentativeSkull();
         vial.editMeta(meta -> {
-            meta.customName(SoulItemsLanguageDefinitions.FILLED_VIAL_PREFIX.getSingle()
+            meta.customName(SoulItemsLanguageDefinitions.FILLED_VIAL_PREFIX.getSingle().color(TextColor.color(0x0092ff))
                     .append(soulType.displayName())
                     .decoration(TextDecoration.ITALIC, false));
 
@@ -102,7 +104,7 @@ public class SoulVialManager implements Listener {
                 drop.setHealth(100);
                 drop.setVelocity(drop.getVelocity().multiply(0));
             });
-            player.sendMessage(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED.getSingle()
+                    player.sendMessage(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED.getSingle().color(NamedTextColor.RED)
                     .append(soulType.displayName())
                     .append(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED_SUFFIX.getSingle()));
         }else{
@@ -159,7 +161,7 @@ public class SoulVialManager implements Listener {
         if(SoulType.getCarriedSouls(player).stream()
                 .anyMatch(carried -> !carried.soulType().canOverwriteItself() && carried.soulType().equals(soul))){
             player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.2f);
-            player.sendActionBar(SoulItemsLanguageDefinitions.VIAL_ALREADY_HAVE.getSingle());
+            player.sendActionBar(SoulItemsLanguageDefinitions.VIAL_ALREADY_HAVE.getSingle().color(NamedTextColor.RED));
             return;
         }
 

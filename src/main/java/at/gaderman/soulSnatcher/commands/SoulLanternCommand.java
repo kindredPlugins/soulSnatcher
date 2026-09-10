@@ -25,13 +25,13 @@ public class SoulLanternCommand implements CommandExecutor, TabExecutor {
         }
 
         if(SoulType.getCarriedSouls(player).isEmpty()){
-            player.sendMessage(SoulItemsLanguageDefinitions.EMPTY_UPDATE.getSingle());
+            player.sendMessage(SoulItemsLanguageDefinitions.EMPTY_UPDATE.getSingle().color(NamedTextColor.GRAY));
             player.playSound(player, Sound.ENTITY_ARROW_SHOOT, 1f, 2f);
             SoulLanternManager.updateActiveLanterns(player);
             return true;
         }
 
-        player.sendMessage(SoulItemsLanguageDefinitions.LANTERN_UPDATE.getSingle());
+        player.sendMessage(SoulItemsLanguageDefinitions.LANTERN_UPDATE.getSingle().color(NamedTextColor.GRAY));
         player.playSound(player, Sound.BLOCK_PUMPKIN_CARVE, 1f, 1f);
         SoulLanternManager.updateActiveLanterns(player);
         return true;
