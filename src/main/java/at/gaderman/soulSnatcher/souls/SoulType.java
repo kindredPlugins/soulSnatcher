@@ -10,6 +10,7 @@ import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
@@ -42,7 +43,7 @@ public abstract class SoulType implements LanguageKeyHolder {
 
     protected abstract @NotNull String skullTexture();
 
-    public abstract @NotNull Component displayName();
+    public abstract @NotNull Component defaultDisplayName();
 
     public abstract @NotNull List<Component> defaultDescription();
 
@@ -60,15 +61,29 @@ public abstract class SoulType implements LanguageKeyHolder {
         return item;
     }
 
+    private static final String NAMES_LANG_PREFIX = "soul_names.";
     private static final String DESCRIPTION_LANG_PREFIX = "soul_descriptions.";
 
-    public @NotNull List<Component> description(){
+    public @NotNull Component displayName() {
+        Component displayName = LanguageManager.getInstance().resolveComponent(NAMES_LANG_PREFIX + id()).getFirst();
+
+        return SoulLanguageDefinitions.SOUL_NAME.getSingle().replaceText(TextReplacementConfig.builder()
+                        .matchLiteral(SoulLanguageDefinitions.SOUL_PLACEHOLDER)
+                        .replacement(displayName)
+                        .build())
+                .style(displayName.style());
+    }
+
+    public @NotNull List<Component> description() {
         return ItemUtils.applyDefaultLoreStyle(LanguageManager.getInstance().resolveComponent(DESCRIPTION_LANG_PREFIX + id()));
     }
 
     @Override
     public Map<String, List<Component>> languageKeyDefaultMap() {
-        return Map.of(DESCRIPTION_LANG_PREFIX + id(), defaultDescription());
+        return Map.of(
+                NAMES_LANG_PREFIX + id(), List.of(defaultDisplayName()),
+                DESCRIPTION_LANG_PREFIX + id(), defaultDescription()
+        );
     }
 
     public boolean isInvalidInfusionTarget(LivingEntity entity) {
@@ -368,19 +383,16 @@ public abstract class SoulType implements LanguageKeyHolder {
                     player.sendMessage(Component.text("------------- ", NamedTextColor.GRAY)
                             .append(Component.text("SoulSnatcher", NamedTextColor.BLUE).decoration(TextDecoration.BOLD, true))
                             .append(Component.text(" -------------", NamedTextColor.GRAY)));
-                    player.sendMessage(Component.text("Souls you had bound were ")
-                            .append(Component.text("disabled ", NamedTextColor.RED))
-                            .append(Component.text("while you were offline", NamedTextColor.WHITE)));
+                    SoulLanguageDefinitions.DISABLED_WHILE_OFFLINE.getLines().forEach(player::sendMessage);
                     legacySouls.stream()
                             .map(soul -> Component.text("➤ ", NamedTextColor.GRAY)
                                     .append(soul.displayName().decoration(TextDecoration.ITALIC, false)))
                             .toList()
                             .forEach(player::sendMessage);
                     player.sendMessage(Component.empty());
-                    player.sendMessage(Component.text("You have received them as ")
-                            .append(Component.text("Soul Vial", SoulVialManager.getEmptyVial().displayName().color())));
+                    SoulLanguageDefinitions.RECEIVED_AS_SOUL_VIAL.getLines().forEach(player::sendMessage);
                     if (hadDrops.get()) {
-                        player.sendMessage(Component.text("Some vials have been dropped due to full inventory!", NamedTextColor.RED));
+                        SoulLanguageDefinitions.VIAL_DROP_FULL_INV.getLines().forEach(player::sendMessage);
                     }
                     player.sendMessage(Component.empty());
 

@@ -1,11 +1,13 @@
 package at.gaderman.soulSnatcher.gui.interaction;
 
 import at.gaderman.soulSnatcher.gui.ActionInventory;
+import at.gaderman.soulSnatcher.gui.menus.MenuLanguageDefinition;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.effects.SoulReward;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
@@ -23,7 +25,7 @@ public class SoulAbsorptionUI extends ActionInventory {
     private final Interaction rewardTrigger;
 
     public SoulAbsorptionUI(Player player, SoulType rewardSoul, Interaction rewardTrigger) {
-        super(Component.text("Choose a soul"));
+        super(MenuLanguageDefinition.CHOOSE_SOUL.getSingle());
 
         this.player = player;
         this.rewardSoul = rewardSoul;
@@ -46,7 +48,7 @@ public class SoulAbsorptionUI extends ActionInventory {
         int rewardIndex = 4;
         inventory.setItem(rewardIndex, rewardSoul.itemRepresentation());
         inventory.setItem(rewardIndex + 9, getDiscardItem());
-        defineInventoryAction(rewardIndex + 9, event -> discard());
+        defineInventoryAction(rewardIndex + 9, _ -> discard());
 
         List<SoulInstance<?>> activeSouls = SoulType.getCarriedSouls(player);
         int startIndex = 11;
@@ -56,7 +58,7 @@ public class SoulAbsorptionUI extends ActionInventory {
 
             inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
             inventory.setItem(soulSlot + 9, getOfferItem(soul));
-            defineInventoryAction(soulSlot + 9, event -> replace(soul));
+            defineInventoryAction(soulSlot + 9, _ -> replace(soul));
         }
     }
 
@@ -67,7 +69,7 @@ public class SoulAbsorptionUI extends ActionInventory {
         inventory.close();
     }
 
-    private void replace(SoulInstance<?> replaced){
+    private void replace(SoulInstance<?> replaced) {
         SoulReward.removeSoulReward(rewardTrigger);
 
         replaced.soulType().removeSoul(player);
@@ -82,8 +84,10 @@ public class SoulAbsorptionUI extends ActionInventory {
     private ItemStack getDiscardItem() {
         ItemStack item = ItemStack.of(Material.BARRIER);
         item.editMeta(meta -> {
-                    meta.itemName(Component.text("Discard ", NamedTextColor.RED)
-                            .append(rewardSoul.displayName()));
+                    meta.itemName(MenuLanguageDefinition.DISCARD_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
+                            .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                            .replacement(rewardSoul.displayName())
+                            .build()));
                 }
         );
         return item;
@@ -92,8 +96,10 @@ public class SoulAbsorptionUI extends ActionInventory {
     private ItemStack getOfferItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.ORANGE_DYE);
         item.editMeta(meta -> {
-                    meta.itemName(Component.text("Replace ", TextColor.color(0xd38531))
-                            .append(soul.soulType().displayName()));
+            meta.itemName(MenuLanguageDefinition.REPLACE_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
+                    .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                    .replacement(rewardSoul.displayName())
+                    .build()));
                 }
         );
         return item;

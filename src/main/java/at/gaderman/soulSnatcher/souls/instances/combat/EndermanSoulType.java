@@ -63,8 +63,8 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Enderman Soul", TextColor.color(0xf9abff));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Enderman", TextColor.color(0xf9abff));
     }
 
     @Override

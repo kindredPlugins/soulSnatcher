@@ -53,8 +53,8 @@ public class SpiderSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Spider Soul", TextColor.color(0x9c0000));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Spider", TextColor.color(0x9c0000));
     }
 
     @Override

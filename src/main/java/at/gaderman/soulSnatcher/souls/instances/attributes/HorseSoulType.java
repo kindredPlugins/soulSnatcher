@@ -57,8 +57,8 @@ public class HorseSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Horse Soul", TextColor.color(0x3a1805));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Horse", TextColor.color(0x3a1805));
     }
 
     @Override

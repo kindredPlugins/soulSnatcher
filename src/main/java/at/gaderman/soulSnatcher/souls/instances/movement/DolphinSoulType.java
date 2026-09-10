@@ -56,8 +56,8 @@ public class DolphinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Dolphin Soul", TextColor.color(0xbdcbdd));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Dolphin", TextColor.color(0xbdcbdd));
     }
 
     @Override

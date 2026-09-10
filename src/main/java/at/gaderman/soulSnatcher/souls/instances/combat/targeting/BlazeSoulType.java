@@ -57,8 +57,8 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Blaze Soul", TextColor.color(0xfc9600));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Blaze", TextColor.color(0xfc9600));
     }
 
     @Override

@@ -53,8 +53,8 @@ public class MagmaCubeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Magma Cube Soul", TextColor.color(0xcb3d07));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Magma Cube", TextColor.color(0xcb3d07));
     }
 
     @Override

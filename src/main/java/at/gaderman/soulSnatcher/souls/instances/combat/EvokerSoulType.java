@@ -54,8 +54,8 @@ public class EvokerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Evoker Soul", TextColor.color(0xc7c06b));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Evoker", TextColor.color(0xc7c06b));
     }
 
     @Override

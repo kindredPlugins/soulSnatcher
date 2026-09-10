@@ -56,8 +56,8 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Breeze Soul", TextColor.color(0x6c76ab));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Breeze", TextColor.color(0x6c76ab));
     }
 
     @Override

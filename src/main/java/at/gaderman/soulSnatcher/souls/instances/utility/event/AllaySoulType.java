@@ -52,8 +52,8 @@ public class AllaySoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Allay Soul", TextColor.color(0x64fbff));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Allay", TextColor.color(0x64fbff));
     }
 
     @Override

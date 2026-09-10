@@ -1,8 +1,9 @@
 package at.gaderman.soulSnatcher.souls.effects;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
 import at.gaderman.soulSnatcher.souls.SoulType;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -25,7 +26,7 @@ public class SoulReward {
     public static final NamespacedKey HIDDEN_FOR = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward_hidden_for_owner");
     public static final NamespacedKey TIMESTAMP = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_reward_timestamp");
 
-    public static void offerSoulReward(Location location, Player owner, SoulType soulType){
+    public static void offerSoulReward(Location location, Player owner, SoulType soulType) {
         location.setPitch(0);
 
         boolean duplicateSoul = !soulType.canOverwriteItself() && SoulType.getCarriedSouls(owner).stream().anyMatch(soul -> soul.soulType().id().equals(soulType.id()));
@@ -51,8 +52,11 @@ public class SoulReward {
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay claimedByTitle = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, 0.15, 0), TextDisplay.class, display -> {
-            display.text(Component.text("Offered for ", NamedTextColor.RED)
-                    .append(owner.name().color(NamedTextColor.DARK_RED)));
+            display.text(SoulLanguageDefinitions.SOUL_OFFERED_FOR.getSingle().replaceText(TextReplacementConfig.builder()
+                    .matchLiteral(SoulLanguageDefinitions.OWNER_PLACEHOLDER)
+                    .replacement(owner.name().color(NamedTextColor.DARK_RED))
+                    .build())
+            );
             display.setAlignment(TextDisplay.TextAlignment.CENTER);
             display.setBillboard(Display.Billboard.VERTICAL);
 
@@ -61,8 +65,8 @@ public class SoulReward {
         });
         TextDisplay interactText = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, -1, 0), TextDisplay.class, display -> {
             display.text(duplicateSoul ?
-                    Component.text("Already bound this soul", NamedTextColor.RED) :
-                    Component.keybind("key.use", NamedTextColor.YELLOW).append(Component.text(" to bind")));
+                    SoulLanguageDefinitions.ALREADY_BOUND.getSingle() :
+                    SoulLanguageDefinitions.BIND_TEXT.getSingle());
 
             display.setAlignment(TextDisplay.TextAlignment.CENTER);
             display.setBillboard(Display.Billboard.VERTICAL);

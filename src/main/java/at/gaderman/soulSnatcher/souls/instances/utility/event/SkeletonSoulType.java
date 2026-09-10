@@ -52,8 +52,8 @@ public class SkeletonSoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Skeleton Soul", NamedTextColor.GRAY);
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Skeleton", NamedTextColor.GRAY);
     }
 
     @Override

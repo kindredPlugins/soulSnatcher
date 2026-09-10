@@ -57,8 +57,8 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Guardian Soul", TextColor.color(0x668980));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Guardian", TextColor.color(0x668980));
     }
 
     @Override

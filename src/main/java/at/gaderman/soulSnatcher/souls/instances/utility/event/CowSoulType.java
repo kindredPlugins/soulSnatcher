@@ -53,8 +53,8 @@ public class CowSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Cow Soul", TextColor.color(0x292017));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Cow", TextColor.color(0x292017));
     }
 
     @Override

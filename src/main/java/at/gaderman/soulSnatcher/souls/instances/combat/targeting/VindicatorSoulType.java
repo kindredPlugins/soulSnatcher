@@ -60,8 +60,8 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Vindicator Soul", TextColor.color(0x959b9b));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Vindicator", TextColor.color(0x959b9b));
     }
 
     @Override

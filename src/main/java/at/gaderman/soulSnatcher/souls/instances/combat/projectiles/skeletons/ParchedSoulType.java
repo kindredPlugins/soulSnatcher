@@ -55,8 +55,8 @@ public class ParchedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Parched Soul", TextColor.color(0xceb686));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Parched", TextColor.color(0xceb686));
     }
 
     @Override

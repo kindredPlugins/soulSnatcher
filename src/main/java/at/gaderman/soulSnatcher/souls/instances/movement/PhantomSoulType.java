@@ -56,8 +56,8 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Phantom Soul", TextColor.color(0x5061a4));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Phantom", TextColor.color(0x5061a4));
     }
 
     @Override

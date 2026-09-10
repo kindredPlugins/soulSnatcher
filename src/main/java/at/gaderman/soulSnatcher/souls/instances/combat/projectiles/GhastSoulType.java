@@ -58,8 +58,8 @@ public class GhastSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Ghast Soul", TextColor.color(0xd5cccc));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Ghast", TextColor.color(0xd5cccc));
     }
 
     @Override

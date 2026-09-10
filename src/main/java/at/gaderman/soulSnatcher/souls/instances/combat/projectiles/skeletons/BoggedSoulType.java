@@ -55,8 +55,8 @@ public class BoggedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Bogged Soul", TextColor.color(0x5e6d31));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Bogged", TextColor.color(0x5e6d31));
     }
 
     @Override

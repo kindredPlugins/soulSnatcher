@@ -57,8 +57,8 @@ public class DrownedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Drowned Soul", TextColor.color(0x4d9280));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Drowned", TextColor.color(0x4d9280));
     }
 
     @Override

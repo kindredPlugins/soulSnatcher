@@ -49,8 +49,8 @@ public class ChickenSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Chicken Soul", TextColor.color(0xff0000));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Chicken", TextColor.color(0xff0000));
     }
 
     @Override

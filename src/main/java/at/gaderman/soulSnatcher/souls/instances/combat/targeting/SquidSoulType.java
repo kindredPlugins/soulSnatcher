@@ -59,8 +59,8 @@ public class SquidSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Squid Soul", TextColor.color(0x1b3243));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Squid", TextColor.color(0x1b3243));
     }
 
     @Override

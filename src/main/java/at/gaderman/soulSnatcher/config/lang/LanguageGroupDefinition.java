@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-//TODO: rather abundant using AutoService and this whole static facade, probably be better to just call into LanguageManager directly, sort of, careful of service loops though
+//TODO: rather abundant using AutoService and this whole static facade, probably be better to just call into LanguageManager directly, sort of, careful of service loops though, would interfere with possible parameters in groupDefinitions though
 /**
  * Represents a separate class which uses LanguageKeyHolder to register a group of language keys with default components
  */

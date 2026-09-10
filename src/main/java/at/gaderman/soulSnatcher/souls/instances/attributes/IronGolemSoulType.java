@@ -54,8 +54,8 @@ public class IronGolemSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Iron Golem Soul", NamedTextColor.GRAY);
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Iron Golem", NamedTextColor.GRAY);
     }
 
     @Override

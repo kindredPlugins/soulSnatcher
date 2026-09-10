@@ -53,8 +53,8 @@ public class ShulkerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Shulker Soul", TextColor.color(0x673a7b));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Shulker", TextColor.color(0x673a7b));
     }
 
     @Override

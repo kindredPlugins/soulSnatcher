@@ -58,8 +58,8 @@ public class PigSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Pig Soul", TextColor.color(0xeea5a4));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Pig", TextColor.color(0xeea5a4));
     }
 
     @Override

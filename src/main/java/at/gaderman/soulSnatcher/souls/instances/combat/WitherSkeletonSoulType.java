@@ -53,8 +53,8 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Wither Skeleton Soul", TextColor.color(0x4b4d4d));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Wither Skeleton", TextColor.color(0x4b4d4d));
     }
 
     @Override

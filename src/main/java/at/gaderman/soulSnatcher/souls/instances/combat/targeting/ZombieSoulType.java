@@ -70,8 +70,8 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Zombie Soul", NamedTextColor.DARK_GREEN);
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Zombie", NamedTextColor.DARK_GREEN);
     }
 
     @Override

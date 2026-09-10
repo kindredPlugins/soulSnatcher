@@ -61,8 +61,8 @@ public class WitchSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Witch Soul", TextColor.color(0x995e9d));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Witch", TextColor.color(0x995e9d));
     }
 
     @Override

@@ -55,8 +55,8 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Ravager Soul", TextColor.color(0xe5b5049));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Ravager", TextColor.color(0xe5b5049));
     }
 
     @Override

@@ -65,8 +65,8 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Piglin Soul", TextColor.color(0xf2bb87));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Piglin", TextColor.color(0xf2bb87));
     }
 
     @Override

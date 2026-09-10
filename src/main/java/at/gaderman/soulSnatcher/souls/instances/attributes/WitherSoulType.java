@@ -75,8 +75,8 @@ public class WitherSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return ItemUtils.gradient("Wither Soul", TextColor.color(0xb4b4b4), TextColor.color(0x414141));
+    public @NotNull Component defaultDisplayName() {
+        return ItemUtils.gradient("Wither", TextColor.color(0xb4b4b4), TextColor.color(0x414141));
     }
 
     @Override

@@ -6,6 +6,7 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -64,9 +65,10 @@ public class SoulLanternGUI extends ActionInventory {
     private ItemStack getRemoveItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.BARRIER);
         item.editMeta(meta -> {
-                    meta.itemName(MenuLanguageDefinition.REMOVE_SOUL.getSingle()
-                            .appendSpace()
-                            .append(soul.soulType().displayName()));
+                    meta.itemName(MenuLanguageDefinition.REMOVE_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
+                            .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                            .replacement(soul.soulType().displayName())
+                            .build()));
                     meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.REMOVE_SOUL_DESC.getLines()));
                 }
         );

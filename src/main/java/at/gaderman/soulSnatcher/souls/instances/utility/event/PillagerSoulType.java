@@ -56,8 +56,8 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Pillager Soul", TextColor.color(0x582711));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Pillager", TextColor.color(0x582711));
     }
 
     @Override

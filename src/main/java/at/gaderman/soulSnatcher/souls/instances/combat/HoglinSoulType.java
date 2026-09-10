@@ -58,8 +58,8 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Hoglin Soul", TextColor.color(0xe8a074));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Hoglin", TextColor.color(0xe8a074));
     }
 
     @Override

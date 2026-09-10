@@ -5,11 +5,13 @@ import at.gaderman.soulSnatcher.config.lang.LanguageKey;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 
 @AutoService(LanguageGroupDefinition.class)
 public class MenuLanguageDefinition extends LanguageGroupDefinition {
 
     public static final String SOUL_INDEX_PREFIX = "soul_index_menu.";
+    public static final String SOUL_PLACEHOLDER = "{soul}";
 
     public static final LanguageKey GAMEPLAY_INFO_TITLE = registerKey(SOUL_INDEX_PREFIX + "gameplay_info.title",
             Component.text("Gameplay Info", NamedTextColor.GOLD));
@@ -72,7 +74,7 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
             Component.text("Soul Lantern", NamedTextColor.BLUE));
 
     public static final LanguageKey REMOVE_SOUL = registerKey(SOUL_LANTERN_PREFIX + "remove",
-            Component.text("Remove", NamedTextColor.DARK_RED));
+            Component.text("Remove " + SOUL_PLACEHOLDER, NamedTextColor.DARK_RED));
     public static final LanguageKey REMOVE_SOUL_DESC = registerKey(SOUL_LANTERN_PREFIX + "remove_soul",
             Component.text("Completely ")
                     .append(Component.text("removes ", NamedTextColor.RED))
@@ -92,5 +94,14 @@ public class MenuLanguageDefinition extends LanguageGroupDefinition {
 
     public static final LanguageKey BACK_BUTTON = registerKey(SOUL_INDEX_PREFIX_MAIN + "back_button",
             Component.text("Back", NamedTextColor.RED));
+
+    public static final String SOUL_ABSORPTION_PREFIX = SOUL_INDEX_PREFIX + "submneus.absorption.";
+
+    public static final LanguageKey CHOOSE_SOUL = registerKey(SOUL_ABSORPTION_PREFIX + "title",
+            Component.text("Choose a soul"));
+    public static final LanguageKey DISCARD_SOUL = registerKey(SOUL_ABSORPTION_PREFIX + "discard_soul",
+            Component.text("Discard " + SOUL_PLACEHOLDER, NamedTextColor.RED));
+    public static final LanguageKey REPLACE_SOUL = registerKey(SOUL_ABSORPTION_PREFIX + "replace_soul",
+            Component.text("Replace " + SOUL_PLACEHOLDER, TextColor.color(0xd38531)));
 
 }

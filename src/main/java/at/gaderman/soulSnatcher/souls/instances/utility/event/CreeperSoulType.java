@@ -53,8 +53,8 @@ public class CreeperSoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Creeper Soul", TextColor.color(0x6fdb5c));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Creeper", TextColor.color(0x6fdb5c));
     }
 
     @Override

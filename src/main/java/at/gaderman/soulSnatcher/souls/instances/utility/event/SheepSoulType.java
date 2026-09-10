@@ -53,8 +53,8 @@ public class SheepSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Sheep Soul", NamedTextColor.AQUA);
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Sheep", NamedTextColor.AQUA);
     }
 
     @Override

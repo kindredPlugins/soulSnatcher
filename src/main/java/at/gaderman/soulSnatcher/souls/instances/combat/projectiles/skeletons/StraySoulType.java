@@ -55,8 +55,8 @@ public class StraySoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Stray Soul", TextColor.color(0x576c6d));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Stray", TextColor.color(0x576c6d));
     }
 
     @Override

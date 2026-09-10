@@ -57,8 +57,8 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return ItemUtils.gradient("Ender Dragon Soul", TextColor.color(0x6c76ab), NamedTextColor.DARK_PURPLE);
+    public @NotNull Component defaultDisplayName() {
+        return ItemUtils.gradient("Ender Dragon", TextColor.color(0x6c76ab), NamedTextColor.DARK_PURPLE);
     }
 
     @Override

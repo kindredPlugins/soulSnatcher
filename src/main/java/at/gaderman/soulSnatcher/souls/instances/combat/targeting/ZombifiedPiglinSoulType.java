@@ -54,8 +54,8 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Zombified Piglin Soul", TextColor.color(0xf19e98));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Zombified Piglin", TextColor.color(0xf19e98));
     }
 
     @Override
