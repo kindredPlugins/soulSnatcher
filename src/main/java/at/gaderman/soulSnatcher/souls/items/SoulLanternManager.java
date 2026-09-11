@@ -3,6 +3,8 @@ package at.gaderman.soulSnatcher.souls.items;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.menus.SoulLanternGUI;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
+import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
@@ -134,6 +136,13 @@ public class SoulLanternManager implements Listener {
         if (!item.getPersistentDataContainer().has(LANTERN_KEY)) return;
 
         Player player = event.getPlayer();
+
+        if(!SoulListener.areSoulsAllowedInWorld(player.getWorld())){
+            player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 0.5f);
+            return;
+        }
+
         new SoulLanternGUI(player).openInventory(player);
         player.playSound(player, Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.25f);
     }

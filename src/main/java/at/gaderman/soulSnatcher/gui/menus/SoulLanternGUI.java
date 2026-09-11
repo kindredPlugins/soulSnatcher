@@ -1,5 +1,6 @@
 package at.gaderman.soulSnatcher.gui.menus;
 
+import at.gaderman.soulSnatcher.config.GeneralConfig;
 import at.gaderman.soulSnatcher.gui.ActionInventory;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
@@ -39,20 +40,22 @@ public class SoulLanternGUI extends ActionInventory {
             inventory.setItem(i, getFillItem());
         }
 
-        int startIndex = 11;
-        for (int i = 0; i < carriedSouls.size(); i++) {
-            SoulInstance<?> soul = carriedSouls.get(i);
-            int soulSlot = startIndex + (i * 4);
+        int maxSouls = GeneralConfig.getInstance().MAX_BOUND_SOULS.cached();
+        int spacing = 9 / maxSouls;
+        int startIndex = 13 - (spacing * (maxSouls - 1) / 2);
 
-            inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
-            inventory.setItem(soulSlot + 9, getRemoveItem(soul));
-            defineInventoryAction(soulSlot + 9, event -> remove(soul));
-        }
+        for (int i = 0; i < maxSouls; i++) {
+            int soulSlot = startIndex + i * spacing;
 
-        for (int i = carriedSouls.size(); i < SoulType.MAX_BOUND_SOULS; i++) {
-            int soulSlot = startIndex + (i * 4);
+            if (i < carriedSouls.size()) {
+                SoulInstance<?> soul = carriedSouls.get(i);
 
-            inventory.setItem(soulSlot, getNoSoulItem());
+                inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
+                inventory.setItem(soulSlot + 9, getRemoveItem(soul));
+                defineInventoryAction(soulSlot + 9, event -> remove(soul));
+            } else {
+                inventory.setItem(soulSlot, getNoSoulItem());
+            }
         }
     }
 

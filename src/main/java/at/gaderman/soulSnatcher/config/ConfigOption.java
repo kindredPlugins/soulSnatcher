@@ -16,6 +16,8 @@ public final class ConfigOption<T> {
     private final Function<T, T> valueFunction;
     private final Function<T, String> displayFunction;
 
+    private @Nullable String comment;
+
     @FunctionalInterface
     public interface ConfigReader<T> {
         T read(FileConfiguration config, String path, T def);
@@ -41,6 +43,7 @@ public final class ConfigOption<T> {
     }
 
     public ConfigOption<T> withComment(String comment){
+        this.comment = comment;
         config.setComments(id, List.of(comment));
         return this;
     }
@@ -63,5 +66,9 @@ public final class ConfigOption<T> {
 
     public String displayValue() {
         return displayFunction.apply(cached);
+    }
+
+    public @Nullable String comment(){
+        return comment;
     }
 }

@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.souls.effects;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
 import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -95,7 +96,7 @@ public class SoulReward {
             entity.getPersistentDataContainer().set(TIMESTAMP, PersistentDataType.LONG, System.currentTimeMillis());
         });
 
-        long age = duplicateSoul ? 80L : LIVING_TICKS;
+        long age = duplicateSoul ? 80L : GeneralConfig.getInstance().SOUL_DESPAWN_TIME.cached();
 
         soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
         SoulSnatcher.getPlugin().registerDelayedTask(() -> {

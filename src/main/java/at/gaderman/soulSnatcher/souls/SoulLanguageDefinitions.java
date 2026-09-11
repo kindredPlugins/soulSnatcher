@@ -34,4 +34,9 @@ public class SoulLanguageDefinitions extends LanguageGroupDefinition {
     public static final LanguageKey VIAL_DROP_FULL_INV = registerKey(PREFIX + "dropped_vials",
             Component.text("Some vials have been dropped due to full inventory!"));
 
+    public static final LanguageKey DISABLED_IN_WORLD = registerKey(PREFIX + "disabled_in_world",
+            Component.text("Souls have been disabled in this world"));
+    public static final LanguageKey ENABLED_IN_WORLD = registerKey(PREFIX + "enabled_in_world",
+            Component.text("Souls have been enabled in this world"));
+
 }

@@ -1,6 +1,9 @@
 package at.gaderman.soulSnatcher.souls.items;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
+import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulReward;
@@ -123,14 +126,14 @@ public class SoulVialManager implements Listener {
     }
 
     @EventHandler
-    public void onPlaceLantern(BlockPlaceEvent event) {
+    public void onPlaceVial(BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
         if (item.getPersistentDataContainer().has(VIAL_KEY))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void onLanternInteract(PlayerInteractEvent event) {
+    public void onVialSmash(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) return;
 
         ItemStack item = event.getItem();
@@ -139,6 +142,12 @@ public class SoulVialManager implements Listener {
         if (!item.getPersistentDataContainer().has(VIAL_KEY)) return;
 
         Player player = event.getPlayer();
+
+        if(!SoulListener.areSoulsAllowedInWorld(player.getWorld())){
+            player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 0.5f);
+            return;
+        }
 
         SoulRegistry soulRegistry = SoulRegistry.getInstance();
         String soulId = item.getPersistentDataContainer().get(VIAL_KEY, PersistentDataType.STRING);
@@ -166,7 +175,7 @@ public class SoulVialManager implements Listener {
         }
 
         player.getEquipment().setItemInMainHand(ItemStack.empty());
-        player.setCooldown(VIAL_KEY, 60 * 20);
+        player.setCooldown(VIAL_KEY, GeneralConfig.getInstance().VIAL_COOLDOWN.cached());
 
         Location rewardLocation = player.getLocation().clone().add(player.getLocation().getDirection().normalize().multiply(1));
         SoulReward.offerSoulReward(rewardLocation, player, soul);

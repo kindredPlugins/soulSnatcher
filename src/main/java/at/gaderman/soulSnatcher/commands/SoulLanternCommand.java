@@ -1,5 +1,7 @@
 package at.gaderman.soulSnatcher.commands;
 
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
+import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.items.SoulItemsLanguageDefinitions;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
@@ -21,6 +23,12 @@ public class SoulLanternCommand implements CommandExecutor, TabExecutor {
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] strings) {
         if(!(sender instanceof Player player)){
             sender.sendMessage(Component.text("You need to be a player to perform this command!"));
+            return true;
+        }
+
+        if(!SoulListener.areSoulsAllowedInWorld(player.getWorld())){
+            player.sendMessage(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 0.5f);
             return true;
         }
 

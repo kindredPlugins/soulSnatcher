@@ -10,6 +10,7 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
+import io.papermc.paper.entity.PlayerGiveResult;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -78,7 +79,7 @@ public abstract class SoulType implements LanguageKeyHolder {
                         .build());
     }
 
-    protected TextColor displayFallbackColor(){
+    protected TextColor displayFallbackColor() {
         return NamedTextColor.GRAY;
     }
 
@@ -230,7 +231,7 @@ public abstract class SoulType implements LanguageKeyHolder {
     public boolean bindSoul(Player player) {
         List<SoulInstance<?>> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
 
-        boolean sizeLimitReached = boundSouls.size() >= MAX_BOUND_SOULS;
+        boolean sizeLimitReached = boundSouls.size() >= GeneralConfig.getInstance().MAX_BOUND_SOULS.cached();
         if (!canOverwriteItself() && sizeLimitReached) return false;
 
         boolean isDuplicate = boundSouls.stream().anyMatch(soul -> soul.soulType().equals(this));
@@ -359,7 +360,16 @@ public abstract class SoulType implements LanguageKeyHolder {
                     .filter(Objects::nonNull)
                     .toList();
             souls.forEach(soulType -> {
-                soulType.bindSoul(player);
+                boolean bound = soulType.bindSoul(player);
+
+                if (!bound) {
+                    PlayerGiveResult giveResult = player.give(List.of(SoulVialManager.getFilledVial(soulType)), true);
+                    giveResult.drops().forEach(item -> {
+                        item.setOwner(player.getUniqueId());
+                        item.setGlowing(true);
+                        item.setInvulnerable(true);
+                    });
+                }
             });
 
             List<SoulType> legacySouls = boundSouls.stream()

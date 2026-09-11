@@ -52,9 +52,13 @@ public class SoulAbsorptionUI extends ActionInventory {
 
         List<SoulInstance<?>> activeSouls = SoulType.getCarriedSouls(player);
         int startIndex = 11;
+
         for (int i = 0; i < activeSouls.size(); i++) {
             SoulInstance<?> soul = activeSouls.get(i);
-            int soulSlot = startIndex + (i * 4);
+            int distance = i / 2;
+            int soulSlot = i % 2 == 0
+                    ? startIndex - distance
+                    : startIndex + 4 + distance;
 
             inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
             inventory.setItem(soulSlot + 9, getOfferItem(soul));
@@ -99,7 +103,7 @@ public class SoulAbsorptionUI extends ActionInventory {
         item.editMeta(meta -> {
                     meta.itemName(MenuLanguageDefinition.REPLACE_SOUL.getSingle().replaceText(TextReplacementConfig.builder()
                             .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
-                            .replacement(rewardSoul.displayName())
+                            .replacement(soul.soulType().displayName())
                             .build()));
                 }
         );
