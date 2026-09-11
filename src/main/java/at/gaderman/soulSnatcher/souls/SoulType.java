@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
 import at.gaderman.soulSnatcher.config.lang.LanguageKeyHolder;
 import at.gaderman.soulSnatcher.config.lang.LanguageManager;
 import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
@@ -172,7 +173,7 @@ public abstract class SoulType implements LanguageKeyHolder {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         ArrayList<String> unboundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
 
-        if (unboundSouls.size() >= MAX_UNBOUND_SOULS)
+        if (unboundSouls.size() >= GeneralConfig.getInstance().MAX_UNBOUND_SOULS.cached())
             return;
 
         unboundSouls.add(id());

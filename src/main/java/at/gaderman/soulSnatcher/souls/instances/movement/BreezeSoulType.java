@@ -5,7 +5,7 @@ import at.gaderman.soulSnatcher.mobGoals.custom.BreezeJumpGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;

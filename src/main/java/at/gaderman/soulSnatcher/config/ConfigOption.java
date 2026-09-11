@@ -1,15 +1,15 @@
-package at.gaderman.soulSnatcher.souls.config;
+package at.gaderman.soulSnatcher.config;
 
-import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.souls.SoulRegistry;
-import at.gaderman.soulSnatcher.souls.SoulType;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Function;
 
 public final class ConfigOption<T> {
     private final String id;
-    private final SoulType soulType;
+    private final YamlConfiguration config;
     private final T defaultValue;
     private volatile T cached;
     private final ConfigReader<T> reader;
@@ -21,17 +21,17 @@ public final class ConfigOption<T> {
         T read(FileConfiguration config, String path, T def);
     }
 
-    public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader){
-       this(id, soulType, defaultValue, reader, value -> value);
+    public ConfigOption(String id, YamlConfiguration config, T defaultValue, ConfigReader<T> reader){
+       this(id, config, defaultValue, reader, value -> value);
     }
 
-    public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction){
-        this(id, soulType, defaultValue, reader, valueFunction, Object::toString);
+    public ConfigOption(String id, YamlConfiguration config, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction){
+        this(id, config, defaultValue, reader, valueFunction, Object::toString);
     }
 
-    public ConfigOption(String id, SoulType soulType, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction, Function<T, String> displayFunction){
+    public ConfigOption(String id, YamlConfiguration config, T defaultValue, ConfigReader<T> reader, Function<T, T> valueFunction, Function<T, String> displayFunction){
         this.id = id;
-        this.soulType = soulType;
+        this.config = config;
         this.defaultValue = defaultValue;
         this.reader = reader;
         this.valueFunction = valueFunction;
@@ -40,8 +40,13 @@ public final class ConfigOption<T> {
         reloadFromConfig();
     }
 
+    public ConfigOption<T> withComment(String comment){
+        config.setComments(id, List.of(comment));
+        return this;
+    }
+
     public void reloadFromConfig(){
-        cached = valueFunction.apply(reader.read(SoulSnatcher.getSoulsConfig(), SoulRegistry.soulConfigPath(soulType) + "." + id, defaultValue));
+        cached = valueFunction.apply(reader.read(config, id, defaultValue));
     }
 
     public String id(){
