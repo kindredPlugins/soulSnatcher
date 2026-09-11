@@ -5,7 +5,6 @@ import at.gaderman.soulSnatcher.config.lang.LanguageKey;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 
 @AutoService(LanguageGroupDefinition.class)
 public class MenuLanguageDefinition extends LanguageGroupDefinition {

@@ -1,7 +1,6 @@
 package at.gaderman.soulSnatcher.souls.instances;
 
 import at.gaderman.soulSnatcher.utils.ItemUtils;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;

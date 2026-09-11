@@ -7,7 +7,6 @@ import at.gaderman.soulSnatcher.config.lang.LanguageKeyPlaceholderHolder;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;

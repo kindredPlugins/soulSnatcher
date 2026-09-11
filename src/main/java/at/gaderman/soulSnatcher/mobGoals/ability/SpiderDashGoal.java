@@ -1,16 +1,12 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
-import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.EnumSet;
 
 public class SpiderDashGoal extends SoulAbilityGoal {
     public SpiderDashGoal(Mob mob) {

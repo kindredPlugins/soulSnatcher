@@ -3,7 +3,6 @@ package at.gaderman.soulSnatcher.config;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulReward;
-import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -44,9 +43,9 @@ public class GeneralConfig {
             .withComment("The max amount of souls a player can bind. RECOMMENDED to leave at 2. 1 will tone down the plugin to slight flavor. 3-4 will break balance. (Max 4)");
     public final ConfigOption<Integer> MAX_UNBOUND_SOULS = configRegistry.configOption("souls.max_soul_pool", SoulType.MAX_UNBOUND_SOULS, FileConfiguration::getInt)
             .withComment("The max amount of unbound souls a player can carry, these are the souls which will infuse nearby spawned mobs");
-    public final ConfigOption<Integer> SOUL_DESPAWN_TIME = configRegistry.configOption("souls.reward_despawn_time", SoulReward.LIVING_TICKS, FileConfiguration::getInt)
+    public final ConfigOption<Integer> SOUL_DESPAWN_TIME = configRegistry.configOption("souls.reward_despawn_time", SoulReward.LIVING_TICKS, FileConfiguration::getInt, value -> Math.max(value, 1))
             .withComment("The amount of time a soul reward stays in the world before vanishing when not absorbed in ticks (20 ticks = 1 second)");
-    public final ConfigOption<Integer> VIAL_COOLDOWN = configRegistry.configOption("souls.vial_cooldown", 60 * 20, FileConfiguration::getInt)
+    public final ConfigOption<Integer> VIAL_COOLDOWN = configRegistry.configOption("souls.vial_cooldown", 60 * 20, FileConfiguration::getInt, value -> Math.max(value, 1))
             .withComment("The amount of cooldown when using a soul vial in ticks (20 ticks = 1 second)");
 
     public final ConfigOption<Boolean> LOOSE_SOULS_ON_DEATH = configRegistry.configOption("souls.lose_souls_on_death", true, FileConfiguration::getBoolean)
