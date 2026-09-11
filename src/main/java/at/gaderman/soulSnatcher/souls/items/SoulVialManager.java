@@ -22,18 +22,24 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PiglinBarterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class SoulVialManager implements Listener {
 
     private static final NamespacedKey VIAL_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_vial");
     private static final String EMPTY_VIAL = "empty";
+
+    private static final Map<UUID, Long> lastSmashedMap = new HashMap<>();
 
     public SoulVialManager() {
         ShapedRecipe soulVialRecipe = new ShapedRecipe(VIAL_KEY, getEmptyVial());
@@ -176,6 +182,7 @@ public class SoulVialManager implements Listener {
 
         player.getEquipment().setItemInMainHand(ItemStack.empty());
         player.setCooldown(VIAL_KEY, GeneralConfig.getInstance().VIAL_COOLDOWN.cached());
+        lastSmashedMap.put(player.getUniqueId(), System.currentTimeMillis());
 
         Location rewardLocation = player.getLocation().clone().add(player.getLocation().getDirection().normalize().multiply(1));
         SoulReward.offerSoulReward(rewardLocation, player, soul);
@@ -194,5 +201,23 @@ public class SoulVialManager implements Listener {
         ItemStack vial = getEmptyVial();
         vial.setAmount((int) (Math.random() * 2) + 1);
         barterDrop.add(vial);
+    }
+
+    @EventHandler
+    public void onRejoinCooldown(PlayerJoinEvent event){
+        Player player = event.getPlayer();
+
+        if(!lastSmashedMap.containsKey(player.getUniqueId())) return;
+
+        long currentMillis = System.currentTimeMillis();
+        long lastSmashed = lastSmashedMap.get(player.getUniqueId());
+
+        int vialCooldown = GeneralConfig.getInstance().VIAL_COOLDOWN.cached();
+            if (currentMillis - lastSmashed > vialCooldown * 50L){
+                lastSmashedMap.remove(player.getUniqueId());
+                return;
+            }
+
+            player.setCooldown(VIAL_KEY, vialCooldown - (int) ((currentMillis - lastSmashed) / 50));
     }
 }

@@ -36,7 +36,7 @@ public class ConfigOptionRegistry {
     }
 
     public <T> ConfigOption<T> configOption(String id, T defaultValue, ConfigOption.ConfigReader<T> reader, Function<T, T> valueFunction, Function<T, String> displayFunction) {
-        ConfigOption<T> option = new ConfigOption<>(resolvePrefix() + id, config, defaultValue, reader, valueFunction, displayFunction);
+        ConfigOption<T> option = new ConfigOption<>(id, config, prefix, defaultValue, reader, valueFunction, displayFunction);
         configOptions.put(id, option);
         return option;
     }
@@ -51,9 +51,5 @@ public class ConfigOptionRegistry {
 
     public void reloadConfig() {
         configOptions.values().forEach(ConfigOption::reloadFromConfig);
-    }
-
-    private String resolvePrefix(){
-        return prefix == null ? "" : prefix + ".";
     }
 }
