@@ -1,13 +1,12 @@
 package at.gaderman.soulSnatcher.souls.instances.attributes;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -58,18 +57,18 @@ public class HorseSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Horse Soul", TextColor.color(0x3a1805));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Horse", TextColor.color(0x3a1805));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Rolls random movement stats."),
                 Component.text("Gain up to ")
-                        .append(Component.text(maxMovementBonus.cached() + " Speed ", NamedTextColor.GOLD))
+                        .append(Component.text(wrapPlaceholder(MAX_MOVEMENT_BONUS_CONFIG_ID) + " Speed ", NamedTextColor.GOLD))
                         .append(Component.text("and ", NamedTextColor.WHITE))
-                        .append(Component.text(maxJumpBonus.cached() + " Jump Strength", NamedTextColor.GOLD))
+                        .append(Component.text(wrapPlaceholder(MAX_JUMP_BONUS_CONFIG_ID) + " Jump Strength", NamedTextColor.GOLD))
                         .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
@@ -82,9 +81,10 @@ public class HorseSoulType extends ConfigHoldingSoulType {
     //region Config Values
 
     private static final String MAX_MOVEMENT_BONUS_CONFIG_ID = "max_movement_bonus";
+    private static final String MAX_JUMP_BONUS_CONFIG_ID = "max_jump_bonus";
 
     private final ConfigOption<Double> maxMovementBonus = configOption(MAX_MOVEMENT_BONUS_CONFIG_ID, 0.05, FileConfiguration::getDouble);
-    private final ConfigOption<Double> maxJumpBonus = configOption("max_jump_bonus", 0.2, FileConfiguration::getDouble);
+    private final ConfigOption<Double> maxJumpBonus = configOption(MAX_JUMP_BONUS_CONFIG_ID, 0.2, FileConfiguration::getDouble);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

@@ -1,9 +1,7 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import com.destroystokyo.paper.entity.ai.GoalKey;
-import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.*;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Display;
@@ -11,8 +9,6 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Mob;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.EnumSet;
 
 //TODO: make a uniform goal, more goals will come in the future probably, there is base line potential definitely, also config will play some role
 /**

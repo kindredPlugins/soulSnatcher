@@ -5,7 +5,6 @@ import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnEntityEquipmentTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
@@ -52,13 +51,13 @@ public class AllaySoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Allay Soul", TextColor.color(0x64fbff));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Allay", TextColor.color(0x64fbff));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When holding an item, all nearby items "),
                 Component.text("of the same sort will be ")
                         .append(Component.text("pulled ", NamedTextColor.GREEN))

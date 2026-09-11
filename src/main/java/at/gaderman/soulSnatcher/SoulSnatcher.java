@@ -2,7 +2,12 @@ package at.gaderman.soulSnatcher;
 
 import at.gaderman.soulSnatcher.commands.SoulIndexCommand;
 import at.gaderman.soulSnatcher.commands.SoulLanternCommand;
-import at.gaderman.soulSnatcher.souls.*;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
+import at.gaderman.soulSnatcher.config.lang.LanguageManager;
+import at.gaderman.soulSnatcher.souls.SoulListener;
+import at.gaderman.soulSnatcher.souls.SoulRegistry;
+import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.TriggerListener;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.UpdateChecker;
@@ -23,6 +28,10 @@ public final class SoulSnatcher extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+        GeneralConfig.getInstance();
+
+        SoulRegistry.getInstance();
+        LanguageManager.getInstance();
 
         Bukkit.getPluginManager().registerEvents(new SoulListener(), this);
         Bukkit.getPluginManager().registerEvents(new TriggerListener(), this);
@@ -31,8 +40,6 @@ public final class SoulSnatcher extends JavaPlugin {
 
         getCommand("soulIndex").setExecutor(new SoulIndexCommand());
         getCommand("soulLantern").setExecutor(new SoulLanternCommand());
-
-        SoulRegistry.getInstance();
 
         new UpdateChecker(this).check();
     }

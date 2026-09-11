@@ -1,6 +1,9 @@
 package at.gaderman.soulSnatcher.commands;
 
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
+import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import at.gaderman.soulSnatcher.souls.items.SoulItemsLanguageDefinitions;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -23,14 +26,20 @@ public class SoulLanternCommand implements CommandExecutor, TabExecutor {
             return true;
         }
 
+        if(!SoulListener.areSoulsAllowedInWorld(player.getWorld())){
+            player.sendMessage(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 0.5f);
+            return true;
+        }
+
         if(SoulType.getCarriedSouls(player).isEmpty()){
-            player.sendMessage(Component.text("You do not own any souls, so no soul lantern was added", NamedTextColor.GRAY));
+            player.sendMessage(SoulItemsLanguageDefinitions.EMPTY_UPDATE.getSingle().color(NamedTextColor.GRAY));
             player.playSound(player, Sound.ENTITY_ARROW_SHOOT, 1f, 2f);
             SoulLanternManager.updateActiveLanterns(player);
             return true;
         }
 
-        player.sendMessage(Component.text("SoulLantern has been updated!", NamedTextColor.GRAY));
+        player.sendMessage(SoulItemsLanguageDefinitions.LANTERN_UPDATE.getSingle().color(NamedTextColor.GRAY));
         player.playSound(player, Sound.BLOCK_PUMPKIN_CARVE, 1f, 1f);
         SoulLanternManager.updateActiveLanterns(player);
         return true;

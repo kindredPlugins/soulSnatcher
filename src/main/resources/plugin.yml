@@ -1,8 +1,10 @@
 name: soulSnatcher
-version: '1.2.0'
+version: '1.3.0'
 main: at.gaderman.soulSnatcher.SoulSnatcher
 author: gaderman244
 api-version: '1.21'
+
+description: Adds a soul mechanic where killed mobs release their soul. Newly spawned mobs infuse with souls to gain additional mechanics. Slay infused mobs to acquire soul mechanics for yourself.
 
 commands:
   soulIndex:

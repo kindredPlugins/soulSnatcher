@@ -6,7 +6,6 @@ import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -17,7 +16,7 @@ import org.bukkit.inventory.ItemStack;
 public class GamePlayInfoGUI extends ActionInventory {
 
     public GamePlayInfoGUI() {
-        super(27, Component.text("GameplayInfo", NamedTextColor.GOLD));
+        super(27, MenuLanguageDefinition.GAMEPLAY_INFO_TITLE.getSingle().color(NamedTextColor.GOLD));
     }
 
     @Override
@@ -36,15 +35,20 @@ public class GamePlayInfoGUI extends ActionInventory {
                 Sound.ENTITY_CHICKEN_EGG, 1f, 1f);
     }
 
+    @Override
+    public ItemStack getBackItem() {
+        ItemStack backItem = ItemStack.of(Material.ARROW);
+        backItem.editMeta(meta -> {
+            meta.itemName(MenuLanguageDefinition.BACK_BUTTON.getSingle());
+        });
+        return backItem;
+    }
+
     private ItemStack getSoulRelease() {
         ItemStack item = ItemStack.of(Material.IRON_SWORD);
         item.editMeta(meta -> {
-            meta.itemName(Component.text("Releasing Souls", NamedTextColor.YELLOW));
-            meta.lore(ItemUtils.applyDefaultLoreStyle(
-                    Component.text("After slaying a mob a ")
-                            .append(Component.text("soul ", NamedTextColor.BLUE)),
-                    Component.text("is released and added to your pool.")
-            ));
+            meta.itemName(MenuLanguageDefinition.RELEASING_SOULS.getSingle().color(NamedTextColor.YELLOW));
+            meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.RELEASING_SOULS_DESCRIPTION.getLines()));
 
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         });
@@ -54,18 +58,8 @@ public class GamePlayInfoGUI extends ActionInventory {
     private ItemStack getInfusion() {
         ItemStack item = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/54e5a2321e639fdc9d42434aff3d7c674b4a88b2e45ed9f03723befecc9a3e7c");
         item.editMeta(meta -> {
-            meta.customName(Component.text("Infusion", TextColor.color(0x20a0ad)).decoration(TextDecoration.ITALIC, false));
-            meta.lore(ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Nearby spawned mobs take a ")
-                            .append(Component.text("soul ", NamedTextColor.BLUE)),
-                    Component.text("from your pool and ")
-                            .append(Component.text("infuse", TextColor.color(0x20a0ad)))
-                            .append(Component.text(".", NamedTextColor.WHITE)),
-                    Component.text("They gain additional mechanics based"),
-                    Component.text("on the ")
-                            .append(Component.text("soul ", NamedTextColor.BLUE))
-                            .append(Component.text("they infused with.", NamedTextColor.WHITE))
-            ));
+            meta.customName(MenuLanguageDefinition.INFUSION.getSingle().color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+            meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.INFUSION_DESCRIPTION.getLines()));
         });
         return item;
     }
@@ -73,19 +67,8 @@ public class GamePlayInfoGUI extends ActionInventory {
     private ItemStack getBinding() {
         ItemStack item = SoulLanternManager.getLanternAsCustomHead();
         item.editMeta(meta -> {
-            meta.customName(Component.text("Binding", TextColor.color(0x20a0ad)).decoration(TextDecoration.ITALIC, false));
-            meta.lore(ItemUtils.applyDefaultLoreStyle(
-                    Component.text("After killing an ")
-                            .append(Component.text("infused ", TextColor.color(0x20a0ad)))
-                            .append(Component.text("mob", NamedTextColor.WHITE)),
-                    Component.text("their infused ")
-                            .append(Component.text("soul ", NamedTextColor.BLUE))
-                            .append(Component.text("will be offered.", NamedTextColor.WHITE)),
-                    Component.text("Such ")
-                            .append(Component.text("soul ", NamedTextColor.BLUE))
-                            .append(Component.text("can be absorbed to gain", NamedTextColor.WHITE)),
-                    Component.text("additional mechanics for yourself.")
-            ));
+            meta.customName(MenuLanguageDefinition.BINDING.getSingle().color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
+            meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.BINDING_DESCRIPTION.getLines()));
         });
         return item;
     }
@@ -94,13 +77,9 @@ public class GamePlayInfoGUI extends ActionInventory {
         ItemStack vial = SoulVialManager.getEmptyVial();
 
         vial.editMeta(meta -> {
+            meta.itemName(MenuLanguageDefinition.VIAL.getSingle().color(NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false));
             var lore = meta.lore();
-            lore.addAll(ItemUtils.applyDefaultLoreStyle(
-                    Component.empty(),
-                    Component.text("Can be obtained through ")
-                            .append(Component.text("Piglin Bartering", NamedTextColor.GOLD))
-                            .append(Component.text(".", NamedTextColor.WHITE))
-            ));
+            lore.addAll(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.VIAL_DESCRIPTION.getLines()));
             meta.lore(lore);
         });
 

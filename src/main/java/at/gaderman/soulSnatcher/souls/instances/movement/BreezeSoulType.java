@@ -1,15 +1,14 @@
 package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.mobGoals.custom.BreezeJumpGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
@@ -57,18 +56,18 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Breeze Soul", TextColor.color(0x6c76ab));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Breeze", TextColor.color(0x6c76ab));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Sprint", NamedTextColor.GOLD)
                         .append(Component.text(" + Jump "))
                         .append(Component.text("while looking down to", NamedTextColor.WHITE)),
                 Component.text("shoot a wind charge under your feet."),
-                Component.text( jumpCooldown.cached() / 20.0 + "s ", NamedTextColor.AQUA)
+                Component.text( wrapPlaceholder(JUMP_COOLDOWN_CONFIG_ID) + "s ", NamedTextColor.AQUA)
                         .append(Component.text("after hitting ground resets.", NamedTextColor.WHITE))
         );
     }
@@ -77,7 +76,7 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
 
     private static final String JUMP_COOLDOWN_CONFIG_ID = "jump_cooldown";
 
-    private final ConfigOption<Integer> jumpCooldown = configOption(JUMP_COOLDOWN_CONFIG_ID, 50, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> jumpCooldown = configOption(JUMP_COOLDOWN_CONFIG_ID, 50, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

@@ -1,12 +1,11 @@
 package at.gaderman.soulSnatcher.souls.instances.attributes;
 
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -50,13 +49,13 @@ public class ChickenSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Chicken Soul", TextColor.color(0xff0000));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Chicken", TextColor.color(0xff0000));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Adds various ")
                         .append(Component.text("lightweight ", NamedTextColor.AQUA))
                         .append(Component.text("attributes", NamedTextColor.WHITE)),

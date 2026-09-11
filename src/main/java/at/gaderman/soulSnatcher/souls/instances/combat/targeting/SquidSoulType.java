@@ -1,12 +1,11 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
@@ -60,13 +59,13 @@ public class SquidSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Squid Soul", TextColor.color(0x1b3243));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Squid", TextColor.color(0x1b3243));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When damaged applies ")
                         .append(Component.text("ink ", TextColor.color(0x1E2324)))
                         .append(Component.text("onto nearby")),
@@ -79,8 +78,8 @@ public class SquidSoulType extends ConfigHoldingSoulType {
     private static final String INK_COOLDOWN_CONFIG_ID = "ink_cooldown";
     private static final String INK_DURATION_CONFIG_ID = "aura_range";
 
-    private final ConfigOption<Integer> inkCooldown = configOption(INK_COOLDOWN_CONFIG_ID, 8000, FileConfiguration::getInt, value -> Math.max(value, 0));
-    private final ConfigOption<Integer> inkDuration = configOption(INK_DURATION_CONFIG_ID, 60, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> inkCooldown = configOption(INK_COOLDOWN_CONFIG_ID, 8000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
+    private final ConfigOption<Integer> inkDuration = configOption(INK_DURATION_CONFIG_ID, 60, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

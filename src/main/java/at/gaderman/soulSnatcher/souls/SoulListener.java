@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
 import at.gaderman.soulSnatcher.gui.interaction.SoulAbsorptionUI;
 import at.gaderman.soulSnatcher.mobGoals.ability.SoulAbilityGoal;
 import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
@@ -10,10 +11,9 @@ import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,8 +31,21 @@ import java.util.stream.Stream;
 
 public class SoulListener implements Listener {
 
+    public static boolean areSoulsAllowedInWorld(World world) {
+        boolean exclusion = GeneralConfig.getInstance().EXCLUDE_WORLDS.cached();
+        List<String> wordList = GeneralConfig.getInstance().WORLD_LIST.cached();
+
+        if (exclusion)
+            return !wordList.contains(world.getName());
+
+        else return wordList.contains(world.getName());
+    }
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onSoulRelease(EntityDeathEvent event) {
+        if (!areSoulsAllowedInWorld(event.getEntity().getWorld()))
+            return;
+
         if (!(event.getEntity() instanceof Mob mob) || mob.getKiller() == null) return;
         if (mob.getScoreboardTags().contains(SoulType.NO_SOUL_RELEASE_TAG)) return;
         if (mob.getEntitySpawnReason() == CreatureSpawnEvent.SpawnReason.SLIME_SPLIT) return;
@@ -54,14 +67,17 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onSoulInfuse(CreatureSpawnEvent event) {
+        if (!areSoulsAllowedInWorld(event.getEntity().getWorld()))
+            return;
+
         if (!(event.getEntity() instanceof Mob mob)) return;
         if (event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.NATURAL && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.SPAWNER_EGG
                 && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.TRIAL_SPAWNER && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.RAID)
             return;
 
         boolean isRaidSpawn = event.getSpawnReason() == CreatureSpawnEvent.SpawnReason.RAID;
-        double xzRadius = isRaidSpawn ? 300 : 50;
-        double yRadius = isRaidSpawn ? 300 : 30;
+        double xzRadius = isRaidSpawn ? 300 : GeneralConfig.getInstance().INFUSION_XZ_RADIUS.cached();
+        double yRadius = isRaidSpawn ? 300 : GeneralConfig.getInstance().INFUSION_Y_RADIUS.cached();
         Collection<Player> nearbyPlayers = mob.getWorld().getNearbyPlayers(mob.getLocation(), xzRadius, yRadius);
         if (nearbyPlayers.isEmpty()) return;
 
@@ -97,6 +113,10 @@ public class SoulListener implements Listener {
     public void onSoulFreed(EntityDeathEvent event) {
         LivingEntity livingEntity = event.getEntity();
         if (livingEntity.getKiller() == null) return;
+
+        if (livingEntity instanceof Player
+                && (!GeneralConfig.getInstance().LOOSE_SOULS_ON_DEATH.cached() || livingEntity.getWorld().getGameRuleValue(GameRules.KEEP_INVENTORY)))
+            return;
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(livingEntity);
         if (souls.isEmpty()) return;
@@ -134,6 +154,9 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onClaimSoul(PlayerInteractEntityEvent event) {
+        if(!areSoulsAllowedInWorld(event.getPlayer().getWorld()))
+            return;
+
         if (!(event.getRightClicked() instanceof Interaction interaction)) return;
 
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
@@ -170,10 +193,12 @@ public class SoulListener implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityDeath(EntityDeathEvent event) {
-        if (event.getEntity() instanceof Player player)
-            SoulType.clearSouls(player);
+        if (event.getEntity() instanceof Player player) {
+            if (!GeneralConfig.getInstance().LOOSE_SOULS_ON_DEATH.cached() || player.getWorld().getGameRuleValue(GameRules.KEEP_INVENTORY))
+                return;
 
-        else SoulType.removeFromCache(event.getEntity());
+            SoulType.clearSouls(player);
+        } else SoulType.removeFromCache(event.getEntity());
     }
 
     @EventHandler
@@ -192,6 +217,8 @@ public class SoulListener implements Listener {
     public void onInfusedAddedToWorld(EntityAddToWorldEvent event) {
         if (!(event.getEntity() instanceof Mob mob)) return;
 
+        if (!areSoulsAllowedInWorld(mob.getWorld())) return;
+
         PersistentDataContainer pdc = mob.getPersistentDataContainer();
         if (!pdc.has(SoulType.BOUND_SOULS, PersistentDataType.LIST.strings())) return;
         if (!SoulType.getCarriedSouls(mob).isEmpty()) return;
@@ -200,7 +227,7 @@ public class SoulListener implements Listener {
             if (!mob.isValid()) return;
 
             mob.getLocation().getWorld().getChunkAtAsync(mob.getLocation())
-                    .thenAccept(chunk ->
+                    .thenAccept(_ ->
                             Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
                                 if (!mob.isValid()) return;
                                 SoulType.loadIntoCache(mob);
@@ -222,7 +249,10 @@ public class SoulListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        SoulType.loadIntoCache(player);
+
+        if (areSoulsAllowedInWorld(player.getWorld()))
+            SoulType.loadIntoCache(player);
+
         loadSouls(player);
     }
 
@@ -243,6 +273,15 @@ public class SoulListener implements Listener {
         Player player = event.getPlayer();
         loadSouls(player);
 
+        //handle activation and deactivation fo souls when switching worlds
+        if (areSoulsAllowedInWorld(event.getFrom().getWorld()) && !areSoulsAllowedInWorld(event.getTo().getWorld())) {
+            player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            SoulType.removeFromCache(player);
+        } else if (!areSoulsAllowedInWorld(event.getFrom().getWorld()) && areSoulsAllowedInWorld(event.getTo().getWorld())) {
+            player.sendActionBar(SoulLanguageDefinitions.ENABLED_IN_WORLD.getSingle().color(NamedTextColor.GREEN));
+            SoulType.loadIntoCache(player);
+        }
+
         Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
             List<SoulInstance<?>> soulTypes = SoulType.getCarriedSouls(player);
             SoulEffects.stopAllSoulOrbits(player);
@@ -251,6 +290,16 @@ public class SoulListener implements Listener {
             if (SoulLanternManager.isLookingAtOrbits(player))
                 SoulEffects.showSoulOrbits(player);
         }, 1L);
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerPostRespawnEvent event) {
+        Player player = event.getPlayer();
+
+        if(areSoulsAllowedInWorld(player.getWorld()))
+            SoulType.loadIntoCache(player);
+
+        else SoulType.removeFromCache(player);
     }
 
     private void loadSouls(Player player) {
@@ -295,7 +344,7 @@ public class SoulListener implements Listener {
         if (!(event.getEntity() instanceof Mob mob))
             return;
 
-        if(event.getEntity() instanceof Raider && event.getTarget() instanceof Raider)
+        if (event.getEntity() instanceof Raider && event.getTarget() instanceof Raider)
             return;
 
         if (event.getReason() != EntityTargetEvent.TargetReason.TARGET_ATTACKED_ENTITY && event.getReason() != EntityTargetEvent.TargetReason.CLOSEST_PLAYER

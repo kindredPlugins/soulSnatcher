@@ -44,12 +44,12 @@ public class CatSoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Cat Soul", TextColor.color(0x5a9d12));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Cat", TextColor.color(0x5a9d12));
     }
 
     @Override
-    public @NotNull List<Component> description() {
+    public @NotNull List<Component> defaultDescription() {
         return List.of();
     }
 

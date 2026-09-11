@@ -8,7 +8,6 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnStopUsingItemTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.projectiles.OnEntityShootBowTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.event.player.PlayerStopUsingItemEvent;
 import net.kyori.adventure.text.Component;
@@ -53,13 +52,13 @@ public class SkeletonSoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Skeleton Soul", NamedTextColor.GRAY);
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Skeleton", NamedTextColor.GRAY);
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Shoot ")
                         .append(Component.text("infinite ", NamedTextColor.GREEN))
                         .append(Component.text("arrows of any kind")),

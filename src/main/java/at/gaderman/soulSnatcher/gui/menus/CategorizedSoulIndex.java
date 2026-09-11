@@ -12,6 +12,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -22,7 +23,7 @@ public class CategorizedSoulIndex extends ActionInventory {
     private final SoulCategory category;
 
     public CategorizedSoulIndex(SoulCategory category) {
-        super(Component.text("SoulIndex", NamedTextColor.BLUE));
+        super(MenuLanguageDefinition.SOUL_INDEX_TITLE.getSingle().color(NamedTextColor.BLUE));
 
         this.category = category;
     }
@@ -70,4 +71,12 @@ public class CategorizedSoulIndex extends ActionInventory {
 
     }
 
+    @Override
+    public ItemStack getBackItem() {
+        ItemStack backItem = ItemStack.of(Material.ARROW);
+        backItem.editMeta(meta -> {
+            meta.itemName(MenuLanguageDefinition.BACK_BUTTON.getSingle());
+        });
+        return backItem;
+    }
 }

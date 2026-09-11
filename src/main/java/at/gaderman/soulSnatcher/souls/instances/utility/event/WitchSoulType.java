@@ -1,15 +1,14 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.mobGoals.custom.WitchDrinkGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.UseCooldown;
@@ -62,17 +61,17 @@ public class WitchSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Witch Soul", TextColor.color(0x995e9d));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Witch", TextColor.color(0x995e9d));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When drinking potions they go on cooldown"),
                 Component.text("instead of being consumed."),
                 Component.text("Gain ")
-                        .append(Component.text((1 - magicDamageMultiplier.cached()) * 100 + "% Magic Damage Reduction", NamedTextColor.DARK_PURPLE))
+                        .append(Component.text(wrapPlaceholder(MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID) + "% Magic Damage Reduction", NamedTextColor.DARK_PURPLE))
                         .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
@@ -80,7 +79,7 @@ public class WitchSoulType extends ConfigHoldingSoulType {
     //region
 
     private static final String MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID = "magic_damage_multiplier";
-    private final ConfigOption<Double> magicDamageMultiplier = configOption(MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID, 0.4, FileConfiguration::getDouble, value -> Math.min(Math.max(value, 0), 1));
+    private final ConfigOption<Double> magicDamageMultiplier = configOption(MAGIC_DAMAGE_MULTIPLIER_CONFIG_ID, 0.4, FileConfiguration::getDouble, value -> Math.min(Math.max(value, 0), 1), value -> String.valueOf((1 - value) * 100));
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

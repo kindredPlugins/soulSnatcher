@@ -1,12 +1,12 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.mobGoals.targeting.ReinforcementZombieGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.utils.BlockUtils;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
@@ -70,17 +70,17 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Zombie Soul", NamedTextColor.DARK_GREEN);
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Zombie", NamedTextColor.DARK_GREEN);
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When being hit summons a ")
                         .append(Component.text("reinforcement zombie", NamedTextColor.AQUA)),
                 Component.text("nearby who will aid you in combat."),
-                Component.text("(Max " + maxReinforcements.cached() + ")", NamedTextColor.GRAY)
+                Component.text("(Max " + wrapPlaceholder(MAX_REINFORCEMENTS_CONFIG_ID) + ")", NamedTextColor.GRAY)
         );
     }
 
@@ -89,7 +89,7 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
     private static final String REINFORCEMENT_COOLDOWN_CONFIG_ID = "reinforcement_cooldown";
     private static final String MAX_REINFORCEMENTS_CONFIG_ID = "max_reinforcement";
 
-    private final ConfigOption<Integer> reinforcementCooldown = configOption(REINFORCEMENT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> reinforcementCooldown = configOption(REINFORCEMENT_COOLDOWN_CONFIG_ID, 2000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Integer> maxReinforcements = configOption(MAX_REINFORCEMENTS_CONFIG_ID, 3, FileConfiguration::getInt, value -> Math.max(value, 1));
 
     @Override

@@ -1,13 +1,12 @@
 package at.gaderman.soulSnatcher.souls.instances.combat;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -56,13 +55,13 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Ravager Soul", TextColor.color(0xe5b5049));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Ravager", TextColor.color(0xe5b5049));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When taking melee damage unleash a ")
                         .append(Component.text("roar", NamedTextColor.GOLD)),
                 Component.text("which knocks nearby enemies away.")
@@ -75,7 +74,7 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
     private static final String SHOUT_STRENGTH_CONFIG_ID = "shout_strength";
     private static final String SHOUT_RADIUS_CONFIG_ID = "shout_radius";
 
-    private final ConfigOption<Integer> shoutCooldown = configOption(SHOUT_COOLDOWN_CONFIG_ID, 6000, FileConfiguration::getInt, value -> Math.clamp(value, 0, 1));
+    private final ConfigOption<Integer> shoutCooldown = configOption(SHOUT_COOLDOWN_CONFIG_ID, 6000, FileConfiguration::getInt, value -> Math.clamp(value, 0, 1), this::fromMillisToSeconds);
     private final ConfigOption<Double> shoutStrength = configOption(SHOUT_STRENGTH_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> shoutRadius = configOption(SHOUT_RADIUS_CONFIG_ID, 4.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
 

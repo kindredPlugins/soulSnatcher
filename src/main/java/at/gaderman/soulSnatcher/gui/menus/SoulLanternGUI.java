@@ -1,11 +1,13 @@
 package at.gaderman.soulSnatcher.gui.menus;
 
+import at.gaderman.soulSnatcher.config.GeneralConfig;
 import at.gaderman.soulSnatcher.gui.ActionInventory;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +21,7 @@ public class SoulLanternGUI extends ActionInventory {
     private final List<SoulInstance<?>> carriedSouls;
 
     public SoulLanternGUI(Player player) {
-        super(Component.text("Soul Lantern", NamedTextColor.BLUE));
+        super(MenuLanguageDefinition.SOUL_LANTERN_TITLE.getSingle().color(NamedTextColor.BLUE));
 
         this.player = player;
         this.carriedSouls = SoulType.getCarriedSouls(player);
@@ -38,24 +40,26 @@ public class SoulLanternGUI extends ActionInventory {
             inventory.setItem(i, getFillItem());
         }
 
-        int startIndex = 11;
-        for (int i = 0; i < carriedSouls.size(); i++) {
-            SoulInstance<?> soul = carriedSouls.get(i);
-            int soulSlot = startIndex + (i * 4);
+        int maxSouls = GeneralConfig.getInstance().MAX_BOUND_SOULS.cached();
+        int spacing = 9 / maxSouls;
+        int startIndex = 13 - (spacing * (maxSouls - 1) / 2);
 
-            inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
-            inventory.setItem(soulSlot + 9, getRemoveItem(soul));
-            defineInventoryAction(soulSlot + 9, event -> remove(soul));
-        }
+        for (int i = 0; i < maxSouls; i++) {
+            int soulSlot = startIndex + i * spacing;
 
-        for (int i = carriedSouls.size(); i < SoulType.MAX_BOUND_SOULS; i++) {
-            int soulSlot = startIndex + (i * 4);
+            if (i < carriedSouls.size()) {
+                SoulInstance<?> soul = carriedSouls.get(i);
 
-            inventory.setItem(soulSlot, getNoSoulItem());
+                inventory.setItem(soulSlot, soul.soulType().itemRepresentation());
+                inventory.setItem(soulSlot + 9, getRemoveItem(soul));
+                defineInventoryAction(soulSlot + 9, event -> remove(soul));
+            } else {
+                inventory.setItem(soulSlot, getNoSoulItem());
+            }
         }
     }
 
-    private void remove(SoulInstance<?> replaced){
+    private void remove(SoulInstance<?> replaced) {
         replaced.soulType().removeSoul(player);
         SoulEffects.discardSoulRewardEffect(player.getLocation().add(0, 1, 0));
 
@@ -65,25 +69,22 @@ public class SoulLanternGUI extends ActionInventory {
     private ItemStack getRemoveItem(SoulInstance<?> soul) {
         ItemStack item = ItemStack.of(Material.BARRIER);
         item.editMeta(meta -> {
-                    meta.itemName(Component.text("Remove ", NamedTextColor.DARK_RED)
-                            .append(soul.soulType().displayName()));
-                    meta.lore(ItemUtils.applyDefaultLoreStyle(
-                            Component.text("Completely ")
-                                    .append(Component.text("removes ", NamedTextColor.RED))
-                                    .append(Component.text("this soul from yourself", NamedTextColor.WHITE))
-                    ));
+                    meta.itemName(MenuLanguageDefinition.REMOVE_SOUL.getSingle().color(NamedTextColor.DARK_RED)
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(MenuLanguageDefinition.SOUL_PLACEHOLDER)
+                                    .replacement(soul.soulType().displayName())
+                                    .build()));
+                    meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.REMOVE_SOUL_DESC.getLines()));
                 }
         );
         return item;
     }
 
-    private ItemStack getNoSoulItem(){
+    private ItemStack getNoSoulItem() {
         ItemStack item = ItemStack.of(Material.GRAY_DYE);
         item.editMeta(meta -> {
-            meta.itemName(Component.text("Soul Slot empty", NamedTextColor.GRAY));
-            meta.lore(ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Bind a soul by killing an infused mob")
-            ));
+            meta.itemName(MenuLanguageDefinition.NO_SOUL_SLOT.getSingle().color(NamedTextColor.GRAY));
+            meta.lore(ItemUtils.applyDefaultLoreStyle(MenuLanguageDefinition.NO_SOUL_SLOT_DESCRIPTION.getLines()));
         });
         return item;
     }

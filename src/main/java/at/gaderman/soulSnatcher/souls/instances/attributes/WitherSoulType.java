@@ -1,10 +1,10 @@
 package at.gaderman.soulSnatcher.souls.instances.attributes;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.AttributeSoul;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnEffectCloudApplyTrigger;
@@ -13,13 +13,13 @@ import at.gaderman.soulSnatcher.souls.triggers.action.OnPotionSplashTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnRegainHealthTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnConsumeItemTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -75,22 +75,27 @@ public class WitherSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return ItemUtils.gradient("Wither Soul", TextColor.color(0xb4b4b4), TextColor.color(0x414141));
+    public @NotNull Component defaultDisplayName() {
+        return MiniMessage.miniMessage().deserialize("<gradient:#b4b4b4:414141>Wither");
     }
 
     @Override
-    public @NotNull List<Component> description() {
+    protected TextColor displayFallbackColor() {
+        return TextColor.color(0x414141);
+    }
+
+    @Override
+    public @NotNull List<Component> defaultDescription() {
         Component menuArrow = Component.text("➤ ", NamedTextColor.GRAY);
 
-        return ItemUtils.applyDefaultLoreStyle(
+        return List.of(
                 Component.text("Become undead:", NamedTextColor.DARK_GRAY).decorate(TextDecoration.BOLD),
                 menuArrow.append(Component.text("Reversed instant health & damage", NamedTextColor.GRAY)),
                 menuArrow.append(Component.text("Immunity to: Regeneration, Poison, Wither", NamedTextColor.GRAY)),
                 menuArrow.append(Component.text("Susceptible to Smite", NamedTextColor.GRAY)),
                 menuArrow.append(Component.text("Passive Regen unrelated to hunger", NamedTextColor.GRAY)),
-                menuArrow.append(Component.text("+" + attackDamageBonus.cached() + " Attack Damage", NamedTextColor.BLUE)),
-                menuArrow.append(Component.text("+" + armorToughnessBonus.cached() + " Armor Toughness", NamedTextColor.BLUE))
+                menuArrow.append(Component.text("+" + wrapPlaceholder(ATTACK_DAMAGE_BONUS) + " Attack Damage", NamedTextColor.BLUE)),
+                menuArrow.append(Component.text("+" + wrapPlaceholder(ARMOR_THOUGHNESS_BONUS) + " Armor Toughness", NamedTextColor.BLUE))
         );
     }
 

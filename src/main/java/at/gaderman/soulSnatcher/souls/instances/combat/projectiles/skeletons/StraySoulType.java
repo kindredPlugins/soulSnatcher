@@ -1,11 +1,10 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.projectiles.skeletons;
 
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -56,13 +55,13 @@ public class StraySoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Stray Soul", TextColor.color(0x576c6d));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Stray", TextColor.color(0x576c6d));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Any ")
                         .append(Component.text("projectile ", NamedTextColor.AQUA))
                         .append(Component.text("fired will inflict ")),

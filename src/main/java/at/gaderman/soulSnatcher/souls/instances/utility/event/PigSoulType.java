@@ -1,16 +1,15 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.mobGoals.targeting.SearchAndAddPassengerGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -59,13 +58,13 @@ public class PigSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Pig Soul", TextColor.color(0xeea5a4));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Pig", TextColor.color(0xeea5a4));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.keybind("key.sneak", NamedTextColor.GOLD)
                         .append(Component.text(" + "))
                         .append(Component.keybind("key.use", NamedTextColor.GOLD))
@@ -80,7 +79,7 @@ public class PigSoulType extends ConfigHoldingSoulType {
     //region Config Valfues
 
     private static final String DROP_PASSENGER_DELAY_CONFIG_ID = "drop_passenger_delay_ticks";
-    private final ConfigOption<Integer> dropPassengerDelay = configOption(DROP_PASSENGER_DELAY_CONFIG_ID, 30, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> dropPassengerDelay = configOption(DROP_PASSENGER_DELAY_CONFIG_ID, 30, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

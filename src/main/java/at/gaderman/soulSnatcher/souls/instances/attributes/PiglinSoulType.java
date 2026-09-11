@@ -1,14 +1,13 @@
 package at.gaderman.soulSnatcher.souls.instances.attributes;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnEntityEquipmentTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.kyori.adventure.text.Component;
@@ -66,13 +65,13 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Piglin Soul", TextColor.color(0xf2bb87));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Piglin", TextColor.color(0xf2bb87));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Gain multiple ")
                         .append(Component.text("attribute bonuses ", NamedTextColor.BLUE)),
                 Component.text("per ")

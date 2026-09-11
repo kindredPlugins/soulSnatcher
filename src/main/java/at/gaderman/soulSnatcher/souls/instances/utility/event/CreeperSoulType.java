@@ -5,7 +5,6 @@ import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -54,13 +53,13 @@ public class CreeperSoulType extends SoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Creeper Soul", TextColor.color(0x6fdb5c));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Creeper", TextColor.color(0x6fdb5c));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Mobs sight on you is reduced by ")
                         .append(Component.text("50%", NamedTextColor.GOLD))
                         .append(Component.text(".", NamedTextColor.WHITE))

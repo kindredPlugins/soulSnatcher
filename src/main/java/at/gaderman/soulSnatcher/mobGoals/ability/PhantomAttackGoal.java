@@ -1,10 +1,8 @@
 package at.gaderman.soulSnatcher.mobGoals.ability;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
-import at.gaderman.soulSnatcher.mobGoals.SoulOwnerGoal;
 import at.gaderman.soulSnatcher.souls.instances.movement.PhantomSoulType;
 import com.destroystokyo.paper.entity.ai.GoalKey;
-import com.destroystokyo.paper.entity.ai.GoalType;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
@@ -12,8 +10,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Mob;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.EnumSet;
 
 public class PhantomAttackGoal extends SoulAbilityGoal {
     private final PhantomSoulType.PhantomSoulInstance phantomSoul;

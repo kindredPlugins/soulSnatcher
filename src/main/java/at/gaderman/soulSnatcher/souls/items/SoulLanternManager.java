@@ -3,11 +3,14 @@ package at.gaderman.soulSnatcher.souls.items;
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.gui.menus.SoulLanternGUI;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
+import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -41,24 +44,20 @@ import java.util.UUID;
 public class SoulLanternManager implements Listener {
 
     private static final NamespacedKey LANTERN_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_lantern");
-    private static final NamespacedKey RECEIVED_TUTORIAL_MESSAGE  = new NamespacedKey(SoulSnatcher.getPlugin(), "received_tutorial_message");
+    private static final NamespacedKey RECEIVED_TUTORIAL_MESSAGE = new NamespacedKey(SoulSnatcher.getPlugin(), "received_tutorial_message");
 
-    public static ItemStack getLanternAsCustomHead(){
+    public static ItemStack getLanternAsCustomHead() {
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
                 "20bd20128c71210505d8062a51ae2abe0cc3fca50107f89f12d3a8d6dcfdaea1");
     }
 
-    public static ItemStack getLantern(Player player){
+    public static ItemStack getLantern(Player player) {
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
 
         ItemStack lantern = getLanternAsCustomHead();
         lantern.editMeta(meta -> {
-            meta.displayName(Component.text("Soul Lantern", TextColor.color(0x10a1e1)).decoration(TextDecoration.ITALIC, false));
-            var lore = ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Interact to open souls GUI", NamedTextColor.GRAY),
-                    Component.empty(),
-                    Component.text("Active souls:", NamedTextColor.GRAY)
-            );
+            meta.displayName(SoulItemsLanguageDefinitions.LANTERN_TITLE.getSingle().color(TextColor.color(0x10a1e1)).decoration(TextDecoration.ITALIC, false));
+            var lore = ItemUtils.applyDefaultLoreStyle(SoulItemsLanguageDefinitions.LANTERN_DESCRIPTION.getLines().stream().map(c -> c.color(NamedTextColor.GRAY)).toList());
             lore.addAll(souls.stream()
                     .map(soul -> Component.text("➤ ", NamedTextColor.DARK_GRAY)
                             .append(soul.soulType().displayName().decoration(TextDecoration.ITALIC, false)))
@@ -72,15 +71,15 @@ public class SoulLanternManager implements Listener {
         return lantern;
     }
 
-    public static void updateActiveLanterns(Player player){
+    public static void updateActiveLanterns(Player player) {
         PlayerInventory inv = player.getInventory();
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(player);
-        if(souls.isEmpty()){
+        if (souls.isEmpty()) {
             for (int i = 0; i < inv.getSize(); i++) {
                 ItemStack item = inv.getItem(i);
-                if(item == null || item.getType().isAir()) continue;
-                if(!item.getPersistentDataContainer().has(LANTERN_KEY)) continue;
+                if (item == null || item.getType().isAir()) continue;
+                if (!item.getPersistentDataContainer().has(LANTERN_KEY)) continue;
 
                 inv.setItem(i, ItemStack.of(Material.AIR));
             }
@@ -91,28 +90,19 @@ public class SoulLanternManager implements Listener {
 
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack item = inv.getItem(i);
-            if(item == null || item.getType().isAir()) continue;
-            if(!item.getPersistentDataContainer().has(LANTERN_KEY)) continue;
+            if (item == null || item.getType().isAir()) continue;
+            if (!item.getPersistentDataContainer().has(LANTERN_KEY)) continue;
 
             inv.setItem(i, getLantern(player));
             foundLantern = true;
         }
 
-        if(!foundLantern) {
+        if (!foundLantern) {
             player.give(getLantern(player));
             player.playSound(player, Sound.BLOCK_PUMPKIN_CARVE, 1f, 0.5f);
 
-            if(!player.getPersistentDataContainer().has(RECEIVED_TUTORIAL_MESSAGE)) {
-                player.sendMessage(Component.text("------------- ", NamedTextColor.DARK_GRAY)
-                        .append(Component.text("SoulSnatcher", NamedTextColor.DARK_AQUA).decorate(TextDecoration.BOLD))
-                        .append(Component.text(" -------------", NamedTextColor.DARK_GRAY)));
-                player.sendMessage(Component.text("You just received a ", NamedTextColor.WHITE)
-                        .append(getLantern(player).displayName())
-                        .append(Component.text(".", NamedTextColor.WHITE)));
-                player.sendMessage(Component.text("SoulSnatcher adds souls which add new mechanics, use this lantern to check yours out.", NamedTextColor.WHITE));
-                player.sendMessage(Component.text("Use ", NamedTextColor.WHITE)
-                        .append(Component.text("/soulindex ", NamedTextColor.AQUA))
-                        .append(Component.text("to check out all souls and general information.", NamedTextColor.WHITE)));
+            if (!player.getPersistentDataContainer().has(RECEIVED_TUTORIAL_MESSAGE)) {
+                SoulItemsLanguageDefinitions.FIRST_SOUL_MESSAGE.getLines().forEach(player::sendMessage);
 
                 player.getPersistentDataContainer().set(RECEIVED_TUTORIAL_MESSAGE, PersistentDataType.STRING, LocalDateTime.now().toString());
             }
@@ -120,66 +110,73 @@ public class SoulLanternManager implements Listener {
     }
 
     @EventHandler
-    public void onPlayerClickLantern(InventoryClickEvent event){
-        if(!(event.getWhoClicked() instanceof Player player)) return;
+    public void onPlayerClickLantern(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
 
         ItemStack clicked = event.getCurrentItem();
-        if(clicked != null && !clicked.getType().isAir() && clicked.getPersistentDataContainer().has(LANTERN_KEY)){
+        if (clicked != null && !clicked.getType().isAir() && clicked.getPersistentDataContainer().has(LANTERN_KEY)) {
             event.setCurrentItem(getLantern(player));
         }
     }
 
     @EventHandler
-    public void onPlaceLantern(BlockPlaceEvent event){
+    public void onPlaceLantern(BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
-        if(item.getPersistentDataContainer().has(LANTERN_KEY))
+        if (item.getPersistentDataContainer().has(LANTERN_KEY))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void onLanternInteract(PlayerInteractEvent event){
-        if(event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) return;
+    public void onLanternInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) return;
 
         ItemStack item = event.getItem();
-        if(item == null) return;
+        if (item == null) return;
 
-        if(!item.getPersistentDataContainer().has(LANTERN_KEY)) return;
+        if (!item.getPersistentDataContainer().has(LANTERN_KEY)) return;
 
         Player player = event.getPlayer();
+
+        if(!SoulListener.areSoulsAllowedInWorld(player.getWorld())){
+            player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 0.5f);
+            return;
+        }
+
         new SoulLanternGUI(player).openInventory(player);
         player.playSound(player, Sound.BLOCK_BEACON_POWER_SELECT, 0.8f, 1.25f);
     }
 
     private static final Set<UUID> lookingAtOrbits = new HashSet<>();
 
-    public static boolean isLookingAtOrbits(Player player){
+    public static boolean isLookingAtOrbits(Player player) {
         return lookingAtOrbits.contains(player.getUniqueId());
     }
 
     @EventHandler
-    public void updateHeld(EntityEquipmentChangedEvent event){
-        if(!(event.getEntity() instanceof Player player)) return;
+    public void updateHeld(EntityEquipmentChangedEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
 
         List<EquipmentSlot> handSlots = event.getEquipmentChanges().keySet().stream()
                 .filter(slot -> slot == EquipmentSlot.HAND)
                 .toList();
 
-        if(handSlots.isEmpty())
+        if (handSlots.isEmpty())
             return;
 
-        if(lookingAtOrbits.contains(player.getUniqueId())){
-            if(handSlots.stream()
+        if (lookingAtOrbits.contains(player.getUniqueId())) {
+            if (handSlots.stream()
                     .noneMatch(slot -> event.getEquipmentChanges().get(slot).newItem()
                             .getPersistentDataContainer()
-                            .has(LANTERN_KEY))){
+                            .has(LANTERN_KEY))) {
                 SoulEffects.hideSoulOrbits(player);
                 lookingAtOrbits.remove(player.getUniqueId());
             }
         } else {
-            if(handSlots.stream()
+            if (handSlots.stream()
                     .anyMatch(slot -> event.getEquipmentChanges().get(slot).newItem()
                             .getPersistentDataContainer()
-                            .has(LANTERN_KEY))){
+                            .has(LANTERN_KEY))) {
                 SoulEffects.showSoulOrbits(player);
                 lookingAtOrbits.add(player.getUniqueId());
             }
@@ -187,10 +184,10 @@ public class SoulLanternManager implements Listener {
     }
 
     @EventHandler
-    public void onDrop(PlayerDropItemEvent event){
+    public void onDrop(PlayerDropItemEvent event) {
         Item drop = event.getItemDrop();
         ItemStack item = drop.getItemStack();
-        if(!item.getPersistentDataContainer().has(LANTERN_KEY))
+        if (!item.getPersistentDataContainer().has(LANTERN_KEY))
             return;
 
         drop.remove();
@@ -198,10 +195,11 @@ public class SoulLanternManager implements Listener {
         drop.getWorld().playSound(drop.getLocation(), Sound.ENTITY_CHICKEN_EGG, 1f, 0.25f);
 
         Player player = event.getPlayer();
-        player.sendMessage(Component.text("You disposed your ", NamedTextColor.GRAY)
-                .append(item.effectiveName())
-                .append(Component.text("! Get a new one by running ", NamedTextColor.GRAY))
-                .append(Component.text("/soullantern", NamedTextColor.AQUA).clickEvent(ClickEvent.runCommand("soullantern")))
-        );
+
+        Component disposeMessage = SoulItemsLanguageDefinitions.LANTERN_DISPOSE.getSingle();
+        player.sendMessage(disposeMessage.replaceText(TextReplacementConfig.builder()
+                .match("/soullantern")
+                .replacement(Component.text("/soullantern", NamedTextColor.AQUA).clickEvent(ClickEvent.runCommand("soullantern")))
+                .build()));
     }
 }

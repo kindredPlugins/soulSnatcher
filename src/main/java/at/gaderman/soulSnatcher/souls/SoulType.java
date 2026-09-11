@@ -1,14 +1,20 @@
 package at.gaderman.soulSnatcher.souls;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
+import at.gaderman.soulSnatcher.config.lang.LanguageKeyHolder;
+import at.gaderman.soulSnatcher.config.lang.LanguageManager;
 import at.gaderman.soulSnatcher.souls.config.OfflineUnboundPoolConfig;
 import at.gaderman.soulSnatcher.souls.effects.SoulEffects;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
+import io.papermc.paper.entity.PlayerGiveResult;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,7 +30,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public abstract class SoulType {
+public abstract class SoulType implements LanguageKeyHolder {
 
     public SoulType() {
     }
@@ -40,9 +46,9 @@ public abstract class SoulType {
 
     protected abstract @NotNull String skullTexture();
 
-    public abstract @NotNull Component displayName();
+    public abstract @NotNull Component defaultDisplayName();
 
-    public abstract @NotNull List<Component> description();
+    public abstract @NotNull List<Component> defaultDescription();
 
     public final @NotNull ItemStack getRepresentativeSkull() {
         return ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" + skullTexture());
@@ -58,6 +64,37 @@ public abstract class SoulType {
         return item;
     }
 
+    private static final String NAMES_LANG_PREFIX = "soul_names.";
+    private static final String DESCRIPTION_LANG_PREFIX = "soul_descriptions.";
+
+    public @NotNull Component displayName() {
+        Component displayName = LanguageManager.getInstance().resolveComponent(NAMES_LANG_PREFIX + id()).getFirst();
+
+        return SoulLanguageDefinitions.SOUL_NAME.getSingle()
+                .style(displayName.style())
+                .colorIfAbsent(displayFallbackColor())
+                .replaceText(TextReplacementConfig.builder()
+                        .matchLiteral(SoulLanguageDefinitions.SOUL_PLACEHOLDER)
+                        .replacement(displayName)
+                        .build());
+    }
+
+    protected TextColor displayFallbackColor() {
+        return NamedTextColor.GRAY;
+    }
+
+    public @NotNull List<Component> description() {
+        return ItemUtils.applyDefaultLoreStyle(LanguageManager.getInstance().resolveComponent(DESCRIPTION_LANG_PREFIX + id()));
+    }
+
+    @Override
+    public Map<String, List<Component>> languageKeyDefaultMap() {
+        return Map.of(
+                NAMES_LANG_PREFIX + id(), List.of(defaultDisplayName()),
+                DESCRIPTION_LANG_PREFIX + id(), defaultDescription()
+        );
+    }
+
     public boolean isInvalidInfusionTarget(LivingEntity entity) {
         return entity instanceof Boss || entity instanceof Fish || entity instanceof Bat;
     }
@@ -67,7 +104,7 @@ public abstract class SoulType {
      * make use of random variables or just to reset soul state, default should be false except
      * if specifically needed
      *
-     * @return If this soul can be placed
+     * @return If this soul can be obtained again while carrying allowing it to overwrite itself
      * @see at.gaderman.soulSnatcher.souls.instances.attributes.HorseSoulType
      */
     public boolean canOverwriteItself() {
@@ -137,7 +174,7 @@ public abstract class SoulType {
         PersistentDataContainer pdc = player.getPersistentDataContainer();
         ArrayList<String> unboundSouls = new ArrayList<>(pdc.getOrDefault(UNBOUND_SOULS, PersistentDataType.LIST.strings(), new ArrayList<>()));
 
-        if (unboundSouls.size() >= MAX_UNBOUND_SOULS)
+        if (unboundSouls.size() >= GeneralConfig.getInstance().MAX_UNBOUND_SOULS.cached())
             return;
 
         unboundSouls.add(id());
@@ -194,7 +231,7 @@ public abstract class SoulType {
     public boolean bindSoul(Player player) {
         List<SoulInstance<?>> boundSouls = cachedBoundSouls.getOrDefault(player.getUniqueId(), new ArrayList<>());
 
-        boolean sizeLimitReached = boundSouls.size() >= MAX_BOUND_SOULS;
+        boolean sizeLimitReached = boundSouls.size() >= GeneralConfig.getInstance().MAX_BOUND_SOULS.cached();
         if (!canOverwriteItself() && sizeLimitReached) return false;
 
         boolean isDuplicate = boundSouls.stream().anyMatch(soul -> soul.soulType().equals(this));
@@ -322,8 +359,30 @@ public abstract class SoulType {
                     .map(soulRegistry::getSoul)
                     .filter(Objects::nonNull)
                     .toList();
+            int maxBoundSouls = GeneralConfig.getInstance().MAX_BOUND_SOULS.cached();
             souls.forEach(soulType -> {
-                soulType.bindSoul(player);
+                boolean bound = soulType.bindSoul(player);
+
+                if (!bound) {
+                    PlayerGiveResult giveResult = player.give(List.of(SoulVialManager.getFilledVial(soulType)), true);
+                    giveResult.drops().forEach(item -> {
+                        item.setOwner(player.getUniqueId());
+                        item.setGlowing(true);
+                        item.setInvulnerable(true);
+                    });
+
+                    player.sendMessage(SoulLanguageDefinitions.MAX_SOUL_REPLACEMENT.getSingle()
+                            .color(NamedTextColor.RED)
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(SoulLanguageDefinitions.SOUL_PLACEHOLDER)
+                                    .replacement(soulType.displayName())
+                                    .build())
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(SoulLanguageDefinitions.MAX_SOUL_PLACEHOLDER)
+                                    .replacement(Component.text(maxBoundSouls, NamedTextColor.DARK_RED))
+                                    .build())
+                    );
+                }
             });
 
             List<SoulType> legacySouls = boundSouls.stream()
@@ -334,7 +393,7 @@ public abstract class SoulType {
             legacySouls.forEach(soulType -> {
                 ItemStack filledVial = SoulVialManager.getFilledVial(soulType);
 
-                if(player.getInventory().firstEmpty() == -1){
+                if (player.getInventory().firstEmpty() == -1) {
                     player.getWorld().dropItem(player.getLocation(), filledVial, drop -> {
                         drop.setOwner(player.getUniqueId());
                         drop.setGlowing(true);
@@ -342,7 +401,7 @@ public abstract class SoulType {
                         drop.setVelocity(drop.getVelocity().multiply(0));
                     });
                     hadDrops.set(true);
-                }else {
+                } else {
                     player.give(filledVial);
                 }
 
@@ -355,19 +414,21 @@ public abstract class SoulType {
                     player.sendMessage(Component.text("------------- ", NamedTextColor.GRAY)
                             .append(Component.text("SoulSnatcher", NamedTextColor.BLUE).decoration(TextDecoration.BOLD, true))
                             .append(Component.text(" -------------", NamedTextColor.GRAY)));
-                    player.sendMessage(Component.text("Souls you had bound were ")
-                            .append(Component.text("disabled ", NamedTextColor.RED))
-                            .append(Component.text("while you were offline", NamedTextColor.WHITE)));
+                    SoulLanguageDefinitions.DISABLED_WHILE_OFFLINE.getLines().forEach(player::sendMessage);
                     legacySouls.stream()
                             .map(soul -> Component.text("➤ ", NamedTextColor.GRAY)
                                     .append(soul.displayName().decoration(TextDecoration.ITALIC, false)))
                             .toList()
                             .forEach(player::sendMessage);
                     player.sendMessage(Component.empty());
-                    player.sendMessage(Component.text("You have received them as ")
-                            .append(Component.text("Soul Vial", SoulVialManager.getEmptyVial().displayName().color())));
-                    if(hadDrops.get()) {
-                        player.sendMessage(Component.text("Some vials have been dropped due to full inventory!", NamedTextColor.RED));
+                    SoulLanguageDefinitions.RECEIVED_AS_SOUL_VIAL.getLines()
+                            .stream().map(line -> line.replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(SoulLanguageDefinitions.VIAL_PLACEHOLDER)
+                                    .replacement(SoulVialManager.getEmptyVial().displayName())
+                                    .build()))
+                            .forEach(player::sendMessage);
+                    if (hadDrops.get()) {
+                        SoulLanguageDefinitions.VIAL_DROP_FULL_INV.getLines().forEach(player::sendMessage);
                     }
                     player.sendMessage(Component.empty());
 

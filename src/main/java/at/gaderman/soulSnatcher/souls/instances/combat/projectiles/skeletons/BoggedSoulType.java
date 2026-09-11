@@ -1,11 +1,10 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.projectiles.skeletons;
 
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -56,13 +55,13 @@ public class BoggedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Bogged Soul", TextColor.color(0x5e6d31));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Bogged", TextColor.color(0x5e6d31));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Any ")
                         .append(Component.text("projectile ", NamedTextColor.AQUA))
                         .append(Component.text("fired will inflict ")),

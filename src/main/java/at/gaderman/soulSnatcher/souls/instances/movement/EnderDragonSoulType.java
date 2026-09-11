@@ -1,10 +1,10 @@
 package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnEntityToggleGlideTrigger;
 import at.gaderman.soulSnatcher.utils.ItemUtils;
@@ -13,7 +13,11 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.*;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
@@ -54,13 +58,18 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return ItemUtils.gradient("Ender Dragon Soul", TextColor.color(0x6c76ab), NamedTextColor.DARK_PURPLE);
+    public @NotNull Component defaultDisplayName() {
+        return MiniMessage.miniMessage().deserialize("<gradient:#6c76ab:dark_purple>Ender Dragon");
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    protected TextColor displayFallbackColor() {
+        return NamedTextColor.DARK_PURPLE;
+    }
+
+    @Override
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When gaining enough ")
                         .append(Component.text("elytra momentum ", NamedTextColor.AQUA)),
                 Component.text("enter ")

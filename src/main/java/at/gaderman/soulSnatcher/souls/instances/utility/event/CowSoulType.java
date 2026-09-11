@@ -1,13 +1,12 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnEntityPotionEffectTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -54,13 +53,13 @@ public class CowSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Cow Soul", TextColor.color(0x292017));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Cow", TextColor.color(0x292017));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When being affected by a ")
                         .append(Component.text("negative ", NamedTextColor.RED))
                         .append(Component.text("effect")),
@@ -71,7 +70,7 @@ public class CowSoulType extends ConfigHoldingSoulType {
     //region Config Values
 
     private static final String MILK_DELAY_TICKS_CONFIG_ID = "milk_delay_ticks";
-    private final ConfigOption<Integer> milkDelayTicks = configOption(MILK_DELAY_TICKS_CONFIG_ID, 15, FileConfiguration::getInt, value -> Math.max(value, 0));
+    private final ConfigOption<Integer> milkDelayTicks = configOption(MILK_DELAY_TICKS_CONFIG_ID, 15, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

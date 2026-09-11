@@ -1,6 +1,9 @@
 package at.gaderman.soulSnatcher.souls.items;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.GeneralConfig;
+import at.gaderman.soulSnatcher.souls.SoulLanguageDefinitions;
+import at.gaderman.soulSnatcher.souls.SoulListener;
 import at.gaderman.soulSnatcher.souls.SoulRegistry;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.effects.SoulReward;
@@ -19,18 +22,24 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PiglinBarterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.recipe.CraftingBookCategory;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class SoulVialManager implements Listener {
 
     private static final NamespacedKey VIAL_KEY = new NamespacedKey(SoulSnatcher.getPlugin(), "soul_vial");
     private static final String EMPTY_VIAL = "empty";
+
+    private static final Map<UUID, Long> lastSmashedMap = new HashMap<>();
 
     public SoulVialManager() {
         ShapedRecipe soulVialRecipe = new ShapedRecipe(VIAL_KEY, getEmptyVial());
@@ -51,11 +60,8 @@ public class SoulVialManager implements Listener {
         ItemStack vial = ItemUtils.createCustomHead("http://textures.minecraft.net/texture/" +
                 "75d3a90f471c95fcc9702f6fe573cc113cdf6d8c539b261ee3c30771b18e2ac");
         vial.editMeta(meta -> {
-            meta.customName(Component.text("Empty Soul Vial", TextColor.color(0x0092ff)).decoration(TextDecoration.ITALIC, false));
-            var lore = ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Interact with an released soul to capture it.", NamedTextColor.GRAY),
-                    Component.text("Can later be released again.", NamedTextColor.GRAY)
-            );
+            meta.customName(SoulItemsLanguageDefinitions.EMPTY_VIAL_TITLE.getSingle().color(TextColor.color(0x0092ff)).decoration(TextDecoration.ITALIC, false));
+            var lore = ItemUtils.applyDefaultLoreStyle(SoulItemsLanguageDefinitions.EMPTY_VIAL_DESCRIPTION.getLines());
             meta.lore(lore);
             meta.setMaxStackSize(16);
 
@@ -67,13 +73,12 @@ public class SoulVialManager implements Listener {
     public static ItemStack getFilledVial(SoulType soulType) {
         ItemStack vial = soulType.getRepresentativeSkull();
         vial.editMeta(meta -> {
-            meta.customName(Component.text("Soul Vial ", TextColor.color(0x0092ff))
-                    .append(Component.text("✦ ", NamedTextColor.GRAY))
+            meta.customName(SoulItemsLanguageDefinitions.FILLED_VIAL_PREFIX.getSingle().color(TextColor.color(0x0092ff))
                     .append(soulType.displayName())
                     .decoration(TextDecoration.ITALIC, false));
 
             var lore = ItemUtils.applyDefaultLoreStyle(
-                    Component.text("Interact to release the stored soul"),
+                    SoulItemsLanguageDefinitions.FILLED_VIAL_DESCRIPTION_HEADER.getSingle(),
                     Component.empty(),
                     soulType.displayName()
             );
@@ -108,9 +113,9 @@ public class SoulVialManager implements Listener {
                 drop.setHealth(100);
                 drop.setVelocity(drop.getVelocity().multiply(0));
             });
-            player.sendMessage(Component.text("Your captured ", NamedTextColor.RED)
+                    player.sendMessage(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED.getSingle().color(NamedTextColor.RED)
                     .append(soulType.displayName())
-                    .append(Component.text(" has been dropped!", NamedTextColor.RED)));
+                    .append(SoulItemsLanguageDefinitions.VIAL_CAPTURE_DROPPED_SUFFIX.getSingle()));
         }else{
             player.give(filledVial);
         }
@@ -127,14 +132,14 @@ public class SoulVialManager implements Listener {
     }
 
     @EventHandler
-    public void onPlaceLantern(BlockPlaceEvent event) {
+    public void onPlaceVial(BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
         if (item.getPersistentDataContainer().has(VIAL_KEY))
             event.setCancelled(true);
     }
 
     @EventHandler
-    public void onLanternInteract(PlayerInteractEvent event) {
+    public void onVialSmash(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) return;
 
         ItemStack item = event.getItem();
@@ -143,6 +148,12 @@ public class SoulVialManager implements Listener {
         if (!item.getPersistentDataContainer().has(VIAL_KEY)) return;
 
         Player player = event.getPlayer();
+
+        if(!SoulListener.areSoulsAllowedInWorld(player.getWorld())){
+            player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
+            player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 0.5f);
+            return;
+        }
 
         SoulRegistry soulRegistry = SoulRegistry.getInstance();
         String soulId = item.getPersistentDataContainer().get(VIAL_KEY, PersistentDataType.STRING);
@@ -153,7 +164,7 @@ public class SoulVialManager implements Listener {
                 return;
 
             event.setCancelled(true);
-            player.sendActionBar(Component.text("This soul has been disabled by an admin", NamedTextColor.RED));
+            player.sendActionBar(SoulItemsLanguageDefinitions.VIAL_DISABLED.getSingle());
             player.playSound(player, Sound.ENTITY_ITEM_BREAK, 1f, 1f);
             return;
         }
@@ -165,12 +176,13 @@ public class SoulVialManager implements Listener {
         if(SoulType.getCarriedSouls(player).stream()
                 .anyMatch(carried -> !carried.soulType().canOverwriteItself() && carried.soulType().equals(soul))){
             player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.2f);
-            player.sendActionBar(Component.text("You already have bound this soul", NamedTextColor.RED));
+            player.sendActionBar(SoulItemsLanguageDefinitions.VIAL_ALREADY_HAVE.getSingle().color(NamedTextColor.RED));
             return;
         }
 
         player.getEquipment().setItemInMainHand(ItemStack.empty());
-        player.setCooldown(VIAL_KEY, 60 * 20);
+        player.setCooldown(VIAL_KEY, GeneralConfig.getInstance().VIAL_COOLDOWN.cached());
+        lastSmashedMap.put(player.getUniqueId(), System.currentTimeMillis());
 
         Location rewardLocation = player.getLocation().clone().add(player.getLocation().getDirection().normalize().multiply(1));
         SoulReward.offerSoulReward(rewardLocation, player, soul);
@@ -189,5 +201,23 @@ public class SoulVialManager implements Listener {
         ItemStack vial = getEmptyVial();
         vial.setAmount((int) (Math.random() * 2) + 1);
         barterDrop.add(vial);
+    }
+
+    @EventHandler
+    public void onRejoinCooldown(PlayerJoinEvent event){
+        Player player = event.getPlayer();
+
+        if(!lastSmashedMap.containsKey(player.getUniqueId())) return;
+
+        long currentMillis = System.currentTimeMillis();
+        long lastSmashed = lastSmashedMap.get(player.getUniqueId());
+
+        int vialCooldown = GeneralConfig.getInstance().VIAL_COOLDOWN.cached();
+            if (currentMillis - lastSmashed > vialCooldown * 50L){
+                lastSmashedMap.remove(player.getUniqueId());
+                return;
+            }
+
+            player.setCooldown(VIAL_KEY, vialCooldown - (int) ((currentMillis - lastSmashed) / 50));
     }
 }

@@ -1,12 +1,11 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnEntityKillTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -57,15 +56,15 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Pillager Soul", TextColor.color(0x582711));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Pillager", TextColor.color(0x582711));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("Gain a ")
-                        .append(Component.text(extraLootChance.cached() * 100 + "% ", NamedTextColor.GREEN))
+                        .append(Component.text(wrapPlaceholder(EXTRA_LOOT_CHANCE_CONFIG_ID) + "% ", NamedTextColor.GREEN))
                         .append(Component.text("chance for mobs to", NamedTextColor.WHITE)),
                 Component.text("drop an extra item.")
         );
@@ -81,7 +80,7 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
 
     private static final String EXTRA_LOOT_CHANCE_CONFIG_ID = "extra_loot_chance";
 
-    private final ConfigOption<Double> extraLootChance = configOption(EXTRA_LOOT_CHANCE_CONFIG_ID, 0.2, FileConfiguration::getDouble);
+    private final ConfigOption<Double> extraLootChance = configOption(EXTRA_LOOT_CHANCE_CONFIG_ID, 0.2, FileConfiguration::getDouble, value -> value, this::toPercentageString);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {

@@ -1,13 +1,12 @@
 package at.gaderman.soulSnatcher.souls.instances.combat.targeting;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
-import at.gaderman.soulSnatcher.souls.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSprintToggleTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
@@ -61,20 +60,20 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    public @NotNull Component displayName() {
-        return Component.text("Vindicator Soul", TextColor.color(0x959b9b));
+    public @NotNull Component defaultDisplayName() {
+        return Component.text("Vindicator", TextColor.color(0x959b9b));
     }
 
     @Override
-    public @NotNull List<Component> description() {
-        return ItemUtils.applyDefaultLoreStyle(
+    public @NotNull List<Component> defaultDescription() {
+        return List.of(
                 Component.text("When ")
                         .append(Component.text("sprinting ", NamedTextColor.GREEN))
                         .append(Component.text("while in combat ", NamedTextColor.WHITE)),
                 Component.text("gain ")
-                        .append(Component.text("+" + moveBonus.cached() * 100 + "% Movement Speed", NamedTextColor.AQUA)),
+                        .append(Component.text("+" + wrapPlaceholder(MOVE_BONUS_CONFIG_ID) + "% Movement Speed", NamedTextColor.AQUA)),
                 Component.text("and ")
-                        .append(Component.text("+" + atspBonus.cached() * 100 + "% Attack Speed", NamedTextColor.AQUA))
+                        .append(Component.text("+" + wrapPlaceholder(ATSP_BONUS_CONFIG_ID) + "% Attack Speed", NamedTextColor.AQUA))
                         .append(Component.text(".", NamedTextColor.WHITE))
         );
     }
@@ -84,8 +83,8 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
     private static final String MOVE_BONUS_CONFIG_ID = "movement_bonus";
     private static final String ATSP_BONUS_CONFIG_ID = "attack_speed_bonus";
 
-    private final ConfigOption<Double> moveBonus = configOption(MOVE_BONUS_CONFIG_ID, 0.1, FileConfiguration::getDouble);
-    private final ConfigOption<Double> atspBonus = configOption(ATSP_BONUS_CONFIG_ID, 0.1, FileConfiguration::getDouble);
+    private final ConfigOption<Double> moveBonus = configOption(MOVE_BONUS_CONFIG_ID, 0.1, FileConfiguration::getDouble, value -> value, this::toPercentageString);
+    private final ConfigOption<Double> atspBonus = configOption(ATSP_BONUS_CONFIG_ID, 0.1, FileConfiguration::getDouble,  value -> value, this::toPercentageString);
 
     @Override
     public Map<String, String> extraConfigPathCommentMap() {
