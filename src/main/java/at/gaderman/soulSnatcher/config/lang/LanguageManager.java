@@ -34,19 +34,19 @@ public class LanguageManager {
     }
 
     private void setUp() {
-        //TODO: resolve current language/cache it from config.yaml
-        loadLanguage("en");
+        //TODO: possible add multi-language support, but implementation cost not worth it as of v1.3.0
+        loadLanguage();
 
         registered = true;
         SoulSnatcher.getPlugin().getLogger().info("Loaded all language keys");
     }
 
-    private void loadLanguage(String language) {
-        File langFile = new File(SoulSnatcher.getPlugin().getDataFolder(), "lang/lang-" + language + ".yml");
+    private void loadLanguage() {
+        File langFile = new File(SoulSnatcher.getPlugin().getDataFolder(), "lang/lang.yml");
         boolean create = !langFile.exists();
 
         if (create)
-            SoulSnatcher.getPlugin().getLogger().warning("Language file " + language + " not found! Creating default one...");
+            SoulSnatcher.getPlugin().getLogger().warning("Language file not found! Creating default one...");
 
         YamlConfiguration config = create ? new YamlConfiguration() : YamlConfiguration.loadConfiguration(langFile);
 
@@ -98,13 +98,10 @@ public class LanguageManager {
         if (translationKeyMap.containsKey(key))
             return translationKeyMap.get(key);
 
-        //TODO: resolve current language/cache it from config.yaml
-        String language = "en";
-
-        File langFile = new File(SoulSnatcher.getPlugin().getDataFolder(), "lang/lang-" + language + ".yml");
+        File langFile = new File(SoulSnatcher.getPlugin().getDataFolder(), "lang/lang.yml");
 
         if (!langFile.exists()) {
-            SoulSnatcher.getPlugin().getLogger().warning("Language file " + language + " not found!");
+            SoulSnatcher.getPlugin().getLogger().warning("Language file not found!");
             return List.of(Component.empty());
         }
 

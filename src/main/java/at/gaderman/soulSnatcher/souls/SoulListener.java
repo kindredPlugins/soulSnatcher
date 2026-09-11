@@ -152,6 +152,9 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onClaimSoul(PlayerInteractEntityEvent event) {
+        if(!areSoulsAllowedInWorld(event.getPlayer().getWorld()))
+            return;
+
         if (!(event.getRightClicked() instanceof Interaction interaction)) return;
 
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();

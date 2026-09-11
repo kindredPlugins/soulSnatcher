@@ -359,6 +359,7 @@ public abstract class SoulType implements LanguageKeyHolder {
                     .map(soulRegistry::getSoul)
                     .filter(Objects::nonNull)
                     .toList();
+            int maxBoundSouls = GeneralConfig.getInstance().MAX_BOUND_SOULS.cached();
             souls.forEach(soulType -> {
                 boolean bound = soulType.bindSoul(player);
 
@@ -369,6 +370,18 @@ public abstract class SoulType implements LanguageKeyHolder {
                         item.setGlowing(true);
                         item.setInvulnerable(true);
                     });
+
+                    player.sendMessage(SoulLanguageDefinitions.MAX_SOUL_REPLACEMENT.getSingle()
+                            .color(NamedTextColor.RED)
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(SoulLanguageDefinitions.SOUL_PLACEHOLDER)
+                                    .replacement(soulType.displayName())
+                                    .build())
+                            .replaceText(TextReplacementConfig.builder()
+                                    .matchLiteral(SoulLanguageDefinitions.MAX_SOUL_PLACEHOLDER)
+                                    .replacement(Component.text(maxBoundSouls, NamedTextColor.DARK_RED))
+                                    .build())
+                    );
                 }
             });
 

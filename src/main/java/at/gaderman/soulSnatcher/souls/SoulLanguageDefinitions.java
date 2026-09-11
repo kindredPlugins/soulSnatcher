@@ -39,4 +39,8 @@ public class SoulLanguageDefinitions extends LanguageGroupDefinition {
     public static final LanguageKey ENABLED_IN_WORLD = registerKey(PREFIX + "enabled_in_world",
             Component.text("Souls have been enabled in this world"));
 
+    public static final String MAX_SOUL_PLACEHOLDER = "{max_souls}";
+    public static final LanguageKey MAX_SOUL_REPLACEMENT = registerKey(PREFIX + "max_soul_replacement",
+            Component.text("You received " + SOUL_PLACEHOLDER + " as vial since max bound souls were reduced to " + MAX_SOUL_PLACEHOLDER));
+
 }
