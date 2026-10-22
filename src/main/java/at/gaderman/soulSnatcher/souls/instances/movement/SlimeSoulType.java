@@ -1,6 +1,7 @@
 package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
+import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.mobGoals.ability.SlimeJumpGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
@@ -15,6 +16,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -25,6 +27,7 @@ import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Map;
 
 @AutoService(SoulType.class)
 public class SlimeSoulType extends ConfigHoldingSoulType {
@@ -69,24 +72,26 @@ public class SlimeSoulType extends ConfigHoldingSoulType {
 
     //region Config Values
 
-//    private static final String JUMP_COOLDOWN_CONFIG_ID = "jump_cooldown";
-//
-//    private final ConfigOption<Integer> jumpCooldown = configOption(JUMP_COOLDOWN_CONFIG_ID, 50, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
-//
-//    @Override
-//    public Map<String, String> extraConfigPathCommentMap() {
-//        return Map.of(
-//                JUMP_COOLDOWN_CONFIG_ID, "Cooldown for being able to do the wind charge jump after ground has been touched in ticks (20 ticks = 1 second)"
-//        );
-//    }
+    private static final String MIN_IMPACT_CONFIG_ID = "min_impact";
+    private static final String BOUNCE_FACTOR_CONFIG_ID = "bounce_factor";
+    private static final String MAX_BOUNCE_CONFIG_ID = "max_bounce";
+
+    private final ConfigOption<Double> minImpact = configOption(MIN_IMPACT_CONFIG_ID, 0.5, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> bounceFactor = configOption(BOUNCE_FACTOR_CONFIG_ID, 0.85, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> maxBounce = configOption(MAX_BOUNCE_CONFIG_ID, 2.5, FileConfiguration::getDouble, value -> Math.clamp(value, 0, 8));
+
+    @Override
+    public Map<String, String> extraConfigPathCommentMap() {
+        return Map.of(
+                MIN_IMPACT_CONFIG_ID, "Amount of fall impact needed to trigger the bounce, 0.5 -> includes heights higher than a default jump",
+                BOUNCE_FACTOR_CONFIG_ID, "Per cent of how much fall impact is translated into bounce back velocity as y-value of the vector (0.85 -> 85%)",
+                MAX_BOUNCE_CONFIG_ID, "The maximum y the bounce vector can reach, default slime blocks use an exponential function, this ability just has a cap"
+        );
+    }
 
     //endregion
 
     public static class SlimeSoulInstance extends SoulInstance<SlimeSoulType> implements OnDamageReceivedTrigger {
-
-        private static final double MIN_IMPACT = 0.50;
-        private static final double RESTITUTION = 0.85;
-        private static final double MAX_BOUNCE = 2.5;
 
         private final ScheduledTask bounceTask;
         private Location savedLocation;
@@ -117,7 +122,7 @@ public class SlimeSoulType extends ConfigHoldingSoulType {
                 boolean grounded = carrier.isOnGround();
                 double impact = Math.max(descent, lastDescent);
 
-                if (grounded && !carrier.isSneaking() && impact > MIN_IMPACT) {
+                if (grounded && !carrier.isSneaking() && impact > soulType.minImpact.cached()) {
                     bounce(dx, dz, impact);
                     lastDescent = 0;
                     return;
@@ -137,7 +142,7 @@ public class SlimeSoulType extends ConfigHoldingSoulType {
 
         private void bounce(double dx, double dz, double impact) {
             LivingEntity carrier = carrier();
-            double up = Math.min(impact * RESTITUTION, MAX_BOUNCE);
+            double up = Math.min(impact * soulType().bounceFactor.cached(), soulType().maxBounce.cached());
 
             if (carrier instanceof Player player && player.getCurrentInput().isJump())
                 up = 0.5;
