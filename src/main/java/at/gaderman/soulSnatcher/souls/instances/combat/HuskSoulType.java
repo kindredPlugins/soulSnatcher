@@ -70,6 +70,11 @@ public class HuskSoulType extends ConfigHoldingSoulType {
         );
     }
 
+    @Override
+    public boolean isInvalidInfusionTarget(LivingEntity entity) {
+        return super.isInvalidInfusionTarget(entity) || entity.getAttribute(Attribute.MOVEMENT_SPEED) == null;
+    }
+
     //region Config Values
 
     private static final String EXHAUSTION_AMOUNT_CONFIG_ID = "exhaustion_amount";

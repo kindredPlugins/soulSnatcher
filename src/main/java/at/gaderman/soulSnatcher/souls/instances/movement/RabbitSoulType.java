@@ -2,6 +2,7 @@ package at.gaderman.soulSnatcher.souls.instances.movement;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.config.ConfigOption;
+import at.gaderman.soulSnatcher.mobGoals.custom.RabbitJumpGoal;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
@@ -13,12 +14,14 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -106,6 +109,9 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
 
         protected RabbitSoulInstance(LivingEntity carrier, RabbitSoulType soulType) {
             super(carrier, soulType);
+
+            if (carrier instanceof Mob mob)
+                Bukkit.getMobGoals().addGoal(mob, 0, new RabbitJumpGoal(mob, this));
         }
 
         @Override
@@ -123,7 +129,7 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
             boost(carrier);
         }
 
-        private void boost(Player carrier) {
+        public void boost(LivingEntity carrier) {
             double strength = soulType().baseBoost.cached() + Math.min(consecutiveJumpCount * soulType().boostPerJump.cached(), soulType().maxChainBoost.cached());
 
             Location loc = carrier.getLocation();
@@ -135,12 +141,13 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
             force.setY(soulType().verticalBoost.cached());
 
             carrier.setVelocity(carrier.getVelocity().add(force));
-            carrier.setExhaustion(carrier.getExhaustion() + soulType().exhaustionUse.cached().floatValue());
+            if (carrier instanceof Player player)
+                player.setExhaustion(player.getExhaustion() + soulType().exhaustionUse.cached().floatValue());
 
             carrier.getWorld().playSound(loc, Sound.ENTITY_RABBIT_ATTACK, 0.4f, Math.max(1.4f + consecutiveJumpCount * 0.1f, 2f));
             Particle.CLOUD.builder()
                     .location(loc)
-                    .count(4 + consecutiveJumpCount * 4)
+                    .count(4 + consecutiveJumpCount * 2)
                     .offset(0.2, 0.1, 0.2)
                     .receivers(8)
                     .extra(0)
