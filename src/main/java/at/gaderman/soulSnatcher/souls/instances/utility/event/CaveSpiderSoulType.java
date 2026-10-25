@@ -62,10 +62,12 @@ public class CaveSpiderSoulType extends ConfigHoldingSoulType {
     @Override
     public @NotNull List<Component> defaultDescription() {
         return List.of(
-            Component.text("When ")
-                    .append(Component.text("sneaking ", NamedTextColor.GOLD))
-                    .append(Component.text("your model size will")),
+                Component.text("When ")
+                        .append(Component.text("sneaking ", NamedTextColor.GOLD))
+                        .append(Component.text("your model size will")),
                 Component.text("reduced to ")
+                        .append(Component.text(wrapPlaceholder(SHRINK_SIZE_CONFIG_ID), NamedTextColor.RED))
+                        .append(Component.text("."))
         );
     }
 
@@ -152,7 +154,7 @@ public class CaveSpiderSoulType extends ConfigHoldingSoulType {
         protected void cleanUp() {
             super.cleanUp();
 
-            if(animationTask != null)
+            if (animationTask != null)
                 animationTask.cancel();
         }
     }
