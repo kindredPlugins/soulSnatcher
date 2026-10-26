@@ -80,7 +80,7 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
     private static final String EXHAUSTION_USE_CONFIG_ID = "exhaustion_use";
 
     private final ConfigOption<Double> baseBoost = configOption(BASE_BOOST_CONFIG_ID, 0.1, FileConfiguration::getDouble, value -> Math.max(value, 0));
-    private final ConfigOption<Double> boostPerJump = configOption(BOOST_PER_JUMP_CONFIG_ID, 0.1, FileConfiguration::getDouble, value -> Math.max(value, 0));
+    private final ConfigOption<Double> boostPerJump = configOption(BOOST_PER_JUMP_CONFIG_ID, 0.05, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> maxChainBoost = configOption(MAX_CHAIN_BOOST_CONFIG_ID, 0.4, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> verticalBoost = configOption(VERTICAL_BOOST_CONFIG_ID, 0.3, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> exhaustionUse = configOption(EXHAUSTION_USE_CONFIG_ID, 0.3, FileConfiguration::getDouble, value -> Math.max(value, 0));
@@ -107,6 +107,9 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
         private int groundedTicks;
         private ScheduledTask chainTask;
 
+        private static final long JUMP_MIN_INTERVAL = 250_000_000L;
+        private long lastJump;
+
         protected RabbitSoulInstance(LivingEntity carrier, RabbitSoulType soulType) {
             super(carrier, soulType);
 
@@ -117,6 +120,11 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
         @Override
         public void onPlayerJump(Player carrier, PlayerJumpEvent event) {
             groundedTicks = 0;
+
+            if(lastJump > System.nanoTime() - JUMP_MIN_INTERVAL)
+                return;
+
+            lastJump = System.nanoTime();
 
             if (!chainActive || !carrier.isSprinting()) {
                 consecutiveJumpCount = 0;
