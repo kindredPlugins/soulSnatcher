@@ -7,6 +7,7 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
+import com.destroystokyo.paper.entity.RangedEntity;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -72,7 +73,7 @@ public class HuskSoulType extends ConfigHoldingSoulType {
 
     @Override
     public boolean isInvalidInfusionTarget(LivingEntity entity) {
-        return super.isInvalidInfusionTarget(entity) || entity.getAttribute(Attribute.MOVEMENT_SPEED) == null;
+        return super.isInvalidInfusionTarget(entity) || entity instanceof RangedEntity || entity.getAttribute(Attribute.MOVEMENT_SPEED) == null;
     }
 
     //region Config Values
