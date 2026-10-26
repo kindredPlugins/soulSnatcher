@@ -150,7 +150,7 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
                     .count(4 + consecutiveJumpCount * 2)
                     .offset(0.2, 0.1, 0.2)
                     .receivers(8)
-                    .extra(0)
+                    .speed(0)
                     .spawn();
         }
 

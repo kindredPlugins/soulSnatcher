@@ -7,7 +7,6 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnEntityToggleGlideTrigger;
-import at.gaderman.soulSnatcher.utils.ItemUtils;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
@@ -73,7 +72,7 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
                 Component.text("When gaining enough ")
                         .append(Component.text("elytra momentum ", NamedTextColor.AQUA)),
                 Component.text("enter ")
-                        .append(ItemUtils.gradient("Dragon Flight", NamedTextColor.DARK_AQUA, NamedTextColor.AQUA))
+                        .append(MiniMessage.miniMessage().deserialize("<gradient:dark_aqua:aqua>Dragon Flight"))
                         .append(Component.text(" which boosts your", NamedTextColor.WHITE)),
                 Component.text("elytra fly speed and reduces friction."),
                 Component.text("Flying through mobs damages and"),
