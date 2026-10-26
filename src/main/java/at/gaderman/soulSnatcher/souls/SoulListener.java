@@ -111,6 +111,9 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onSoulFreed(EntityDeathEvent event) {
+        if(!areSoulsAllowedInWorld(event.getEntity().getWorld()))
+            return;
+
         LivingEntity livingEntity = event.getEntity();
         if (livingEntity.getKiller() == null) return;
 
