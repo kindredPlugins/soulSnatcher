@@ -126,7 +126,7 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
 
             lastJump = System.nanoTime();
 
-            if (!chainActive || !carrier.isSprinting()) {
+            if (!chainActive || !carrier.isSprinting() || carrier.isSneaking()) {
                 consecutiveJumpCount = 0;
                 chainActive = true;
                 startChainTask(carrier);
