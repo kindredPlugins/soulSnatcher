@@ -6,6 +6,7 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
+import com.destroystokyo.paper.entity.RangedEntity;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -68,6 +69,11 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
                                 ))
                         .append(Component.text("on the target.", Style.style(NamedTextColor.WHITE, ShadowColor.none())))
         );
+    }
+
+    @Override
+    public boolean isInvalidInfusionTarget(LivingEntity entity) {
+        return super.isInvalidInfusionTarget(entity) || entity instanceof RangedEntity;
     }
 
     //region Config Values
