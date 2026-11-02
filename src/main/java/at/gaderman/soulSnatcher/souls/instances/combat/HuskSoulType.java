@@ -52,7 +52,8 @@ public class HuskSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "c096164f81950a5cc0e33e87999f98cde792517f4d7f99a647a9aedab23ae58";
     }
 

@@ -48,7 +48,8 @@ public class CowSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "8f8ce3915a21168d8394214552cdb5652e855e9e382001d596972fe3c009ea7d";
     }
 

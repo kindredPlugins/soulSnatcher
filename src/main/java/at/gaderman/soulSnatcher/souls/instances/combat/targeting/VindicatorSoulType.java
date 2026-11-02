@@ -55,7 +55,8 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "9e1cab382458e843ac4356e3e00e1d35c36f449fa1a84488ab2c6557b392d";
     }
 

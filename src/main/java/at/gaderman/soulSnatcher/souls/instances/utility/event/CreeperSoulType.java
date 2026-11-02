@@ -43,7 +43,8 @@ public class CreeperSoulType extends SoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "1ff8f6d00d5b07387584f117c66d698c90c69cedb01a6e69dbb02771c7302d16";
     }
 

@@ -50,7 +50,8 @@ public class BoggedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "a3b9003ba2d05562c75119b8a62185c67130e9282f7acbac4bc2824c21eb95d9";
     }
 

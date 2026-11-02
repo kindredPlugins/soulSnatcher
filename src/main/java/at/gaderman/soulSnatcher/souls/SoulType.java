@@ -44,7 +44,7 @@ public abstract class SoulType implements LanguageKeyHolder {
 
     public abstract @NotNull SoulCategory category();
 
-    protected abstract @NotNull String skullTexture();
+    public abstract @NotNull String skullTexture();
 
     public abstract @NotNull Component defaultDisplayName();
 

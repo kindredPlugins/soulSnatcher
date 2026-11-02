@@ -46,7 +46,8 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "7e95153ec23284b283f00d19d29756f244313a061b70ac03b97d236ee57bd982";
     }
 

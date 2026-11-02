@@ -49,7 +49,8 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "e935842af769380f78e8b8a88d1ea6ca2807c1e5693c2cf797456620833e936f";
     }
 

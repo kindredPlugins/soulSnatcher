@@ -48,7 +48,8 @@ public class StriderSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "65ccbb547820b667cc9d3bc9fff1e3d65da2375655a3427b30e1d009eeb272ce";
     }
 

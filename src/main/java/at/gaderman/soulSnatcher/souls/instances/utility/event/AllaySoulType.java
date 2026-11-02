@@ -41,7 +41,8 @@ public class AllaySoulType extends SoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "df5de940bfe499c59ee8dac9f9c3919e7535eff3a9acb16f4842bf290f4c679f";
     }
 

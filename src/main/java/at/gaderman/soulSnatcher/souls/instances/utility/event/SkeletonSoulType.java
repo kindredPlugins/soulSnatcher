@@ -47,7 +47,8 @@ public class SkeletonSoulType extends SoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "482b78da6ee713d5acfe5fcb0754ee56900831a5098313064108de6e7e406839";
     }
 

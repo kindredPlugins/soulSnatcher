@@ -48,7 +48,8 @@ public class MagmaCubeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "a1c97a06efde04d00287bf20416404ab2103e10f08623087e1b0c1264a1c0f0c";
     }
 

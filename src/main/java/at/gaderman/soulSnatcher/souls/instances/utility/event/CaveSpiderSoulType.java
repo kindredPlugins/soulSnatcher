@@ -45,7 +45,8 @@ public class CaveSpiderSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "eccc4a32d45d74e8b14ef1ffd55cd5f381a06d4999081d52eaea12e13293e209";
     }
 

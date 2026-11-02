@@ -46,7 +46,8 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "a275728af7e6a29c88125b675a39d88ae9919bb61fdc200337fed6ab0c49d65c";
     }
 

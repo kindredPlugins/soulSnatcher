@@ -53,7 +53,8 @@ public class PigSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "9b1760e3778f8087046b86bec6a0a83a567625f30f0d6bce866d4bed95dba6c1";
     }
 

@@ -60,7 +60,8 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "a792b6997d739f535beed3ab1d4aeadfa76777bf8e38a666f54f82ff9f858186";
     }
 

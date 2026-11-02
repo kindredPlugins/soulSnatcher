@@ -56,7 +56,8 @@ public class WitchSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "baf818b04d6ae98a69ad8d9463d8d0379921d3eb79222e1c6272f65372d80775";
     }
 

@@ -48,7 +48,8 @@ public class ShulkerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "1e73832e272f8844c476846bc424a3432fb698c58e6ef2a9871c7d29aeea7";
     }
 

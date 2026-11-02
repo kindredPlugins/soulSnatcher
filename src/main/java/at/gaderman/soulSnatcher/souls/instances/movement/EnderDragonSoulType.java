@@ -47,7 +47,8 @@ public class EnderDragonSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "f68c1c079a7ffb36f48dd7150355e3e0b7f68dd605e6f8847313c360cf61e0c";
     }
 

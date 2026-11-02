@@ -47,7 +47,8 @@ public class SlimeSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "68d9c023736cbbc979164ae8201bb491a9146e2791a0f14bd6f4bc276bf84c79";
     }
 

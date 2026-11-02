@@ -50,7 +50,8 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "cd20bf52ec390a0799299184fc678bf84cf732bb1bd78fd1c4b441858f0235a8";
     }
 

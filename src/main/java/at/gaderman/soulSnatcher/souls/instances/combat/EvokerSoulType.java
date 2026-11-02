@@ -49,7 +49,8 @@ public class EvokerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "3433322e2ccbd9c55ef41d96f38dbc666c803045b24391ac9391dccad7cd";
     }
 

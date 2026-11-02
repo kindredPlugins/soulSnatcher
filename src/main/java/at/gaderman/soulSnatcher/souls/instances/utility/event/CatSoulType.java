@@ -39,7 +39,8 @@ public class CatSoulType extends SoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "4fd10c8e75f67398c47587d25fc146f311c053cc5d0aeab8790bce36ee88f5f8";
     }
 

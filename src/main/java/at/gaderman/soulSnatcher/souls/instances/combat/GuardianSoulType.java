@@ -52,7 +52,8 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "b8e725779c234c590cce854db5c10485ed8d8a33fa9b2bdc3424b68bb1380bed";
     }
 

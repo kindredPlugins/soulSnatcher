@@ -51,7 +51,8 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "32fb80a6b6833e31d9ce8313a54777645f9c1e55b810918a706e7bcc8d35a5a2";
     }
 

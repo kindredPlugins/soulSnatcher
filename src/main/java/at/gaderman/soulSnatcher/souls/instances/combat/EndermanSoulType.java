@@ -58,7 +58,8 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "c39c2784d14c06f84ce41c5883aba932824340b2e7e673d7bf83a521de71135";
     }
 

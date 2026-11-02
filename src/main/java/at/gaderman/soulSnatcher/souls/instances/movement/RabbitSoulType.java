@@ -47,7 +47,8 @@ public class RabbitSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "7d1169b2694a6aba826360992365bcda5a10c89a3aa2b48c438531dd8685c3a7";
     }
 

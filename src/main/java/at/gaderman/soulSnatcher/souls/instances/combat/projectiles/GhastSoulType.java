@@ -53,7 +53,8 @@ public class GhastSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "504843421c218d0634455fdb1a6c5f7ae5b85098a50b12b9ed9d9310c84dc61b";
     }
 

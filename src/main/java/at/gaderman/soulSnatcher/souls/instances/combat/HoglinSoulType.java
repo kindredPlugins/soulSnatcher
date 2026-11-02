@@ -53,7 +53,8 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "7ad7b5aeb220c079e319cd70ac8800e80774a9313c22f38e77afb89999e6ec87";
     }
 

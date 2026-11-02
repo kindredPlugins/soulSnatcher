@@ -49,7 +49,8 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "1e4d204ebc242eca2148f5853e3af00f84f0d674099dc394f6d2924b240ca2e3";
     }
 

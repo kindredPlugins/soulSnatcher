@@ -43,7 +43,8 @@ public class SpiderSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "35e248da2e108f09813a6b848a0fcef111300978180eda41d3d1a7a8e4dba3c3";
     }
 

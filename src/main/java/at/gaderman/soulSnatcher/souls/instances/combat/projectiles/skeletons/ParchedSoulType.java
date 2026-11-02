@@ -50,7 +50,8 @@ public class ParchedSoulType extends ConfigHoldingSoulType {
     }
 
     @Override
-    protected @NotNull String skullTexture() {
+    @NotNull
+    public String skullTexture() {
         return "24aeceff5f26dd8413c5c03547c234ac03108d187af0b9cd834a8ce12598591c";
     }
 
