@@ -153,7 +153,11 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
             zombie.setCanPickupItems(false);
             zombie.setCanBreakDoors(false);
             zombie.setLootTable(Bukkit.getLootTable(NamespacedKey.minecraft("empty")));
+            zombie.setAdult();
             Bukkit.getMobGoals().addGoal(zombie, 0, new ReinforcementZombieGoal(zombie, carrier));
+
+            if (zombie.getVehicle() instanceof Chicken chicken)
+                chicken.remove();
 
             reinforcements.add(zombie);
             reinforcementTargetMap.put(zombie, combatTargets);
@@ -251,9 +255,9 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
         }
 
         @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-        public void onReinforcementDeath(EntityDeathEvent event){
-            if(!(event.getEntity() instanceof Zombie zombie)) return;
-            if(!reinforcementTargetMap.containsKey(zombie)) return;
+        public void onReinforcementDeath(EntityDeathEvent event) {
+            if (!(event.getEntity() instanceof Zombie zombie)) return;
+            if (!reinforcementTargetMap.containsKey(zombie)) return;
 
             event.setDroppedExp(0);
             event.getDrops().clear();

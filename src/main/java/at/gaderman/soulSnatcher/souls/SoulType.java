@@ -95,6 +95,10 @@ public abstract class SoulType implements LanguageKeyHolder {
         );
     }
 
+    /**
+     * Called to check if this soul is allowed to exist on the given entity, some souls have special mechanics
+     * which will not work or make sense on certain mobs so this acts as a guard.
+     */
     public boolean isInvalidInfusionTarget(LivingEntity entity) {
         return entity instanceof Boss || entity instanceof Fish || entity instanceof Bat;
     }

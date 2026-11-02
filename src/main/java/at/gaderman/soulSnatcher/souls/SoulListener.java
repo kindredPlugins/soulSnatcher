@@ -36,9 +36,9 @@ public class SoulListener implements Listener {
         List<String> wordList = GeneralConfig.getInstance().WORLD_LIST.cached();
 
         if (exclusion)
-            return !wordList.contains(world.getName());
+            return !wordList.contains(world.key().value());
 
-        else return wordList.contains(world.getName());
+        else return wordList.contains(world.key().value());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -111,6 +111,9 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onSoulFreed(EntityDeathEvent event) {
+        if(!areSoulsAllowedInWorld(event.getEntity().getWorld()))
+            return;
+
         LivingEntity livingEntity = event.getEntity();
         if (livingEntity.getKiller() == null) return;
 
@@ -273,8 +276,10 @@ public class SoulListener implements Listener {
         Player player = event.getPlayer();
         loadSouls(player);
 
+        boolean soulsInNewWorld = areSoulsAllowedInWorld(event.getTo().getWorld());
+
         //handle activation and deactivation fo souls when switching worlds
-        if (areSoulsAllowedInWorld(event.getFrom().getWorld()) && !areSoulsAllowedInWorld(event.getTo().getWorld())) {
+            if (areSoulsAllowedInWorld(event.getFrom().getWorld()) && !areSoulsAllowedInWorld(event.getTo().getWorld())) {
             player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
             SoulType.removeFromCache(player);
         } else if (!areSoulsAllowedInWorld(event.getFrom().getWorld()) && areSoulsAllowedInWorld(event.getTo().getWorld())) {

@@ -76,7 +76,7 @@ public class WitherSoulType extends ConfigHoldingSoulType {
 
     @Override
     public @NotNull Component defaultDisplayName() {
-        return MiniMessage.miniMessage().deserialize("<gradient:#b4b4b4:414141>Wither");
+        return MiniMessage.miniMessage().deserialize("<gradient:#b4b4b4:#414141>Wither");
     }
 
     @Override

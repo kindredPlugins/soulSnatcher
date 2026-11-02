@@ -25,7 +25,7 @@ public class LanguageManager {
     }
 
     private final Map<String, List<Component>> translationKeyMap = new HashMap<>();
-    private final MiniMessage miniMessage = MiniMessage.miniMessage(MiniMessage.Preset.NON_INTERACTABLE);
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     private static boolean registered;
 
