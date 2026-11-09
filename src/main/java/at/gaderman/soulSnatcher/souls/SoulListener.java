@@ -111,7 +111,7 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onSoulFreed(EntityDeathEvent event) {
-        if(!areSoulsAllowedInWorld(event.getEntity().getWorld()))
+        if (!areSoulsAllowedInWorld(event.getEntity().getWorld()))
             return;
 
         LivingEntity livingEntity = event.getEntity();
@@ -157,7 +157,7 @@ public class SoulListener implements Listener {
 
     @EventHandler
     public void onClaimSoul(PlayerInteractEntityEvent event) {
-        if(!areSoulsAllowedInWorld(event.getPlayer().getWorld()))
+        if (!areSoulsAllowedInWorld(event.getPlayer().getWorld()))
             return;
 
         if (!(event.getRightClicked() instanceof Interaction interaction)) return;
@@ -226,17 +226,15 @@ public class SoulListener implements Listener {
         if (!pdc.has(SoulType.BOUND_SOULS, PersistentDataType.LIST.strings())) return;
         if (!SoulType.getCarriedSouls(mob).isEmpty()) return;
 
-        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
-            if (!mob.isValid()) return;
-
+        mob.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
             mob.getLocation().getWorld().getChunkAtAsync(mob.getLocation())
                     .thenAccept(_ ->
-                            Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
+                            mob.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
                                 if (!mob.isValid()) return;
                                 SoulType.loadIntoCache(mob);
-                            })
+                            }, null)
                     );
-        }, 1L);
+        }, null, 1L);
     }
 
     @EventHandler
@@ -279,7 +277,7 @@ public class SoulListener implements Listener {
         boolean soulsInNewWorld = areSoulsAllowedInWorld(event.getTo().getWorld());
 
         //handle activation and deactivation fo souls when switching worlds
-            if (areSoulsAllowedInWorld(event.getFrom().getWorld()) && !areSoulsAllowedInWorld(event.getTo().getWorld())) {
+        if (areSoulsAllowedInWorld(event.getFrom().getWorld()) && !areSoulsAllowedInWorld(event.getTo().getWorld())) {
             player.sendActionBar(SoulLanguageDefinitions.DISABLED_IN_WORLD.getSingle().color(NamedTextColor.RED));
             SoulType.removeFromCache(player);
         } else if (!areSoulsAllowedInWorld(event.getFrom().getWorld()) && areSoulsAllowedInWorld(event.getTo().getWorld())) {
@@ -287,21 +285,21 @@ public class SoulListener implements Listener {
             SoulType.loadIntoCache(player);
         }
 
-        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+        player.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
             List<SoulInstance<?>> soulTypes = SoulType.getCarriedSouls(player);
             SoulEffects.stopAllSoulOrbits(player);
             soulTypes.forEach(soul -> SoulEffects.addSoulToOrbit(player, soul.soulType()));
 
             if (SoulLanternManager.isLookingAtOrbits(player))
                 SoulEffects.showSoulOrbits(player);
-        }, 1L);
+        }, null, 1L);
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerPostRespawnEvent event) {
         Player player = event.getPlayer();
 
-        if(areSoulsAllowedInWorld(player.getWorld()))
+        if (areSoulsAllowedInWorld(player.getWorld()))
             SoulType.loadIntoCache(player);
 
         else SoulType.removeFromCache(player);

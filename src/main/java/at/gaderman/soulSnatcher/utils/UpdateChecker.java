@@ -36,12 +36,12 @@ public class UpdateChecker {
         // Get the server's MC version (e.g. "1.21.1")
         String mcVersion = Bukkit.getBukkitVersion().split("-")[0];
 
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        Bukkit.getAsyncScheduler().runNow(plugin, _ -> {
             try {
                 String url = MODRINTH_API + "/project/" + PROJECT_ID + "/version"
                         + "?game_versions=[%22" + mcVersion + "%22]"
                         + "&loaders=[%22paper%22]";
-                if(url.contains(".build"))
+                if (url.contains(".build"))
                     url = url.split(".build")[0];
 
                 HttpClient client = HttpClient.newBuilder()
@@ -78,7 +78,7 @@ public class UpdateChecker {
                 String projectUrl = "https://modrinth.com/plugin/" + PROJECT_ID;
 
                 if (isNewer(latestVersion, currentVersion)) {
-                    Bukkit.getScheduler().runTask(plugin, () ->
+                    Bukkit.getGlobalRegionScheduler().run(plugin, _ ->
                             notifyOps(latestVersion, projectUrl));
                 } else {
                     plugin.getLogger().info("[UpdateChecker] Plugin is up to date (" + currentVersion + ")");
@@ -136,8 +136,11 @@ public class UpdateChecker {
         String[] parts = clean.split("\\.");
         int[] nums = new int[parts.length];
         for (int i = 0; i < parts.length; i++) {
-            try { nums[i] = Integer.parseInt(parts[i]); }
-            catch (NumberFormatException e) { nums[i] = 0; }
+            try {
+                nums[i] = Integer.parseInt(parts[i]);
+            } catch (NumberFormatException e) {
+                nums[i] = 0;
+            }
         }
         return nums;
     }

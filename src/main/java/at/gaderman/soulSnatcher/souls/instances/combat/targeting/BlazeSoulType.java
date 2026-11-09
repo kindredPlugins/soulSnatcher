@@ -7,6 +7,7 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -108,85 +109,85 @@ public class BlazeSoulType extends ConfigHoldingSoulType {
         }
 
         private long lastAuraHit;
-        private BukkitTask auraTask;
+        private ScheduledTask auraTask;
 
-        private BukkitTask createAuraTask() {
+        private ScheduledTask createAuraTask() {
             lastAuraHit = System.currentTimeMillis();
 
-            return new BukkitRunnable() {
-                final LivingEntity carrier = carrier();
+            final LivingEntity carrier = carrier();
+            return carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                boolean isActive = lastAuraHit < System.currentTimeMillis() - soulType().auraHitCooldown.cached();
 
-                @Override
-                public void run() {
-                    boolean isActive = lastAuraHit < System.currentTimeMillis() - soulType().auraHitCooldown.cached();
+                if (isActive) {
+                    carrier.getWorld().spawnParticle(Particle.FLAME, carrier.getLocation().add(0, 1, 0),
+                            1, 0.1, 0.5, 0.1, 0.01);
+                }
 
-                    if (isActive) {
-                        carrier.getWorld().spawnParticle(Particle.FLAME, carrier.getLocation().add(0, 1, 0),
-                                1, 0.1, 0.5, 0.1, 0.01);
-                    }
+                if (combatTargets.isEmpty()) {
+                    extinguish();
+                    return;
+                }
 
-                    if (combatTargets.isEmpty()) {
-                        extinguish();
-                        return;
-                    }
+                if (Bukkit.getCurrentTick() % 10 == 0)
+                    combatTargets = combatTargets.stream().filter(LivingEntity::isValid).collect(Collectors.toSet());
 
-                    if (Bukkit.getCurrentTick() % 10 == 0)
-                        combatTargets = combatTargets.stream().filter(LivingEntity::isValid).collect(Collectors.toSet());
+                if (isActive) {
+                    for (LivingEntity target : carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached())) {
+                        if (target.getNoDamageTicks() != 0 || !combatTargets.contains(target)) continue;
 
-                    if (isActive) {
-                        for (LivingEntity target : carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached())) {
-                            if (target.getNoDamageTicks() != 0 || !combatTargets.contains(target)) continue;
+                        Vector direction = target.getLocation().toVector().subtract(carrier.getLocation().toVector());
+                        //raycast cannot handle length 0, this could happen when positions exactly overlap
+                        if (direction.length() <= 0)
+                            continue;
 
-                            Vector direction = target.getLocation().toVector().subtract(carrier.getLocation().toVector());
-                            //raycast cannot handle length 0, this could happen when positions exactly overlap
-                            if(direction.length() <= 0)
-                                continue;
+                        if (carrier.getWorld().rayTraceBlocks(carrier.getEyeLocation(), direction,
+                                (Math.sqrt(2 * soulType().auraRange.cached()))) != null)
+                            return;
 
-                            if (carrier.getWorld().rayTraceBlocks(carrier.getEyeLocation(), direction,
-                                    (Math.sqrt(2 * soulType().auraRange.cached()))) != null)
+                        lastAuraHit = System.currentTimeMillis();
+
+                        target.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+                            if (!target.isValid() || !carrier.isValid())
                                 return;
 
-                            lastAuraHit = System.currentTimeMillis();
+                            if (!carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached()).contains(target))
+                                return;
 
-                            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
-                                if (!target.isValid() || !carrier.isValid())
-                                    return;
+                            target.damage(soulType().auraDamage.cached(), DamageSource.builder(DamageType.MOB_ATTACK)
+                                    .withDirectEntity(carrier)
+                                    .withCausingEntity(carrier)
+                                    .build());
 
-                                if(!carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), soulType().auraRange.cached()).contains(target))
-                                    return;
+                            Location hitLoc = target.getEyeLocation().add(0, -0.2, 0);
+                            target.getWorld().spawnParticle(Particle.LAVA, hitLoc, 30);
+                            target.getWorld().spawnParticle(Particle.FLAME, hitLoc, 30, 0.3, 0.3, 0.3, 0.01);
+                            target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 1f, 1.5f);
+                        }, null, soulType().auraWindUp.cached());
 
-                                target.damage(soulType().auraDamage.cached(), DamageSource.builder(DamageType.MOB_ATTACK)
-                                        .withDirectEntity(carrier)
-                                        .withCausingEntity(carrier)
-                                        .build());
-
-                                Location hitLoc = target.getEyeLocation().add(0, -0.2, 0);
-                                target.getWorld().spawnParticle(Particle.LAVA, hitLoc, 30);
-                                target.getWorld().spawnParticle(Particle.FLAME, hitLoc, 30, 0.3, 0.3, 0.3, 0.01);
-                                target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BLAZE_HURT, 1f, 1.5f);
-                            }, soulType().auraWindUp.cached());
-
-                            target.getWorld().spawnParticle(Particle.FLAME, target.getEyeLocation().add(0, -0.2, 0), 5, 0.3, 0.3, 0.3, 0);
-                            target.getWorld().playSound(target.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 0.5f, 2f);
-                            break;
-                        }
-                    }
-
-                    if (lastAuraHit < System.currentTimeMillis() - soulType().auraTimeout.cached()) {
-                        extinguish();
+                        target.getWorld().spawnParticle(Particle.FLAME, target.getEyeLocation().add(0, -0.2, 0), 5, 0.3, 0.3, 0.3, 0);
+                        target.getWorld().playSound(target.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 0.5f, 2f);
+                        break;
                     }
                 }
 
-                private void extinguish() {
-                    combatTargets.clear();
-                    carrier.getWorld().spawnParticle(Particle.SMOKE, carrier.getLocation().add(0, 1, 0),
-                            30, 0.5, 0.5, 0.5, 0.1);
-                    carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 0.2f);
-
-                    auraTask = null;
-                    cancel();
+                if (lastAuraHit < System.currentTimeMillis() - soulType().auraTimeout.cached()) {
+                    extinguish();
                 }
-            }.runTaskTimer(SoulSnatcher.getPlugin(), 1L, 1L);
+            }, null, 1, 1);
+        }
+
+        void extinguish () {
+            LivingEntity carrier = carrier();
+
+            combatTargets.clear();
+            carrier.getWorld().spawnParticle(Particle.SMOKE, carrier.getLocation().add(0, 1, 0),
+                    30, 0.5, 0.5, 0.5, 0.1);
+            carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.4f, 0.2f);
+
+            if(auraTask != null){
+                auraTask.cancel();
+                auraTask = null;
+            }
         }
 
         @Override

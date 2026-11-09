@@ -105,7 +105,7 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
 
         private static final NamespacedKey BOOST = new NamespacedKey(SoulSnatcher.getPlugin(), "vindicator_boost");
 
-        private BukkitTask checkCombatStateTask;
+        private ScheduledTask checkCombatStateTask;
 
         @Override
         public void onSprintToggle(Player carrier, PlayerToggleSprintEvent event) {
@@ -163,19 +163,16 @@ public class VindicatorSoulType extends ConfigHoldingSoulType {
             });
 
             if (checkCombatStateTask == null) {
-                checkCombatStateTask = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!combatTargets.isEmpty()) return;
+                checkCombatStateTask = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                    if (!combatTargets.isEmpty()) return;
 
-                        if (carrier.isValid() && carrier instanceof Player player)
-                            player.playSound(carrier, Sound.ENTITY_VINDICATOR_HURT, 1f, 0.5f);
+                    if (carrier.isValid() && carrier instanceof Player player)
+                        player.playSound(carrier, Sound.ENTITY_VINDICATOR_HURT, 1f, 0.5f);
 
-                        resetMods();
-                        cancel();
-                        checkCombatStateTask = null;
-                    }
-                }.runTaskTimer(SoulSnatcher.getPlugin(), 1L, 1L);
+                    resetMods();
+                    task.cancel();
+                    checkCombatStateTask = null;
+                }, null, 1, 1);
             }
         }
 

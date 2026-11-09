@@ -16,7 +16,6 @@ import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
@@ -413,7 +412,7 @@ public abstract class SoulType implements LanguageKeyHolder {
             });
 
             if (!legacySouls.isEmpty()) {
-                Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                player.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
                     player.sendMessage(Component.empty());
                     player.sendMessage(Component.text("------------- ", NamedTextColor.GRAY)
                             .append(Component.text("SoulSnatcher", NamedTextColor.BLUE).decoration(TextDecoration.BOLD, true))
@@ -437,7 +436,7 @@ public abstract class SoulType implements LanguageKeyHolder {
                     player.sendMessage(Component.empty());
 
                     player.playSound(player, Sound.ENTITY_WITHER_AMBIENT, 3f, 0.5f);
-                }, 20L);
+                }, null, 20L);
 
                 pdc.set(BOUND_SOULS, PersistentDataType.LIST.strings(), boundSouls);
             }

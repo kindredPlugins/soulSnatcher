@@ -11,7 +11,6 @@ import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -88,22 +87,22 @@ public class IronGolemSoulType extends ConfigHoldingSoulType {
         @Override
         public Map<Attribute, AttributeModifier> attributeModifierMap() {
             return Map.of(
-              Attribute.KNOCKBACK_RESISTANCE, createModifier(1, AttributeModifier.Operation.ADD_NUMBER)
+                    Attribute.KNOCKBACK_RESISTANCE, createModifier(1, AttributeModifier.Operation.ADD_NUMBER)
             );
         }
 
         @Override
         public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
-            if(event.isCritical() || event.getDamageSource().isIndirect()) return;
-            if(!soulType().isUpwardsThrowEnabled.cached()) return;
+            if (event.isCritical() || event.getDamageSource().isIndirect()) return;
+            if (!soulType().isUpwardsThrowEnabled.cached()) return;
 
-            Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
+            target.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
                 var knockbackResistance = target.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
                 double factor = knockbackResistance == null ? 1 : Math.max(1 - knockbackResistance.getValue(), 0);
 
                 target.setVelocity(target.getVelocity().add(new Vector(0, 0.4 * factor, 0)));
                 carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_IRON_GOLEM_ATTACK, 1f, 1f);
-            });
+            }, null);
         }
     }
 }

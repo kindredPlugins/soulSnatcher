@@ -11,6 +11,7 @@ import at.gaderman.soulSnatcher.souls.TriggerListener;
 import at.gaderman.soulSnatcher.souls.items.SoulLanternManager;
 import at.gaderman.soulSnatcher.souls.items.SoulVialManager;
 import at.gaderman.soulSnatcher.utils.UpdateChecker;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -21,7 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class SoulSnatcher extends JavaPlugin {
 
-    public static SoulSnatcher getPlugin() { return SoulSnatcher.getPlugin(SoulSnatcher.class); }
+    public static SoulSnatcher getPlugin() {
+        return SoulSnatcher.getPlugin(SoulSnatcher.class);
+    }
 
     private static YamlConfiguration soulsConfig;
 
@@ -51,8 +54,8 @@ public final class SoulSnatcher extends JavaPlugin {
 
         getLogger().info("Cleaning up soul instances of leftover players");
         Bukkit.getOnlinePlayers().forEach(player -> {
-           SoulType.removeFromCache(player);
-           player.saveData();
+            SoulType.removeFromCache(player);
+            player.saveData();
         });
         getLogger().info("Completed leftover players soul clean up");
 
@@ -67,16 +70,17 @@ public final class SoulSnatcher extends JavaPlugin {
 
     private boolean disabling = false;
 
-    private final Map<Integer, Runnable> runningTasks = new ConcurrentHashMap<>();
+    private final Map<ScheduledTask, Runnable> runningTasks = new ConcurrentHashMap<>();
 
     /**
-     * Registers a task that will be executed if the plugin is disabled. This is used when a server stop
+     * Registers a action that will be executed if the plugin is disabled. This is used when a server stop
      * would leave certain things in an unnatural state
-     * @param id The id of the run Bukkit Task, this is used in a map to quickly access tasks
-     * @param task The cleanup runnable that should be executed on disable
+     *
+     * @param task   The task of the run Bukkit Task, this is used in a map to quickly access tasks
+     * @param action The cleanup runnable that should be executed on disable
      */
-    public void registerCleanUpTask(int id, Runnable task){
-        runningTasks.put(id, task);
+    public void registerCleanUpTask(ScheduledTask task, Runnable action) {
+        runningTasks.put(task, action);
     }
 
     /**
@@ -84,36 +88,38 @@ public final class SoulSnatcher extends JavaPlugin {
      * Task as a runningTask, meaning that if the plugin is disabled, this will get executed instantly instead.
      * This makes sure that certain actions do not remain in an unnatural state upon sudden server stop.
      * Moreover, after the delay this also unregisters itself meaning no memory leaks without further action externally
+     *
      * @param runnable A runnable that should be delayed by the given delay
-     * @param delay How much delay the runnable should have int ticks
+     * @param delay    How much delay the runnable should have int ticks
      * @return The BukkitTask that was created by delaying the Runnable via the Bukkit Scheduler
      */
-    public BukkitTask registerDelayedTask(Runnable runnable, long delay){
-        var task = Bukkit.getScheduler().runTaskLater(this, runnable, delay);
-        registerCleanUpTask(task.getTaskId(), runnable);
-        Bukkit.getScheduler().runTaskLater(this, () -> unregisterCleanUpTask(task.getTaskId()), delay);
-        return task;
+    public ScheduledTask registerDelayedTask(Runnable runnable, long delay) {
+        var scheduledTask = Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> {
+            runnable.run();
+            unregisterCleanUpTask(task);
+        }, delay);
+        registerCleanUpTask(scheduledTask, runnable);
+        return scheduledTask;
     }
 
     /**
      * Removes a cleanup task from the pool. This is used to keeping the runningTasks sizeable and not impact
      * performance too much
-     * @param id The id of the task to be unregistered from cleaning
      */
-    public void unregisterCleanUpTask(int id){
-        if(disabling) return;
-        runningTasks.remove(id);
+    public void unregisterCleanUpTask(ScheduledTask task) {
+        if (disabling) return;
+        runningTasks.remove(task);
     }
 
     //endregion
 
     //region Config
 
-    public static YamlConfiguration getSoulsConfig(){
+    public static YamlConfiguration getSoulsConfig() {
         return soulsConfig;
     }
 
-    public static void setSoulsConfig(YamlConfiguration config){
+    public static void setSoulsConfig(YamlConfiguration config) {
         soulsConfig = config;
     }
 

@@ -20,7 +20,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -80,24 +79,24 @@ public class CreeperSoulType extends SoulType {
             double followRange = followRangeAttr == null ? 16 : followRangeAttr.getValue();
 
             double distance = entity.getLocation().distance(carrier.getLocation());
-            if(distance < followRange / 2) return;
+            if (distance < followRange / 2) return;
 
             event.setCancelled(true);
 
-            if(!displayingLeaves && carrier instanceof Player player) {
+            if (!displayingLeaves && carrier instanceof Player player) {
                 player.spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation().add(0, -0.2, 0), 2, 0.2, 0,
                         0.2, 0.2, Color.LIME);
                 player.playSound(player.getLocation(), Sound.BLOCK_AZALEA_LEAVES_BREAK, 0.5f, 0.5f);
 
                 displayingLeaves = true;
-                Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> displayingLeaves = false);
+                player.getScheduler().run(SoulSnatcher.getPlugin(), _ -> displayingLeaves = false, null);
             }
         }
 
         @Override
         public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
-            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
-                if(event.isCancelled() || !carrier.isValid() || !target.isValid()) return;
+            carrier.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
+                if (event.isCancelled() || !target.isValid()) return;
 
                 double distance = target.getLocation().distance(carrier.getLocation());
                 if (distance <= 10) return;
@@ -106,24 +105,16 @@ public class CreeperSoulType extends SoulType {
                 carrier.getWorld().spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation(), 30, 0.2, 0, 0.2,
                         0.5, Color.LIME);
 
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!carrier.isValid()) {
-                            cancel();
-                            return;
-                        }
+                carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                    if (!target.isValid() || !carrier.getWorld().equals(target.getWorld()) || carrier.getLocation().distance(target.getLocation()) <= 10) {
+                        carrier.removePotionEffect(PotionEffectType.INVISIBILITY);
+                        carrier.getWorld().spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation(), 50, 0.2, 0.5, 0.2,
+                                1.5, Color.LIME);
 
-                        if (!target.isValid() || !carrier.getWorld().equals(target.getWorld()) || carrier.getLocation().distance(target.getLocation()) <= 10) {
-                            carrier.removePotionEffect(PotionEffectType.INVISIBILITY);
-                            carrier.getWorld().spawnParticle(Particle.TINTED_LEAVES, carrier.getEyeLocation(), 50, 0.2, 0.5, 0.2,
-                                    1.5, Color.LIME);
-
-                            cancel();
-                        }
+                        task.cancel();
                     }
-                }.runTaskTimer(SoulSnatcher.getPlugin(), 5L, 5L);
-            }, 1L);
+                }, null, 5, 5);
+            }, null, 1);
         }
     }
 }

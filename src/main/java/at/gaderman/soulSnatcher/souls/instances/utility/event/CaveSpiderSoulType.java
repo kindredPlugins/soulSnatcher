@@ -156,6 +156,13 @@ public class CaveSpiderSoulType extends ConfigHoldingSoulType {
 
             if (animationTask != null)
                 animationTask.cancel();
+
+            LivingEntity carrier = carrier();
+            var scale = carrier.getAttribute(Attribute.SCALE);
+            if (scale == null)
+                return;
+
+            scale.removeModifier(SHRINK_SIZE_KEY);
         }
     }
 }

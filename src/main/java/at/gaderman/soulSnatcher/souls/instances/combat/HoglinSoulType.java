@@ -9,6 +9,7 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnItemDamageTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -23,8 +24,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -100,7 +99,7 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
         }
 
         private int currentCycle;
-        private BukkitTask preserveApplicationTask;
+        private ScheduledTask preserveApplicationTask;
 
         private boolean isDealingPreserveDamage;
 
@@ -131,22 +130,19 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
             }
 
             if (preserveApplicationTask == null)
-                preserveApplicationTask = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (!carrier.isValid() || damageBuffer.isEmpty()) {
-                            cancel();
-                            preserveApplicationTask = null;
-                            return;
-                        }
-
-                        List<BufferedDamage> bufferedDamageList = damageBuffer.getOrDefault(currentCycle, Collections.emptyList());
-                        damageBuffer.remove(currentCycle);
-
-                        applyBufferedDamage(carrier, bufferedDamageList);
-                        currentCycle++;
+                preserveApplicationTask = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                    if (!carrier.isValid() || damageBuffer.isEmpty()) {
+                        task.cancel();
+                        preserveApplicationTask = null;
+                        return;
                     }
-                }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, soulType().bufferInterval.cached());
+
+                    List<BufferedDamage> bufferedDamageList = damageBuffer.getOrDefault(currentCycle, Collections.emptyList());
+                    damageBuffer.remove(currentCycle);
+
+                    applyBufferedDamage(carrier, bufferedDamageList);
+                    currentCycle++;
+                }, null, 0, soulType().bufferInterval.cached());
         }
 
         @Override
@@ -182,7 +178,8 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
                     0.2, 0.2, 0.2, 0.1, Material.REDSTONE_BLOCK.createBlockData());
         }
 
-        private record BufferedDamage(DamageSource source, double damage) {}
+        private record BufferedDamage(DamageSource source, double damage) {
+        }
 
         @Override
         protected void cleanUp() {

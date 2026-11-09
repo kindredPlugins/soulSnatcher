@@ -36,20 +36,16 @@ public class SkeletonSoulVariantInstance extends SoulInstance<SoulType> implemen
 
         boolean isArrow = projectile instanceof AbstractArrow;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!projectile.isValid() || !projectile.getPersistentDataContainer().has(shot_key)) {
-                    cancel();
-                    return;
-                }
-
-                if(isArrow && ((AbstractArrow) projectile).isInBlock()) return;
-
-                projectile.getLocation().getWorld().spawnParticle(Particle.ENTITY_EFFECT, projectile.getLocation(),
-                        4, 0, 0, 0, 0.2, options.effectColor);
+        projectile.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+            if(!projectile.getPersistentDataContainer().has(shot_key)) {
+                task.cancel();
             }
-        }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 3L);
+
+            if(isArrow && ((AbstractArrow) projectile).isInBlock()) return;
+
+            projectile.getLocation().getWorld().spawnParticle(Particle.ENTITY_EFFECT, projectile.getLocation(),
+                    4, 0, 0, 0, 0.2, options.effectColor);
+        }, null, 0, 3);
     }
 
     @Override

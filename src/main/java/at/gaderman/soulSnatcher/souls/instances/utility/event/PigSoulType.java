@@ -11,6 +11,7 @@ import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.interact.OnPlayerInteractEntityTrigger;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -23,8 +24,6 @@ import org.bukkit.entity.boat.OakBoat;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -96,7 +95,7 @@ public class PigSoulType extends ConfigHoldingSoulType {
                 Bukkit.getMobGoals().addGoal(mob, 0, new SearchAndAddPassengerGoal(mob));
         }
 
-        private BukkitTask dropPassengerTask;
+        private ScheduledTask dropPassengerTask;
 
         private static double boatWidth;
 
@@ -127,18 +126,15 @@ public class PigSoulType extends ConfigHoldingSoulType {
         @Override
         public void onSneakToggle(Player carrier, PlayerToggleSneakEvent event) {
             if (event.isSneaking() && dropPassengerTask == null && !carrier.getPassengers().isEmpty()) {
-                dropPassengerTask = new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        dropPassengerTask = null;
+                dropPassengerTask = carrier.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+                    dropPassengerTask = null;
 
-                        if(carrier.getPassengers().isEmpty())
-                            return;
+                    if (carrier.getPassengers().isEmpty())
+                        return;
 
-                        carrier.eject();
-                        carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_SADDLE_UNEQUIP, 1f, 1f);
-                    }
-                }.runTaskLater(SoulSnatcher.getPlugin(), soulType().dropPassengerDelay.cached());
+                    carrier.eject();
+                    carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_SADDLE_UNEQUIP, 1f, 1f);
+                }, null, soulType().dropPassengerDelay.cached());
             }
 
             if (!event.isSneaking() && dropPassengerTask != null) {
@@ -155,6 +151,14 @@ public class PigSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
+        }
+
+        @Override
+        protected void cleanUp() {
+            super.cleanUp();
+
+            if(dropPassengerTask != null)
+                dropPassengerTask.cancel();
         }
     }
 }

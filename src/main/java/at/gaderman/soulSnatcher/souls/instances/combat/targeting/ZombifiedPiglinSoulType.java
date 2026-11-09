@@ -17,7 +17,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
@@ -105,7 +104,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
         protected void addCombatTarget(LivingEntity target) {
             super.addCombatTarget(target);
 
-            if(target.equals(this.marked))
+            if (target.equals(this.marked))
                 lastMarkEngage = System.currentTimeMillis();
 
             if (marked == null) {
@@ -138,42 +137,38 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
                     markDisplay.setTeleportDuration(0);
                 });
 
-                new BukkitRunnable() {
-                    final LivingEntity carrier = carrier();
+                final LivingEntity carrier = carrier();
+                carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                    if (!carrier.isValid()) {
+                        resetMark();
+                        task.cancel();
+                        return;
+                    }
 
-                    @Override
-                    public void run() {
-                        if (!carrier.isValid()) {
+                    if (!marked.isValid() || lastMarkEngage < System.currentTimeMillis() - soulType().engageTimeout.cached()) {
+                        combatTargets.remove(marked);
+
+                        LivingEntity nextMark = combatTargets.stream()
+                                .filter(possibTarget -> possibTarget.isValid() && carrier.hasLineOfSight(possibTarget))
+                                .findFirst().orElse(null);
+
+                        if (nextMark == null) {
                             resetMark();
-                            cancel();
+                            task.cancel();
                             return;
                         }
 
-                        if (!marked.isValid() || lastMarkEngage < System.currentTimeMillis() - soulType().engageTimeout.cached()) {
-                            combatTargets.remove(marked);
-
-                            LivingEntity nextMark = combatTargets.stream()
-                                    .filter(target -> target.isValid() && carrier.hasLineOfSight(target))
-                                    .findFirst().orElse(null);
-
-                            if (nextMark == null) {
-                                resetMark();
-                                cancel();
-                                return;
-                            }
-
-                            selectNewMark(nextMark);
-                        }
-
-                        Vector direction = marked.getLocation().getDirection().setY(0);
-                        markDisplay.teleport(marked.getLocation()
-                                .setDirection(direction)
-                                .add(0, marked.getEyeHeight() + 0.5, 0));
-
-                        carrier.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, carrier.getEyeLocation().add(0, 0.25, 0),
-                                1, 0.2, 0.1, 0.2, 0.3);
+                        selectNewMark(nextMark);
                     }
-                }.runTaskTimer(SoulSnatcher.getPlugin(), 2L, 2L);
+
+                    Vector direction = marked.getLocation().getDirection().setY(0);
+                    markDisplay.teleport(marked.getLocation()
+                            .setDirection(direction)
+                            .add(0, marked.getEyeHeight() + 0.5, 0));
+
+                    carrier.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, carrier.getEyeLocation().add(0, 0.25, 0),
+                            1, 0.2, 0.1, 0.2, 0.3);
+                }, null, 2, 2);
             }
         }
 
@@ -205,11 +200,11 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
         private void resetMark() {
             marked = null;
             combatTargets.clear();
-            if(markDisplay != null)
+            if (markDisplay != null)
                 markDisplay.remove();
             carrier().getWorld().playSound(carrier().getLocation(), Sound.ENTITY_ZOMBIFIED_PIGLIN_AMBIENT, 0.8f, 0.5f);
             var movSpeed = carrier().getAttribute(Attribute.MOVEMENT_SPEED);
-            if(movSpeed != null)
+            if (movSpeed != null)
                 movSpeed.removeModifier(HUNT_BOOST);
         }
 

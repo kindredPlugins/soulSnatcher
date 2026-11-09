@@ -26,7 +26,6 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -188,44 +187,40 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
                 potSoulConnection.ifPresent(soulType -> zombieEquip.setHelmet(soulType.getRepresentativeSkull()));
             }
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (!zombie.isValid() || !carrier.isValid() || !zombie.getWorld().equals(carrier.getWorld())) {
-                        reinforcements.remove(zombie);
-                        cancel();
+            zombie.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                if (!carrier.isValid() || !zombie.getWorld().equals(carrier.getWorld())) {
+                    reinforcements.remove(zombie);
+                    task.cancel();
 
-                        if (!carrier.isValid() || !zombie.getWorld().equals(carrier.getWorld())) {
-                            removeReinforcement(zombie);
-                        }
-                        return;
+                    if (!carrier.isValid() || !zombie.getWorld().equals(carrier.getWorld())) {
+                        removeReinforcement(zombie);
                     }
+                    return;
+                }
 
-                    if (zombie.getTarget() == null || zombie.getTarget().equals(carrier)) {
-                        if (isPlayerBound()) {
-                            LivingEntity nextTarget;
-                            while (true) {
-                                nextTarget = combatTargets.stream()
-                                        .filter(target -> !target.equals(zombie) &&
-                                                !target.getPersistentDataContainer().getOrDefault(REINFORCEMENT_OWNER, PersistentDataType.STRING, "").equals(carrier.getUniqueId().toString()))
-                                        .findFirst().orElse(null);
-                                if (nextTarget == null) break;
-                                if (nextTarget.isValid()) break;
-                                combatTargets.remove(nextTarget);
-                            }
-                            zombie.setTarget(nextTarget);
-                        } else if (carrier instanceof Mob mob) {
-                            LivingEntity target = mob.getTarget();
-                            if (target != null && target.equals(zombie)) {
-                                zombie.setTarget(null);
-                            } else {
-                                zombie.setTarget(mob.getTarget());
-                            }
+                if (zombie.getTarget() == null || zombie.getTarget().equals(carrier)) {
+                    if (isPlayerBound()) {
+                        LivingEntity nextTarget;
+                        while (true) {
+                            nextTarget = combatTargets.stream()
+                                    .filter(target -> !target.equals(zombie) &&
+                                            !target.getPersistentDataContainer().getOrDefault(REINFORCEMENT_OWNER, PersistentDataType.STRING, "").equals(carrier.getUniqueId().toString()))
+                                    .findFirst().orElse(null);
+                            if (nextTarget == null) break;
+                            if (nextTarget.isValid()) break;
+                            combatTargets.remove(nextTarget);
                         }
-
+                        zombie.setTarget(nextTarget);
+                    } else if (carrier instanceof Mob mob) {
+                        LivingEntity target = mob.getTarget();
+                        if (target != null && target.equals(zombie)) {
+                            zombie.setTarget(null);
+                        } else {
+                            zombie.setTarget(mob.getTarget());
+                        }
                     }
                 }
-            }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 5L);
+            }, null, 0, 5);
         }
     }
 

@@ -10,6 +10,7 @@ import at.gaderman.soulSnatcher.souls.triggers.action.OnEntityEquipmentTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
 import com.google.auto.service.AutoService;
 import io.papermc.paper.event.entity.EntityEquipmentChangedEvent;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -25,8 +26,6 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -177,7 +176,7 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
         private static final String GOLD_BONUS = "piglin_soul_gold_bonus_";
 
         private int previousGoldCount;
-        private BukkitTask goldSparkle;
+        private ScheduledTask goldSparkle;
 
         private void updateGoldCount() {
             LivingEntity carrier = carrier();
@@ -205,18 +204,15 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
                 carrier.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, carrier.getEyeLocation(), 20, 0.2, 0.2, 0.2, 0.5);
 
                 if (goldSparkle == null) {
-                    goldSparkle = new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (previousGoldCount == 0 || !carrier.isValid()) {
-                                goldSparkle = null;
-                                cancel();
-                                return;
-                            }
-
-                            carrier.getWorld().spawnParticle(Particle.WAX_ON, carrier.getEyeLocation(), 1, 0.2, 0.5, 0.2);
+                    goldSparkle = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                        if (previousGoldCount == 0 || !carrier.isValid()) {
+                            goldSparkle = null;
+                            task.cancel();
+                            return;
                         }
-                    }.runTaskTimer(SoulSnatcher.getPlugin(), 20, 20);
+
+                        carrier.getWorld().spawnParticle(Particle.WAX_ON, carrier.getEyeLocation(), 1, 0.2, 0.5, 0.2);
+                    }, null, 20, 20);
                 }
             }
 

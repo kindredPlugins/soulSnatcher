@@ -1,5 +1,6 @@
 package at.gaderman.soulSnatcher.souls.instances.utility.event;
 
+import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.config.ConfigOption;
 import at.gaderman.soulSnatcher.souls.SoulInstance;
 import at.gaderman.soulSnatcher.souls.SoulType;
@@ -7,6 +8,7 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Color;
@@ -90,10 +92,11 @@ public class SheepSoulType extends ConfigHoldingSoulType {
         }
 
         private long lastHitAbsorb;
+        private ScheduledTask recoverSignalTask;
 
         @Override
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
-            if(lastHitAbsorb > System.currentTimeMillis() - soulType().absorbCooldown.cached()) return;
+            if (lastHitAbsorb > System.currentTimeMillis() - soulType().absorbCooldown.cached()) return;
 
             lastHitAbsorb = System.currentTimeMillis();
             event.setDamage(event.getDamage() * (1 - soulType().absorptionAmount.cached()));
@@ -102,16 +105,30 @@ public class SheepSoulType extends ConfigHoldingSoulType {
                     new Particle.DustOptions(Color.WHITE, 2));
             carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_WOOL_HIT, 3f, 0.5f);
 
-            if(event.getDamageSource().getCausingEntity() instanceof LivingEntity livingEntity) {
+            if (event.getDamageSource().getCausingEntity() instanceof LivingEntity livingEntity) {
                 Vector knockbackDirection = carrier.getLocation().subtract(livingEntity.getLocation()).toVector();
                 livingEntity.knockback(0.5, knockbackDirection.getX(), knockbackDirection.getZ());
 
-                if(livingEntity instanceof Player player)
+                if (livingEntity instanceof Player player)
                     player.setVelocity(player.getVelocity().add(knockbackDirection.normalize().multiply(-0.2).setY(0.025)));
             }
+
+            recoverSignalTask = carrier.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+                carrier.getWorld().playSound(carrier.getLocation(), Sound.BLOCK_GRASS_BREAK, 1f, 0.8f);
+
+                Particle.DUST.builder()
+                        .location(carrier.getLocation().clone().add(0, carrier.getEyeHeight() / 2, 0))
+                        .offset(0.6, 0.6, 0.6)
+                        .count(40)
+                        .speed(0)
+                        .color(Color.WHITE)
+                        .receivers(16)
+                        .spawn();
+            }, null, soulType().absorbCooldown.cached() / 50);
         }
 
         @Override
-        public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {}
+        public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
+        }
     }
 }

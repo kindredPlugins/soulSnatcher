@@ -100,7 +100,7 @@ public class CowSoulType extends ConfigHoldingSoulType {
                 if(!carrier.isValid()) return;
 
                 carrier.getActivePotionEffects().stream()
-                        .filter(effect -> effect.getType().getCategory() == PotionEffectTypeCategory.HARMFUL)
+                        .filter(effect -> effect.getType().getEffectCategory() == PotionEffectType.Category.HARMFUL)
                         .forEach(effect -> carrier.removePotionEffect(effect.getType()));
 
                 carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation().add(0, 1, 0), 30, 0.2, 0.2, 0.2, 0.1);

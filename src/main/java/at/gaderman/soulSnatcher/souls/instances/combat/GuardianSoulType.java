@@ -9,6 +9,7 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -106,8 +107,8 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
         }
 
         private long lastAttack;
-        private BukkitTask notifyChargeBegins;
-        private BukkitTask notifyFullCharge;
+        private ScheduledTask notifyChargeBegins;
+        private ScheduledTask notifyFullCharge;
 
         @Override
         public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
@@ -138,22 +139,22 @@ public class GuardianSoulType extends ConfigHoldingSoulType {
                 if (notifyFullCharge != null)
                     notifyFullCharge.cancel();
 
-                notifyChargeBegins = Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                notifyChargeBegins = carrier.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
                     if (!carrier.isValid())
                         return;
 
                     carrier.getWorld().spawnParticle(Particle.DUST, carrier.getLocation().clone().add(0, 2, 0),
                             1, 0, 0, 0, 0, new Particle.DustOptions(Color.AQUA, 1));
                     carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_GUARDIAN_ATTACK, 1f, 1f);
-                }, chargeBuffer / 50);
+                }, null, chargeBuffer / 50);
 
-                notifyFullCharge = Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+                notifyFullCharge = carrier.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
                     if (!carrier.isValid())
                         return;
 
                     carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_GUARDIAN_AMBIENT, 1f, 1.8f);
                     carrier.getWorld().spawnParticle(Particle.ENCHANTED_HIT, carrier.getEyeLocation(), 30, 0.35, 0.5, 0.35, 0);
-                }, (chargeBuffer + chargeTime) / 50);
+                }, null, (chargeBuffer + chargeTime) / 50);
             }
         }
 

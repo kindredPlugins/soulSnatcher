@@ -2,13 +2,12 @@ package at.gaderman.soulSnatcher.souls.effects;
 
 import at.gaderman.soulSnatcher.SoulSnatcher;
 import at.gaderman.soulSnatcher.souls.SoulType;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.*;
 import org.bukkit.boss.DragonBattle;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.AxisAngle4f;
@@ -32,7 +31,7 @@ public class SoulEffects {
             List<ItemDisplay> displays,
             double[] currentAngle,
             int[] tickCounter,
-            BukkitTask task
+            ScheduledTask task
     ) {
     }
 
@@ -81,11 +80,9 @@ public class SoulEffects {
             double[] currentHeight = {0.0};
             int[] tickCounter = {0};
 
-            Bukkit.getScheduler().runTaskTimer(
-                    SoulSnatcher.getPlugin(),
-                    animTask -> {
+            display.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
                         if (!display.isValid()) {
-                            animTask.cancel();
+                            task.cancel();
                             return;
                         }
 
@@ -114,8 +111,7 @@ public class SoulEffects {
                                     1, 0.03, 0.03, 0.03, 0.005
                             );
                         }
-                    },
-                    0L, 1L
+                    }, null, 0L, 1L
             );
 
 
@@ -160,74 +156,72 @@ public class SoulEffects {
             int[] tickCounter = {0};
             final double angleStep = 360.0 / DEFAULT_REVOLUTION_TICKS;
 
-            BukkitTask task = new BukkitRunnable() {
+            var ref = new Object() {
                 boolean hidden = false;
+            };
+            ScheduledTask scheduledTask = target.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                OrbitState current = activeOrbits.get(target.getUniqueId());
 
-                @Override
-                public void run() {
-                    OrbitState current = activeOrbits.get(target.getUniqueId());
-
-                    // Stop if the entity is gone or all displays were removed
-                    if (!target.isValid() || target.isDead() || current == null) {
-                        stopAllSoulOrbits(target);
-                        cancel();
-                        return;
-                    }
-
-                    if (target instanceof LivingEntity livingEntity && (livingEntity.isInvisible() || livingEntity.hasPotionEffect(PotionEffectType.INVISIBILITY))) {
-                        if (!hidden) {
-                            current.displays.forEach(display -> {
-                                display.setVisibleByDefault(false);
-                                Bukkit.getOnlinePlayers().stream()
-                                        .filter(player -> !player.equals(target))
-                                        .forEach(player -> player.hideEntity(SoulSnatcher.getPlugin(), display));
-                            });
-                            hidden = true;
-                        }
-                        return;
-                    }
-
-                    if (hidden) {
-                        current.displays.forEach(display -> {
-                            display.setVisibleByDefault(true);
-                            if (target instanceof Player player)
-                                player.hideEntity(SoulSnatcher.getPlugin(), display);
-                        });
-
-                        hidden = false;
-                    }
-
-                    Location center = target.getLocation().clone().add(0, HEIGHT_OFFSET, 0);
-                    List<ItemDisplay> souls = current.displays();
-                    int count = souls.size();
-
-                    current.tickCounter()[0]++;
-                    boolean particleTick = current.tickCounter[0] % PARTICLE_TICK == 0;
-
-                    for (int i = 0; i < count; i++) {
-                        ItemDisplay display = souls.get(i);
-
-                        if (!display.isValid()) continue;
-
-                        // Each soul is evenly spaced: soul i sits at its own
-                        // angular offset of (i / count) * 360° ahead of the base angle
-                        double soulAngle = (angle[0] + (360.0 / count) * i) % 360.0;
-                        Location headPos = orbitPosition(center, soulAngle, orbitRadius);
-
-                        display.setInterpolationDelay(-1);
-                        display.teleport(headPos);
-
-                        if (particleTick)
-                            spawnTrailParticles(current, center, soulAngle, angleStep, orbitRadius);
-                    }
-
-                    angle[0] = (angle[0] + angleStep) % 360.0;
+                // Stop if the entity is gone or all displays were removed
+                if (!target.isValid() || target.isDead() || current == null) {
+                    stopAllSoulOrbits(target);
+                    task.cancel();
+                    return;
                 }
-            }.runTaskTimer(plugin, 0L, 1L);
 
-            OrbitState newState = new OrbitState(target.getUniqueId(), soulTypes, displays, angle, tickCounter, task);
+                if (target instanceof LivingEntity livingEntity && (livingEntity.isInvisible() || livingEntity.hasPotionEffect(PotionEffectType.INVISIBILITY))) {
+                    if (!ref.hidden) {
+                        current.displays.forEach(display -> {
+                            display.setVisibleByDefault(false);
+                            Bukkit.getOnlinePlayers().stream()
+                                    .filter(player -> !player.equals(target))
+                                    .forEach(player -> player.hideEntity(SoulSnatcher.getPlugin(), display));
+                        });
+                        ref.hidden = true;
+                    }
+                    return;
+                }
+
+                if (ref.hidden) {
+                    current.displays.forEach(display -> {
+                        display.setVisibleByDefault(true);
+                        if (target instanceof Player player)
+                            player.hideEntity(SoulSnatcher.getPlugin(), display);
+                    });
+
+                    ref.hidden = false;
+                }
+
+                Location center = target.getLocation().clone().add(0, HEIGHT_OFFSET, 0);
+                List<ItemDisplay> souls = current.displays();
+                int count = souls.size();
+
+                current.tickCounter()[0]++;
+                boolean particleTick = current.tickCounter[0] % PARTICLE_TICK == 0;
+
+                for (int i = 0; i < count; i++) {
+                    ItemDisplay display = souls.get(i);
+
+                    if (!display.isValid()) continue;
+
+                    // Each soul is evenly spaced: soul i sits at its own
+                    // angular offset of (i / count) * 360° ahead of the base angle
+                    double soulAngle = (angle[0] + (360.0 / count) * i) % 360.0;
+                    Location headPos = orbitPosition(center, soulAngle, orbitRadius);
+
+                    display.setInterpolationDelay(-1);
+                    display.teleport(headPos);
+
+                    if (particleTick)
+                        spawnTrailParticles(current, center, soulAngle, angleStep, orbitRadius);
+                }
+
+                angle[0] = (angle[0] + angleStep) % 360.0;
+            }, () -> stopAllSoulOrbits(target), 0, 1);
+
+            OrbitState newState = new OrbitState(target.getUniqueId(), soulTypes, displays, angle, tickCounter, scheduledTask);
             activeOrbits.put(target.getUniqueId(), newState);
-            plugin.registerCleanUpTask(task.getTaskId(), () -> stopAllSoulOrbits(target));
+            plugin.registerCleanUpTask(scheduledTask, () -> stopAllSoulOrbits(target));
 
         } else {
             state.soulTypes().add(soulType);
@@ -267,7 +261,7 @@ public class SoulEffects {
         if (state == null) return;
 
         state.task().cancel();
-        SoulSnatcher.getPlugin().unregisterCleanUpTask(state.task().getTaskId());
+        SoulSnatcher.getPlugin().unregisterCleanUpTask(state.task());
         state.displays().forEach(Entity::remove);
     }
 
@@ -299,16 +293,12 @@ public class SoulEffects {
 
         playerViewingOrbits.remove(player.getUniqueId());
         state.displays.stream().filter(player::canSee).forEach(display -> {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (display.getTrackedBy().contains(player)) {
-                        player.hideEntity(SoulSnatcher.getPlugin(), display);
-                        cancel();
-                        return;
-                    }
+            player.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                if (display.getTrackedBy().contains(player)) {
+                    player.hideEntity(SoulSnatcher.getPlugin(), display);
+                    task.cancel();
                 }
-            }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 1L);
+            }, null, 0, 1);
         });
 
         player.playSound(player, Sound.ITEM_FIRECHARGE_USE, 1f, 0.5f);
@@ -342,15 +332,12 @@ public class SoulEffects {
                     .rotateY((float) Math.toRadians(180)));
 
             if (target instanceof Player player) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (d.getTrackedBy().contains(player)) {
-                            player.hideEntity(SoulSnatcher.getPlugin(), d);
-                            cancel();
-                        }
+                player.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                    if (d.getTrackedBy().contains(player)) {
+                        player.hideEntity(SoulSnatcher.getPlugin(), d);
+                        task.cancel();
                     }
-                }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 1L);
+                }, null, 0, 1);
             }
         });
     }
@@ -410,25 +397,21 @@ public class SoulEffects {
 
         display.setInterpolationDuration(2);
 
-        var animationTask = new BukkitRunnable() {
-            int tick = 0;
+        final int[] tick = {0};
+        ScheduledTask animationTask = display.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), _ -> {
+            float scale = 1f + tick[0] * 0.1f;
 
-            @Override
-            public void run() {
-                float scale = 1f + tick * 0.1f;
+            display.setTransformation(
+                    new Transformation(
+                            new Vector3f(0, tick[0] * 0.015f, 0),
+                            new AxisAngle4f((float) Math.PI, 0, 1, 0),
+                            new Vector3f(scale, scale, scale),
+                            new AxisAngle4f()
+                    )
+            );
 
-                display.setTransformation(
-                        new Transformation(
-                                new Vector3f(0, tick * 0.015f, 0),
-                                new AxisAngle4f((float) Math.PI, 0, 1, 0),
-                                new Vector3f(scale, scale, scale),
-                                new AxisAngle4f()
-                        )
-                );
-
-                tick++;
-            }
-        }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 1L);
+            tick[0]++;
+        }, null, 0, 1);
 
         SoulSnatcher.getPlugin().registerDelayedTask(() -> {
             display.remove();
@@ -438,9 +421,9 @@ public class SoulEffects {
             world.playSound(player.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 0.8f);
             world.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1f, 0.6f);
 
-            Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(),
-                    () -> world.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.6f),
-                    10L);
+            player.getScheduler().execute(SoulSnatcher.getPlugin(), () ->
+                            world.playSound(player.getLocation(), Sound.BLOCK_BEACON_POWER_SELECT, 1f, 0.6f),
+                    null, 10L);
 
             Location effectLoc = player.getLocation().add(0, 1, 0);
             world.spawnParticle(Particle.SOUL_FIRE_FLAME, effectLoc, 45, .25, .25, .25, .12);
@@ -462,7 +445,7 @@ public class SoulEffects {
         if (soulType.entityType() == EntityType.ENDER_DRAGON) {
             DragonBattle dragonBattle = rewardLoc.getWorld().getEnderDragonBattle();
 
-            if (dragonBattle != null && dragonBattle.getEndPortalLocation() != null && dragonBattle.getEnderDragon() != null){
+            if (dragonBattle != null && dragonBattle.getEndPortalLocation() != null && dragonBattle.getEnderDragon() != null) {
                 rewardLoc = dragonBattle.getEndPortalLocation().clone().toCenterLocation().add(0, 4.5, 0);
 
                 Location finalRewardLoc1 = rewardLoc;

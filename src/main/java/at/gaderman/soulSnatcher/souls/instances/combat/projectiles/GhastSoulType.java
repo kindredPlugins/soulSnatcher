@@ -24,7 +24,6 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -82,7 +81,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
     private static final String PROJECTILE_SPEED_MULTIPLIER_CONFIG_ID = "projectile_speed_multiplier";
 
     private final ConfigOption<Integer> ghastShotCooldown = configOption(GHAST_SHOT_COOLDOWN_CONFIG_ID, 1500, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
-            //value -> String.valueOf((value == Math.ceil(Math.round(value / 10.0) / 100.0)) ? (double) (int) value / 1000 : value / 1000.0));
+    //value -> String.valueOf((value == Math.ceil(Math.round(value / 10.0) / 100.0)) ? (double) (int) value / 1000 : value / 1000.0));
     private final ConfigOption<Double> aoeRadius = configOption(AOE_RADIUS_CONFIG_ID, 3.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> maxAoeDamage = configOption(MAX_DAMAGE_CONFIG_ID, 6.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> minAoeDamage = configOption(MIN_DAMAGE_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
@@ -122,17 +121,14 @@ public class GhastSoulType extends ConfigHoldingSoulType {
 
             projectile.setVelocity(projectile.getVelocity().multiply(soulType().projectileSpeedMultiplier.cached()));
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (!projectile.isValid() || !projectile.getPersistentDataContainer().has(GHAST_SHOT)) {
-                        cancel();
-                        return;
-                    }
-
-                    projectile.getLocation().getWorld().spawnParticle(Particle.LAVA, projectile.getLocation(), 2, 0, 0, 0, 0.2);
+            projectile.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                if (!projectile.getPersistentDataContainer().has(GHAST_SHOT)) {
+                    task.cancel();
+                    return;
                 }
-            }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 3L);
+
+                projectile.getLocation().getWorld().spawnParticle(Particle.LAVA, projectile.getLocation(), 2, 0, 0, 0, 0.2);
+            }, null, 0, 3);
         }
 
         @Override
@@ -154,13 +150,13 @@ public class GhastSoulType extends ConfigHoldingSoulType {
                         .withDamageLocation(location)
                         .build());
 
-                Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () ->
+                hit.getScheduler().execute(SoulSnatcher.getPlugin(), () ->
                                 hit.setVelocity(hit.getLocation().toVector().subtract(location.toVector())
                                         .setY(0)
                                         .normalize()
                                         .multiply(0.75)
                                         .setY(0.5)),
-                        1L);
+                        null, 1);
             });
 
             location.getWorld().spawnParticle(Particle.EXPLOSION, location, 1);

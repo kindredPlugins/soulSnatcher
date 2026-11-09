@@ -9,6 +9,7 @@ import at.gaderman.soulSnatcher.souls.config.ConfigHoldingSoulType;
 import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnSneakToggleTrigger;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -21,7 +22,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -105,6 +105,7 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
         }
 
         private boolean gliding;
+        private ScheduledTask glidingTask;
 
         public void activateGliding() {
             gliding = true;
@@ -122,44 +123,40 @@ public class PhantomSoulType extends ConfigHoldingSoulType {
 
             final long startTick = Bukkit.getCurrentTick();
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (!gliding || !carrier.isValid() || carrier.isGliding() || carrier.isOnGround()) {
-                        carrier.getWorld().getNearbyPlayers(carrier.getLocation(), 25, 25, 25)
-                                .forEach(nearby -> nearby.stopSound(Sound.ITEM_ELYTRA_FLYING));
-                        cancel();
-                        return;
-                    }
-
-                    if (carrier.getFallDistance() >= 4) carrier.setFallDistance(carrier.getFallDistance() * 0.8f);
-
-                    long ticks = Bukkit.getCurrentTick() - startTick;
-
-                    // decay curve: starts stronger and asymptotically approaches configured minDownward
-                    double k = soulType().decayK.cached();
-                    double decayFactor = soulType().minDownward.cached() + (1 - soulType().minDownward.cached()) * Math.exp(-k * ticks);
-
-                    double desiredDownward = Math.max(initialDownwardSpeed * decayFactor, soulType().minDownward.cached());
-                    double desiredY = -desiredDownward;
-
-                    Vector currentVelocity = carrier.getVelocity();
-                    double smoothFactor = soulType().smooth.cached();
-                    double newY = currentVelocity.getY() * (1 - smoothFactor) + desiredY * smoothFactor;
-
-                    if (newY > 0) newY = Math.min(newY, 0);
-
-                    currentVelocity.setY(newY);
-                    currentVelocity.add(carrier.getLocation().getDirection().normalize().setY(0).multiply(soulType().forwardMultiplier.cached()));
-                    carrier.setVelocity(currentVelocity);
-
-                    if (ticks % 5 == 0) {
-                        carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation(), 5, 0.1, 0, 0.1, 0.01);
-                        carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_ELYTRA_FLYING, 0.25f, 0.75f);
-                    }
-
+            carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                if (!gliding || !carrier.isValid() || carrier.isGliding() || carrier.isOnGround()) {
+                    carrier.getWorld().getNearbyPlayers(carrier.getLocation(), 25, 25, 25)
+                            .forEach(nearby -> nearby.stopSound(Sound.ITEM_ELYTRA_FLYING));
+                    task.cancel();
+                    return;
                 }
-            }.runTaskTimer(SoulSnatcher.getPlugin(), 1L, 1L);
+
+                if (carrier.getFallDistance() >= 4) carrier.setFallDistance(carrier.getFallDistance() * 0.8f);
+
+                long ticks = Bukkit.getCurrentTick() - startTick;
+
+                // decay curve: starts stronger and asymptotically approaches configured minDownward
+                double k = soulType().decayK.cached();
+                double decayFactor = soulType().minDownward.cached() + (1 - soulType().minDownward.cached()) * Math.exp(-k * ticks);
+
+                double desiredDownward = Math.max(initialDownwardSpeed * decayFactor, soulType().minDownward.cached());
+                double desiredY = -desiredDownward;
+
+                Vector currentVelocity = carrier.getVelocity();
+                double smoothFactor = soulType().smooth.cached();
+                double newY = currentVelocity.getY() * (1 - smoothFactor) + desiredY * smoothFactor;
+
+                if (newY > 0) newY = Math.min(newY, 0);
+
+                currentVelocity.setY(newY);
+                currentVelocity.add(carrier.getLocation().getDirection().normalize().setY(0).multiply(soulType().forwardMultiplier.cached()));
+                carrier.setVelocity(currentVelocity);
+
+                if (ticks % 5 == 0) {
+                    carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation(), 5, 0.1, 0, 0.1, 0.01);
+                    carrier.getWorld().playSound(carrier.getLocation(), Sound.ITEM_ELYTRA_FLYING, 0.25f, 0.75f);
+                }
+            }, null, 1, 1);
         }
 
         @Override

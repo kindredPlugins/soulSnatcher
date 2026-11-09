@@ -11,6 +11,7 @@ import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.input.OnPlayerJumpTrigger;
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 import com.google.auto.service.AutoService;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -88,6 +89,8 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
     //endregion
 
     public static class BreezeSoulInstance extends SoulInstance<BreezeSoulType> implements OnPlayerJumpTrigger, OnDamageReceivedTrigger {
+        private ScheduledTask recoverJumpTask;
+
         protected BreezeSoulInstance(LivingEntity carrier, BreezeSoulType soulType) {
             super(carrier, soulType);
 
@@ -114,13 +117,14 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
             });
             carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_BREEZE_JUMP, 1f, 1f);
 
-            carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+            recoverJumpTask = carrier.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
                 RayTraceResult result = carrier.getWorld().rayTraceBlocks(carrier.getLocation(), new Vector(0, -1, 0), 0.2, FluidCollisionMode.ALWAYS, true);
                 if (result == null) return;
 
                 task.cancel();
-                carrier.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+                recoverJumpTask = carrier.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
                     canJump = true;
+                    recoverJumpTask = null;
 
                     if (carrier instanceof Player player)
                         player.playSound(player, Sound.ENTITY_BREEZE_CHARGE, 1f, 1f);
@@ -141,6 +145,14 @@ public class BreezeSoulType extends ConfigHoldingSoulType {
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
 
+        }
+
+        @Override
+        protected void cleanUp() {
+            super.cleanUp();
+
+            if(recoverJumpTask != null)
+                recoverJumpTask.cancel();
         }
     }
 }

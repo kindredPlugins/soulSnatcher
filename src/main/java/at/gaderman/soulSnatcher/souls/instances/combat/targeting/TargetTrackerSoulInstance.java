@@ -6,7 +6,7 @@ import at.gaderman.soulSnatcher.souls.SoulType;
 import at.gaderman.soulSnatcher.souls.triggers.action.OnTargetTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageDealtTrigger;
 import at.gaderman.soulSnatcher.souls.triggers.damage.OnDamageReceivedTrigger;
-import org.bukkit.Bukkit;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -34,10 +34,10 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
     protected Set<LivingEntity> combatTargets;
 
     private static final int MAX_COMBAT_TIME = 30_000;
-    private BukkitTask cancelCombat;
+    private ScheduledTask cancelCombat;
 
     protected void addCombatTarget(LivingEntity target) {
-        if(target.equals(carrier()))
+        if (target.equals(carrier()))
             return;
 
         combatTargets.add(target);
@@ -50,12 +50,9 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
             cancelCombat.cancel();
         }
 
-        cancelCombat = new BukkitRunnable() {
-            @Override
-            public void run() {
-                combatTargets.clear();
-            }
-        }.runTaskLater(SoulSnatcher.getPlugin(), MAX_COMBAT_TIME);
+        cancelCombat = carrier().getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
+            combatTargets.clear();
+        }, null, MAX_COMBAT_TIME);
     }
 
     @Override
@@ -65,10 +62,10 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
 
     @Override
     public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {
-        if(event.getReason() == EntityTargetEvent.TargetReason.TEMPT)
+        if (event.getReason() == EntityTargetEvent.TargetReason.TEMPT)
             return;
 
-        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+        entity.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
             if (event.isCancelled() || !carrier.isValid() || !entity.isValid()) return;
 
             if (entity.getPersistentDataContainer().getOrDefault(ZombieSoulType.REINFORCEMENT_OWNER, PersistentDataType.STRING,
@@ -76,16 +73,16 @@ public abstract class TargetTrackerSoulInstance<T extends SoulType> extends Soul
                 return;
 
             addCombatTarget(entity);
-        }, 1L);
+        }, null, 1L);
     }
 
     @Override
     public void onCarrierTarget(LivingEntity carrier, LivingEntity target, EntityTargetLivingEntityEvent event) {
-        Bukkit.getScheduler().runTaskLater(SoulSnatcher.getPlugin(), () -> {
+        target.getScheduler().runDelayed(SoulSnatcher.getPlugin(), _ -> {
             if (event.isCancelled() || !carrier.isValid() || !target.isValid()) return;
 
             addCombatTarget(target);
-        }, 1L);
+        }, null, 1L);
     }
 
     @Override

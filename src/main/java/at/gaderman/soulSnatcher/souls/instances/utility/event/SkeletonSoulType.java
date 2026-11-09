@@ -111,7 +111,7 @@ public class SkeletonSoulType extends SoulType {
             PlayerInventory inv = player.getInventory();
 
             if(!player.getGameMode().isInvulnerable()) {
-                Bukkit.getScheduler().runTask(SoulSnatcher.getPlugin(), () -> {
+                player.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
                     ItemStack itemAtIndex = inv.getItem(arrowIndex);
                     if(inv.getItemInMainHand().getEnchantmentLevel(Enchantment.INFINITY) > 0 && consumed.getType() == Material.ARROW)
                         return;
@@ -120,10 +120,7 @@ public class SkeletonSoulType extends SoulType {
                         inv.setItem(arrowIndex, consumed);
 
                     else inv.setItem(arrowIndex, itemAtIndex.add(1));
-                });
-                SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-
-                }, 1L);
+                }, null);
             }
 
             if(event.getProjectile() instanceof AbstractArrow arrow)

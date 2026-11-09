@@ -23,11 +23,11 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @AutoService(SoulType.class)
@@ -76,7 +76,7 @@ public class SquidSoulType extends ConfigHoldingSoulType {
     //region Config Values
 
     private static final String INK_COOLDOWN_CONFIG_ID = "ink_cooldown";
-    private static final String INK_DURATION_CONFIG_ID = "aura_range";
+    private static final String INK_DURATION_CONFIG_ID = "ink_duration";
 
     private final ConfigOption<Integer> inkCooldown = configOption(INK_COOLDOWN_CONFIG_ID, 8000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Integer> inkDuration = configOption(INK_DURATION_CONFIG_ID, 60, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromTicksToSeconds);
@@ -121,22 +121,18 @@ public class SquidSoulType extends ConfigHoldingSoulType {
 
                 target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, soulType().inkDuration.cached(), 0, true));
 
-                new BukkitRunnable() {
-                    int ticks = 0;
-
-                    @Override
-                    public void run() {
-                        if (!target.isValid() || ticks >= soulType().inkDuration.cached()) {
-                            cancel();
-                            return;
-                        }
-
-                        target.getWorld().spawnParticle(Particle.SQUID_INK, target.getEyeLocation(), 1,
-                                0.2, 0.2, 0.2, 0);
-
-                        ticks += 2;
+                AtomicInteger ticks = new AtomicInteger();
+                target.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
+                    if (ticks.get() >= soulType().inkDuration.cached()) {
+                        task.cancel();
+                        return;
                     }
-                }.runTaskTimer(SoulSnatcher.getPlugin(), 0L, 2L);
+
+                    target.getWorld().spawnParticle(Particle.SQUID_INK, target.getEyeLocation(), 1,
+                            0.2, 0.2, 0.2, 0);
+
+                    ticks.addAndGet(2);
+                }, null, 0, 2);
 
                 if (target instanceof Mob mob) {
                     var followRange = mob.getAttribute(Attribute.FOLLOW_RANGE);
@@ -150,15 +146,17 @@ public class SquidSoulType extends ConfigHoldingSoulType {
                     mob.getPersistentDataContainer().set(INK_DEBUFF, PersistentDataType.STRING, carrier.getUniqueId().toString());
 
                     SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-                        if (mob.isDead()) return;
+                        mob.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
+                            if (mob.isDead()) return;
 
-                        if (!mob.getPersistentDataContainer().getOrDefault(INK_DEBUFF, PersistentDataType.STRING, "")
-                                .equals(carrier.getUniqueId().toString())) return;
+                            if (!mob.getPersistentDataContainer().getOrDefault(INK_DEBUFF, PersistentDataType.STRING, "")
+                                    .equals(carrier.getUniqueId().toString())) return;
 
-                        if (followRange != null) followRange.removeModifier(INK_DEBUFF);
-                        if (movSpeed != null) movSpeed.removeModifier(INK_DEBUFF);
+                            if (followRange != null) followRange.removeModifier(INK_DEBUFF);
+                            if (movSpeed != null) movSpeed.removeModifier(INK_DEBUFF);
 
-                        mob.getPersistentDataContainer().remove(INK_DEBUFF);
+                            mob.getPersistentDataContainer().remove(INK_DEBUFF);
+                        }, null);
                     }, soulType().inkDuration.cached());
                 }
             });
