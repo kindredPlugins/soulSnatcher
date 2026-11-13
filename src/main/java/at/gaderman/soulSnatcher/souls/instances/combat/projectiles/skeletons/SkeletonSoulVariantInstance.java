@@ -45,7 +45,7 @@ public class SkeletonSoulVariantInstance extends SoulInstance<SoulType> implemen
 
             projectile.getLocation().getWorld().spawnParticle(Particle.ENTITY_EFFECT, projectile.getLocation(),
                     4, 0, 0, 0, 0.2, options.effectColor);
-        }, null, 0, 3);
+        }, null, 1, 3);
     }
 
     @Override

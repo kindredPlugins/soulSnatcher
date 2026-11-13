@@ -84,7 +84,7 @@ public final class SoulSnatcher extends JavaPlugin {
     }
 
     /**
-     * Registers the given runnable as a BukkitTask and runs it via the Bukkit Scheduler. Additionally, saves this
+     * Registers the given runnable as a BukkitTask and runs it on the GLOBAL REGION thread. Additionally, saves this
      * Task as a runningTask, meaning that if the plugin is disabled, this will get executed instantly instead.
      * This makes sure that certain actions do not remain in an unnatural state upon sudden server stop.
      * Moreover, after the delay this also unregisters itself meaning no memory leaks without further action externally

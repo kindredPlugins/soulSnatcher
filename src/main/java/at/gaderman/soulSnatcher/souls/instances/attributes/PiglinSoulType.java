@@ -277,6 +277,9 @@ public class PiglinSoulType extends ConfigHoldingSoulType {
                         carrierAttribute.removeModifier(mod);
                 });
             });
+
+            if(goldSparkle != null)
+                goldSparkle.cancel();
         }
     }
 

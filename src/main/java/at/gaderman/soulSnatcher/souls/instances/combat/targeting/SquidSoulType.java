@@ -132,7 +132,7 @@ public class SquidSoulType extends ConfigHoldingSoulType {
                             0.2, 0.2, 0.2, 0);
 
                     ticks.addAndGet(2);
-                }, null, 0, 2);
+                }, null, 1, 2);
 
                 if (target instanceof Mob mob) {
                     var followRange = mob.getAttribute(Attribute.FOLLOW_RANGE);

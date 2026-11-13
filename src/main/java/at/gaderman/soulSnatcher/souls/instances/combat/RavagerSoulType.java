@@ -100,6 +100,7 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
         }
 
+        //TODO: cooldown system seems broken
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
             if (event.getDamageSource().isIndirect())

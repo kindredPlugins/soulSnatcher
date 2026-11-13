@@ -142,7 +142,7 @@ public class HoglinSoulType extends ConfigHoldingSoulType {
 
                     applyBufferedDamage(carrier, bufferedDamageList);
                     currentCycle++;
-                }, null, 0, soulType().bufferInterval.cached());
+                }, null, 1, soulType().bufferInterval.cached());
         }
 
         @Override

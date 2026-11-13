@@ -128,7 +128,7 @@ public class GhastSoulType extends ConfigHoldingSoulType {
                 }
 
                 projectile.getLocation().getWorld().spawnParticle(Particle.LAVA, projectile.getLocation(), 2, 0, 0, 0, 0.2);
-            }, null, 0, 3);
+            }, null, 1, 3);
         }
 
         @Override

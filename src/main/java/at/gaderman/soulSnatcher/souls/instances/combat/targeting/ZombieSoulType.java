@@ -220,7 +220,7 @@ public class ZombieSoulType extends ConfigHoldingSoulType {
                         }
                     }
                 }
-            }, null, 0, 5);
+            }, null, 1, 5);
         }
     }
 

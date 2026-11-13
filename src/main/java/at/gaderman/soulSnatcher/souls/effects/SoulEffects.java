@@ -81,38 +81,37 @@ public class SoulEffects {
             int[] tickCounter = {0};
 
             display.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
-                        if (!display.isValid()) {
-                            task.cancel();
-                            return;
-                        }
+                if (!display.isValid()) {
+                    task.cancel();
+                    return;
+                }
 
-                        tickCounter[0]++;
+                tickCounter[0]++;
 
-                        currentRotation[0] = (currentRotation[0] + RELEASED_ROTATION_SPEED) % 360f;
-                        currentHeight[0] += RELEASED_FLOAT_SPEED;
+                currentRotation[0] = (currentRotation[0] + RELEASED_ROTATION_SPEED) % 360f;
+                currentHeight[0] += RELEASED_FLOAT_SPEED;
 
-                        display.setInterpolationDelay(-1);
-                        display.setTransformationMatrix(new Matrix4f()
-                                .translate(0f, (float) currentHeight[0], 0f)
-                                .rotateY((float) Math.toRadians(currentRotation[0]))
-                                .scale(RELEASED_HEAD_SCALE)
-                        );
+                display.setInterpolationDelay(-1);
+                display.setTransformationMatrix(new Matrix4f()
+                        .translate(0f, (float) currentHeight[0], 0f)
+                        .rotateY((float) Math.toRadians(currentRotation[0]))
+                        .scale(RELEASED_HEAD_SCALE)
+                );
 
-                        if (tickCounter[0] % RELEASED_PARTICLE_INTERVAL == 0) {
-                            Location current = display.getLocation().clone()
-                                    .add(0, currentHeight[0] - 0.1, 0);
+                if (tickCounter[0] % RELEASED_PARTICLE_INTERVAL == 0) {
+                    Location current = display.getLocation().clone()
+                            .add(0, currentHeight[0] - 0.1, 0);
 
-                            display.getWorld().spawnParticle(
-                                    Particle.SOUL, current,
-                                    2, 0.05, 0.05, 0.05, 0.01
-                            );
-                            display.getWorld().spawnParticle(
-                                    Particle.SOUL_FIRE_FLAME, current,
-                                    1, 0.03, 0.03, 0.03, 0.005
-                            );
-                        }
-                    }, null, 0L, 1L
-            );
+                    display.getWorld().spawnParticle(
+                            Particle.SOUL, current,
+                            2, 0.05, 0.05, 0.05, 0.01
+                    );
+                    display.getWorld().spawnParticle(
+                            Particle.SOUL_FIRE_FLAME, current,
+                            1, 0.03, 0.03, 0.03, 0.005
+                    );
+                }
+            }, null, 1, 1);
 
 
             SoulSnatcher.getPlugin().registerDelayedTask(() -> {
@@ -210,14 +209,14 @@ public class SoulEffects {
                     Location headPos = orbitPosition(center, soulAngle, orbitRadius);
 
                     display.setInterpolationDelay(-1);
-                    display.teleport(headPos);
+                    display.teleportAsync(headPos);
 
                     if (particleTick)
                         spawnTrailParticles(current, center, soulAngle, angleStep, orbitRadius);
                 }
 
                 angle[0] = (angle[0] + angleStep) % 360.0;
-            }, () -> stopAllSoulOrbits(target), 0, 1);
+            }, () -> stopAllSoulOrbits(target), 1, 1);
 
             OrbitState newState = new OrbitState(target.getUniqueId(), soulTypes, displays, angle, tickCounter, scheduledTask);
             activeOrbits.put(target.getUniqueId(), newState);
@@ -298,7 +297,7 @@ public class SoulEffects {
                     player.hideEntity(SoulSnatcher.getPlugin(), display);
                     task.cancel();
                 }
-            }, null, 0, 1);
+            }, null, 1, 1);
         });
 
         player.playSound(player, Sound.ITEM_FIRECHARGE_USE, 1f, 0.5f);
@@ -337,7 +336,7 @@ public class SoulEffects {
                         player.hideEntity(SoulSnatcher.getPlugin(), d);
                         task.cancel();
                     }
-                }, null, 0, 1);
+                }, null, 1, 1);
             }
         });
     }
@@ -411,10 +410,11 @@ public class SoulEffects {
             );
 
             tick[0]++;
-        }, null, 0, 1);
+        }, null, 1, 1);
 
+        //delayed task means global region so each entity needs scheduler access for itself
         SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-            display.remove();
+            display.getScheduler().run(SoulSnatcher.getPlugin(), _ -> display.remove(), null);
 
             player.setVelocity(player.getVelocity().add(new Vector(0, 0.28, 0)));
 
@@ -429,7 +429,8 @@ public class SoulEffects {
             world.spawnParticle(Particle.SOUL_FIRE_FLAME, effectLoc, 45, .25, .25, .25, .12);
             world.spawnParticle(Particle.SOUL, effectLoc, 30, .3, .3, .3, .05);
 
-            animationTask.cancel();
+            if(animationTask != null)
+                animationTask.cancel();
         }, 15);
     }
 
