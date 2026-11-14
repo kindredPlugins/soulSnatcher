@@ -70,10 +70,11 @@ public class PillagerSoulType extends ConfigHoldingSoulType {
         );
     }
 
+    //TODO: Evokers should not get armor, this makes raid farms kind of awful
     @Override
     public boolean isInvalidInfusionTarget(LivingEntity entity) {
         return super.isInvalidInfusionTarget(entity) || (!(entity instanceof Zombie) && !(entity instanceof Skeleton)
-                && !(entity instanceof Piglin) && !(entity instanceof Illager));
+                && !(entity instanceof Piglin));
     }
 
     //region Config Values

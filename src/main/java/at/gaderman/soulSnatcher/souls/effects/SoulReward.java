@@ -77,10 +77,10 @@ public class SoulReward {
             display.setAlignment(TextDisplay.TextAlignment.CENTER);
             display.setBillboard(Display.Billboard.VERTICAL);
         });
-        Interaction soulInteraction = location.getWorld().spawn(location.clone().add(0, 0.4, 0), Interaction.class, interaction -> {
+        Interaction soulInteraction = location.getWorld().spawn(location.clone().add(0, 0.9, 0), Interaction.class, interaction -> {
             interaction.setPersistent(false);
-            interaction.setInteractionHeight(1.5f);
-            interaction.setInteractionWidth(1.0f);
+            interaction.setInteractionHeight(0.75f);
+            interaction.setInteractionWidth(0.75f);
 
             interaction.setVisibleByDefault(false);
             owner.showEntity(SoulSnatcher.getPlugin(), interaction);
