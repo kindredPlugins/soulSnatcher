@@ -98,12 +98,14 @@ public class WitchDrinkGoal extends SoulOwnerGoal {
                     );
 
             display.setTransformation(transformation);
+            display.setPersistent(false);
         });
 
         var movSpeed = mob.getAttribute(Attribute.MOVEMENT_SPEED);
         if(movSpeed != null)
             movSpeed.addTransientModifier(new AttributeModifier(DRINKIN_MOD, -0.2, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
-        SoulSnatcher.getPlugin().registerDelayedTask(potion::remove, 2 * DRINK_DURATION + 1);
+
+        potion.getScheduler().execute(SoulSnatcher.getPlugin(), potion::remove, null, 2 * DRINK_DURATION + 1);
     }
 
     @Override

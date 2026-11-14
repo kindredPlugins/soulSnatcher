@@ -36,6 +36,7 @@ public class SoulReward {
         location.getWorld().playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
 
         ItemDisplay skullDisplay = location.getWorld().spawn(location.clone().add(0, 1.5, 0), ItemDisplay.class, display -> {
+            display.setPersistent(false);
             display.setItemStack(soulType.getRepresentativeSkull());
 
             Transformation transformation = new Transformation(
@@ -48,11 +49,13 @@ public class SoulReward {
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay soulTitle = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, 0.15, 0), TextDisplay.class, display -> {
+            display.setPersistent(false);
             display.text(soulType.displayName());
             display.setAlignment(TextDisplay.TextAlignment.CENTER);
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         TextDisplay claimedByTitle = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, 0.15, 0), TextDisplay.class, display -> {
+            display.setPersistent(false);
             display.text(SoulLanguageDefinitions.SOUL_OFFERED_FOR.getSingle().color(NamedTextColor.RED)
                     .replaceText(TextReplacementConfig.builder()
                     .matchLiteral(SoulLanguageDefinitions.OWNER_PLACEHOLDER)
@@ -66,6 +69,7 @@ public class SoulReward {
             owner.hideEntity(SoulSnatcher.getPlugin(), display);
         });
         TextDisplay interactText = location.getWorld().spawn(skullDisplay.getLocation().clone().add(0, -1, 0), TextDisplay.class, display -> {
+            display.setPersistent(false);
             display.text(duplicateSoul ?
                     SoulLanguageDefinitions.ALREADY_BOUND.getSingle().color(NamedTextColor.RED) :
                     SoulLanguageDefinitions.BIND_TEXT.getSingle());
@@ -74,6 +78,7 @@ public class SoulReward {
             display.setBillboard(Display.Billboard.VERTICAL);
         });
         Interaction soulInteraction = location.getWorld().spawn(location.clone().add(0, 0.4, 0), Interaction.class, interaction -> {
+            interaction.setPersistent(false);
             interaction.setInteractionHeight(1.5f);
             interaction.setInteractionWidth(1.0f);
 
@@ -99,14 +104,14 @@ public class SoulReward {
         long age = duplicateSoul ? 80L : GeneralConfig.getInstance().SOUL_DESPAWN_TIME.cached();
 
         soulInteraction.getWorld().playSound(soulInteraction.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, 1f, 0.25f);
-        SoulSnatcher.getPlugin().registerDelayedTask(() -> {
+        soulInteraction.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
             if (soulInteraction.isDead()) return;
 
             soulInteraction.remove();
-            displayEntities.forEach(Entity::remove);
+            displayEntities.forEach(display -> display.getScheduler().run(SoulSnatcher.getPlugin(), _ -> display.remove(), null));
 
             SoulEffects.discardSoulRewardEffect(soulInteraction.getLocation());
-        }, age);
+        }, null, age);
     }
 
     /**

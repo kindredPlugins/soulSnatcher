@@ -11,6 +11,7 @@ import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,7 +19,6 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionEffectTypeCategory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -88,20 +88,27 @@ public class CowSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onEntityPotionEffect(LivingEntity carrier, EntityPotionEffectEvent event) {
-            if(event.getNewEffect() == null) return;
-            if(milkInProcess || event.getNewEffect().getType().getEffectCategory() != PotionEffectType.Category.HARMFUL) return;
+            if (event.getNewEffect() == null) return;
+            if (milkInProcess || event.getNewEffect().getType().getEffectCategory() != PotionEffectType.Category.HARMFUL)
+                return;
 
             milkInProcess = true;
             carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WANDERING_TRADER_DRINK_MILK, 1f, 1f);
 
+            //TODO: disconnecting while milk stops task, maybe also on application?
             SoulSnatcher.getPlugin().registerDelayedTask(() -> {
                 milkInProcess = false;
 
-                if(!carrier.isValid()) return;
+                if (!carrier.isValid()) return;
 
-                carrier.getActivePotionEffects().stream()
+                Runnable clearPotionEffects = () -> carrier.getActivePotionEffects().stream()
                         .filter(effect -> effect.getType().getEffectCategory() == PotionEffectType.Category.HARMFUL)
                         .forEach(effect -> carrier.removePotionEffect(effect.getType()));
+
+                if (Bukkit.isStopping())
+                    clearPotionEffects.run();
+                else
+                    carrier.getScheduler().run(SoulSnatcher.getPlugin(), _ -> clearPotionEffects.run(), null);
 
                 carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation().add(0, 1, 0), 30, 0.2, 0.2, 0.2, 0.1);
                 carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_SPLASH_POTION_THROW, 1f, 2f);

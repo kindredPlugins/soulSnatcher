@@ -65,6 +65,7 @@ public class SoulEffects {
         Location spawnLoc = location.clone().add(0, 0.75, 0);
 
         location.getWorld().spawn(spawnLoc, ItemDisplay.class, display -> {
+            display.setPersistent(false);
             display.setItemStack(itemRepresentation);
             display.setBillboard(Display.Billboard.FIXED);
             display.setInterpolationDuration(3);
@@ -114,16 +115,15 @@ public class SoulEffects {
             }, null, 1, 1);
 
 
-            SoulSnatcher.getPlugin().registerDelayedTask(() -> {
+            display.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
                 Location finalPos = display.getLocation().clone()
                         .add(0, currentHeight[0], 0);
 
-                display.remove();
+                display.getScheduler().run(SoulSnatcher.getPlugin(), _ -> display.remove(), null);
 
                 display.getWorld().spawnParticle(Particle.WHITE_SMOKE, finalPos, 15, 0.2, 0.2, 0.2, 0.02);
-                display.getWorld().playSound(finalPos, Sound.ENTITY_CHICKEN_EGG, 1f, 0.2f
-                );
-            }, RELEASED_LIFETIME_TICKS);
+                display.getWorld().playSound(finalPos, Sound.ENTITY_CHICKEN_EGG, 1f, 0.2f);
+            }, null, RELEASED_LIFETIME_TICKS);
         });
     }
 
@@ -260,8 +260,9 @@ public class SoulEffects {
         if (state == null) return;
 
         state.task().cancel();
-        SoulSnatcher.getPlugin().unregisterCleanUpTask(state.task());
-        state.displays().forEach(Entity::remove);
+
+        if (!Bukkit.isStopping())
+            state.displays().forEach(display -> display.getScheduler().run(SoulSnatcher.getPlugin(), _ -> display.remove(), null));
     }
 
     private static final Set<UUID> playerViewingOrbits = new LinkedHashSet<>();
@@ -320,20 +321,21 @@ public class SoulEffects {
     private static ItemDisplay spawnDisplay(Entity target, SoulType soulType) {
         Location spawnLoc = target.getLocation().clone().add(0, HEIGHT_OFFSET, 0);
 
-        return target.getWorld().spawn(spawnLoc, ItemDisplay.class, d -> {
-            d.setItemStack(soulType.getRepresentativeSkull());
-            d.setBillboard(Display.Billboard.VERTICAL);
-            d.setInterpolationDuration(3);
-            d.setInterpolationDelay(1);
-            d.setViewRange(1.0f);
-            d.setTransformationMatrix(new Matrix4f()
+        return target.getWorld().spawn(spawnLoc, ItemDisplay.class, display -> {
+            display.setPersistent(false);
+            display.setItemStack(soulType.getRepresentativeSkull());
+            display.setBillboard(Display.Billboard.VERTICAL);
+            display.setInterpolationDuration(3);
+            display.setInterpolationDelay(1);
+            display.setViewRange(1.0f);
+            display.setTransformationMatrix(new Matrix4f()
                     .scale(target.getHeight() > 3 ? (float) target.getHeight() * 0.5f : HEAD_SCALE)
                     .rotateY((float) Math.toRadians(180)));
 
             if (target instanceof Player player) {
                 player.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {
-                    if (d.getTrackedBy().contains(player)) {
-                        player.hideEntity(SoulSnatcher.getPlugin(), d);
+                    if (display.getTrackedBy().contains(player)) {
+                        player.hideEntity(SoulSnatcher.getPlugin(), display);
                         task.cancel();
                     }
                 }, null, 1, 1);
@@ -382,6 +384,7 @@ public class SoulEffects {
         world.playSound(player.getLocation(), Sound.ENTITY_ELDER_GUARDIAN_CURSE, 1f, 1.5f);
 
         ItemDisplay display = world.spawn(rewardLoc.toCenterLocation(), ItemDisplay.class);
+        display.setPersistent(false);
         display.setItemStack(soulType.itemRepresentation());
         display.setBillboard(Display.Billboard.VERTICAL);
 
@@ -412,9 +415,8 @@ public class SoulEffects {
             tick[0]++;
         }, null, 1, 1);
 
-        //delayed task means global region so each entity needs scheduler access for itself
-        SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-            display.getScheduler().run(SoulSnatcher.getPlugin(), _ -> display.remove(), null);
+        display.getScheduler().execute(SoulSnatcher.getPlugin(), () -> {
+            display.remove();
 
             player.setVelocity(player.getVelocity().add(new Vector(0, 0.28, 0)));
 
@@ -429,9 +431,9 @@ public class SoulEffects {
             world.spawnParticle(Particle.SOUL_FIRE_FLAME, effectLoc, 45, .25, .25, .25, .12);
             world.spawnParticle(Particle.SOUL, effectLoc, 30, .3, .3, .3, .05);
 
-            if(animationTask != null)
+            if (animationTask != null)
                 animationTask.cancel();
-        }, 15);
+        }, null, 15);
     }
 
     public static void discardSoulRewardEffect(Location location) {

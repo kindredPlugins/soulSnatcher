@@ -58,10 +58,11 @@ public class SkeletonShootGoal extends SoulAbilityGoal {
         bow = mob.getWorld().spawn(bowSource, ItemDisplay.class, display -> {
             display.setItemStack(ItemStack.of(Material.BOW));
             display.setBillboard(Display.Billboard.FIXED);
+            display.setPersistent(false);
         });
         mob.addPassenger(bow);
 
-        SoulSnatcher.getPlugin().registerDelayedTask(bow::remove, 2 * DRAW_TILL_SHOOT + 1);
+        bow.getScheduler().execute(SoulSnatcher.getPlugin(), bow::remove, null, 2 * DRAW_TILL_SHOOT + 1);
     }
 
     @Override

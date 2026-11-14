@@ -54,7 +54,7 @@ public class SkeletonSoulVariantInstance extends SoulInstance<SoulType> implemen
 
         if (!(event.getHitEntity() instanceof LivingEntity hit)) return;
 
-        hit.addPotionEffect(new PotionEffect(options.effectType, options.effectDuration, options.effectAmplifier));
+        hit.addPotionEffect(new PotionEffect(options.effectType, options.effectDuration, options.effectAmplifier, false, true, true));
     }
 
     public record Options(String projectileKey, Color effectColor, Sound shotSound, PotionEffectType effectType,

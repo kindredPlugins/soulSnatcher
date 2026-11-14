@@ -121,7 +121,7 @@ public class EndermanSoulType extends ConfigHoldingSoulType {
 
             Location evadeLoc = BlockUtils.findSpreadLocation(carrier.getLocation(), 4, 2);
             if (evadeLoc != null) {
-                carrier.teleport(evadeLoc);
+                carrier.teleportAsync(evadeLoc);
                 carrier.getWorld().spawnParticle(Particle.PORTAL, carrier.getEyeLocation(), 40, 0.1, 0.7, 0.1, 1);
                 return;
             }

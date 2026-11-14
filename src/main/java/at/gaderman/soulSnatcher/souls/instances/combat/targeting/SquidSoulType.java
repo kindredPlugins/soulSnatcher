@@ -9,6 +9,7 @@ import at.gaderman.soulSnatcher.souls.instances.SoulCategory;
 import com.google.auto.service.AutoService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -145,18 +146,23 @@ public class SquidSoulType extends ConfigHoldingSoulType {
 
                     mob.getPersistentDataContainer().set(INK_DEBUFF, PersistentDataType.STRING, carrier.getUniqueId().toString());
 
+                    Runnable clearInkEffect = () -> {
+                        if (mob.isDead()) return;
+
+                        if (!mob.getPersistentDataContainer().getOrDefault(INK_DEBUFF, PersistentDataType.STRING, "")
+                                .equals(carrier.getUniqueId().toString())) return;
+
+                        if (followRange != null) followRange.removeModifier(INK_DEBUFF);
+                        if (movSpeed != null) movSpeed.removeModifier(INK_DEBUFF);
+
+                        mob.getPersistentDataContainer().remove(INK_DEBUFF);
+                    };
+
                     SoulSnatcher.getPlugin().registerDelayedTask(() -> {
-                        mob.getScheduler().run(SoulSnatcher.getPlugin(), _ -> {
-                            if (mob.isDead()) return;
-
-                            if (!mob.getPersistentDataContainer().getOrDefault(INK_DEBUFF, PersistentDataType.STRING, "")
-                                    .equals(carrier.getUniqueId().toString())) return;
-
-                            if (followRange != null) followRange.removeModifier(INK_DEBUFF);
-                            if (movSpeed != null) movSpeed.removeModifier(INK_DEBUFF);
-
-                            mob.getPersistentDataContainer().remove(INK_DEBUFF);
-                        }, null);
+                        if (Bukkit.isStopping())
+                            clearInkEffect.run();
+                        else
+                            mob.getScheduler().run(SoulSnatcher.getPlugin(), _ -> clearInkEffect.run(), null);
                     }, soulType().inkDuration.cached());
                 }
             });

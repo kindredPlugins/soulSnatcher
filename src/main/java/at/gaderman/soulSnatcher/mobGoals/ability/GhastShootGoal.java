@@ -57,6 +57,7 @@ public class GhastShootGoal extends SoulAbilityGoal {
         fireball = mob.getWorld().spawn(fireballSource, ItemDisplay.class, display -> {
             display.setItemStack(ItemStack.of(Material.FIRE_CHARGE));
             display.setBillboard(Display.Billboard.FIXED);
+            display.setPersistent(false);
 
             display.setTransformation(
                     new Transformation(
@@ -69,7 +70,7 @@ public class GhastShootGoal extends SoulAbilityGoal {
         });
         mob.addPassenger(fireball);
 
-        SoulSnatcher.getPlugin().registerDelayedTask(fireball::remove, 2 * PREPARE_TILL_SHOOT + 1);
+        fireball.getScheduler().execute(SoulSnatcher.getPlugin(), fireball::remove, null, 2 * PREPARE_TILL_SHOOT + 1);
     }
 
     @Override

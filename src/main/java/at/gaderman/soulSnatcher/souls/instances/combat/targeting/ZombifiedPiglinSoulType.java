@@ -162,7 +162,7 @@ public class ZombifiedPiglinSoulType extends ConfigHoldingSoulType {
                     }
 
                     Vector direction = marked.getLocation().getDirection().setY(0);
-                    markDisplay.teleport(marked.getLocation()
+                    markDisplay.teleportAsync(marked.getLocation()
                             .setDirection(direction)
                             .add(0, marked.getEyeHeight() + 0.5, 0));
 

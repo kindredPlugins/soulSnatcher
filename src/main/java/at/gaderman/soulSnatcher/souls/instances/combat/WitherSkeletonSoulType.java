@@ -103,7 +103,7 @@ public class WitherSkeletonSoulType extends ConfigHoldingSoulType {
         public void onDamageDealt(LivingEntity carrier, LivingEntity target, EntityDamageByEntityEvent event) {
             if (carrier instanceof Player && !(event.getDamager() instanceof Player)) return;
 
-            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, soulType().witherDuration.cached(), soulType().witherAmplifier.cached(), true, true, true));
+            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, soulType().witherDuration.cached(), soulType().witherAmplifier.cached(), false, true, true));
         }
     }
 }
