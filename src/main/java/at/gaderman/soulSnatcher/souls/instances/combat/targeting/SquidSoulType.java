@@ -120,7 +120,7 @@ public class SquidSoulType extends ConfigHoldingSoulType {
             carrier.getWorld().getNearbyLivingEntities(carrier.getLocation(), 5).forEach(target -> {
                 if (!combatTargets.contains(target)) return;
 
-                target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, soulType().inkDuration.cached(), 0, true));
+                target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, soulType().inkDuration.cached(), 0, false, false));
 
                 AtomicInteger ticks = new AtomicInteger();
                 target.getScheduler().runAtFixedRate(SoulSnatcher.getPlugin(), task -> {

@@ -82,20 +82,17 @@ public class CowSoulType extends ConfigHoldingSoulType {
     public static class CowSoulInstance extends SoulInstance<CowSoulType> implements OnEntityPotionEffectTrigger {
         protected CowSoulInstance(LivingEntity carrier, CowSoulType soulType) {
             super(carrier, soulType);
+
+            if (carrier.getActivePotionEffects().stream().anyMatch(effect -> effect.getType().getEffectCategory() == PotionEffectType.Category.HARMFUL))
+                applyMilk(carrier);
         }
 
         private boolean milkInProcess;
 
-        @Override
-        public void onEntityPotionEffect(LivingEntity carrier, EntityPotionEffectEvent event) {
-            if (event.getNewEffect() == null) return;
-            if (milkInProcess || event.getNewEffect().getType().getEffectCategory() != PotionEffectType.Category.HARMFUL)
-                return;
-
+        private void applyMilk(LivingEntity carrier) {
             milkInProcess = true;
             carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_WANDERING_TRADER_DRINK_MILK, 1f, 1f);
 
-            //TODO: disconnecting while milk stops task, maybe also on application?
             SoulSnatcher.getPlugin().registerDelayedTask(() -> {
                 milkInProcess = false;
 
@@ -113,6 +110,15 @@ public class CowSoulType extends ConfigHoldingSoulType {
                 carrier.getWorld().spawnParticle(Particle.END_ROD, carrier.getLocation().add(0, 1, 0), 30, 0.2, 0.2, 0.2, 0.1);
                 carrier.getWorld().playSound(carrier.getLocation(), Sound.ENTITY_SPLASH_POTION_THROW, 1f, 2f);
             }, soulType().milkDelayTicks.cached());
+        }
+
+        @Override
+        public void onEntityPotionEffect(LivingEntity carrier, EntityPotionEffectEvent event) {
+            if (event.getNewEffect() == null) return;
+            if (milkInProcess || event.getNewEffect().getType().getEffectCategory() != PotionEffectType.Category.HARMFUL)
+                return;
+
+            applyMilk(carrier);
         }
     }
 }
