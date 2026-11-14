@@ -103,6 +103,9 @@ public class EvokerSoulType extends ConfigHoldingSoulType {
                 return;
             }
 
+            //overrides TargetTracker!!!
+            addCombatTarget(target);
+
             if(lastFangAttack > System.currentTimeMillis() - soulType().fangsCooldown.cached())
                 return;
 

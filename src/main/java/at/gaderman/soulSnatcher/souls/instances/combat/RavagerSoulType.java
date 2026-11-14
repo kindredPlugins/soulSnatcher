@@ -74,7 +74,7 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
     private static final String SHOUT_STRENGTH_CONFIG_ID = "shout_strength";
     private static final String SHOUT_RADIUS_CONFIG_ID = "shout_radius";
 
-    private final ConfigOption<Integer> shoutCooldown = configOption(SHOUT_COOLDOWN_CONFIG_ID, 6000, FileConfiguration::getInt, value -> Math.clamp(value, 0, 1), this::fromMillisToSeconds);
+    private final ConfigOption<Integer> shoutCooldown = configOption(SHOUT_COOLDOWN_CONFIG_ID, 6000, FileConfiguration::getInt, value -> Math.max(value, 0), this::fromMillisToSeconds);
     private final ConfigOption<Double> shoutStrength = configOption(SHOUT_STRENGTH_CONFIG_ID, 2.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
     private final ConfigOption<Double> shoutRadius = configOption(SHOUT_RADIUS_CONFIG_ID, 4.0, FileConfiguration::getDouble, value -> Math.max(value, 0));
 
@@ -100,7 +100,6 @@ public class RavagerSoulType extends ConfigHoldingSoulType {
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
         }
 
-        //TODO: cooldown system seems broken
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
             if (event.getDamageSource().isIndirect())
