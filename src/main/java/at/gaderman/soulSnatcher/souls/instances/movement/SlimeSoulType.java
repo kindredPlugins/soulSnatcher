@@ -174,5 +174,10 @@ public class SlimeSoulType extends ConfigHoldingSoulType {
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
         }
+
+        @Override
+        public int damageReceivedPriority() {
+            return OnDamageReceivedTrigger.FIRST_PRIORITY;
+        }
     }
 }

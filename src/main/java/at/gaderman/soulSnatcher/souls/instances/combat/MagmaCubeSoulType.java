@@ -124,6 +124,11 @@ public class MagmaCubeSoulType extends ConfigHoldingSoulType {
         }
 
         @Override
+        public int damageReceivedPriority() {
+            return OnDamageReceivedTrigger.FIRST_PRIORITY;
+        }
+
+        @Override
         public void onBeingTargeted(LivingEntity carrier, LivingEntity entity, EntityTargetLivingEntityEvent event) {}
 
         @Override

@@ -99,6 +99,9 @@ public class StriderSoulType extends ConfigHoldingSoulType {
                     if(input.isForward())
                         player.setVelocity(player.getVelocity().add(player.getLocation().getDirection().multiply(0.1)));
 
+                    else if(input.isBackward())
+                        player.setVelocity(player.getVelocity().add(player.getLocation().getDirection().multiply(-0.1)));
+
                     if(input.isJump())
                         player.setVelocity(player.getVelocity().add(new Vector(0, 0.35, 0)));
                 }
@@ -126,6 +129,12 @@ public class StriderSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
+        }
+
+        // runs first so other souls do not trigger on cancellation
+        @Override
+        public int damageReceivedPriority() {
+            return OnDamageReceivedTrigger.FIRST_PRIORITY;
         }
     }
 }

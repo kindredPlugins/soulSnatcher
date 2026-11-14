@@ -96,6 +96,7 @@ public class SheepSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onDamageReceived(LivingEntity carrier, EntityDamageEvent event) {
+            if (event.isCancelled()) return;
             if (lastHitAbsorb > System.currentTimeMillis() - soulType().absorbCooldown.cached()) return;
 
             lastHitAbsorb = System.currentTimeMillis();
@@ -129,6 +130,14 @@ public class SheepSoulType extends ConfigHoldingSoulType {
 
         @Override
         public void onDamageReceivedByEntity(LivingEntity carrier, LivingEntity damager, EntityDamageByEntityEvent event) {
+        }
+
+        @Override
+        protected void cleanUp() {
+            super.cleanUp();
+
+            if (recoverSignalTask != null)
+                recoverSignalTask.cancel();
         }
     }
 }

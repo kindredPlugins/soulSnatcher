@@ -23,6 +23,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class TriggerListener implements Listener {
@@ -37,6 +38,7 @@ public class TriggerListener implements Listener {
         souls.stream()
                 .filter(soul -> soul instanceof OnDamageReceivedTrigger)
                 .map(soul -> (OnDamageReceivedTrigger) soul)
+                .sorted(Comparator.comparing(OnDamageReceivedTrigger::damageReceivedPriority))
                 .forEach(trigger -> {
                     trigger.onDamageReceived(entity, event);
                 });
@@ -53,6 +55,7 @@ public class TriggerListener implements Listener {
         targetSouls.stream()
                 .filter(soul -> soul instanceof OnDamageReceivedTrigger)
                 .map(soul -> (OnDamageReceivedTrigger) soul)
+                .sorted(Comparator.comparing(OnDamageReceivedTrigger::damageReceivedPriority))
                 .forEach(trigger -> {
                     trigger.onDamageReceivedByEntity(entity, damager, event);
                 });
@@ -206,8 +209,8 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler
-    public void onProjectileExplosion(EntityExplodeEvent event){
-        if(!(event.getEntity() instanceof Projectile projectile)) return;
+    public void onProjectileExplosion(EntityExplodeEvent event) {
+        if (!(event.getEntity() instanceof Projectile projectile)) return;
         if (!(projectile.getShooter() instanceof LivingEntity entity)) return;
 
         List<SoulInstance<?>> souls = SoulType.getCarriedSouls(entity);
